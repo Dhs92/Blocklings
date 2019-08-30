@@ -1,12 +1,16 @@
 package com.blocklings;
 
 import com.blocklings.entity.EntityHelper;
+import com.blocklings.gui.GuiHandler;
+import com.blocklings.item.BlocklingsItems;
+import com.blocklings.network.NetworkHelper;
 import com.blocklings.proxy.IProxy;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
+import net.minecraftforge.fml.common.network.NetworkRegistry;
 
 @Mod(modid = Blocklings.MODID, name = Blocklings.MODNAME)
 public class Blocklings
@@ -23,7 +27,11 @@ public class Blocklings
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event)
     {
+        BlocklingsItems.init();
         EntityHelper.registerEntities();
+        NetworkHelper.registerMessages();
+
+        NetworkRegistry.INSTANCE.registerGuiHandler(Blocklings.instance, new GuiHandler());
 
         proxy.preInit(event);
     }
