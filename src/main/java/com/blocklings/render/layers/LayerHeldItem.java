@@ -26,11 +26,11 @@ public class LayerHeldItem implements LayerRenderer<EntityLivingBase>
     public void doRenderLayer(EntityLivingBase entitylivingbaseIn, float limbSwing, float speed, float time, float age, float netHeadYaw, float headPitch, float scale)
     {
         EntityBlockling blockling = (EntityBlockling) entitylivingbaseIn;
-        ItemStack itemstack = blockling.getHeldItem(EnumHand.MAIN_HAND);
-        ItemStack itemstack1 = blockling.getHeldItem(EnumHand.OFF_HAND);
+        ItemStack mainStack = blockling.getHeldItem(EnumHand.MAIN_HAND);
+        ItemStack offStack = blockling.getHeldItem(EnumHand.OFF_HAND);
 
-        if (itemstack != null) renderHeldItem(entitylivingbaseIn, itemstack, ItemCameraTransforms.TransformType.THIRD_PERSON_RIGHT_HAND, EnumHandSide.RIGHT, age, limbSwing, speed);
-        if (itemstack1 != null) renderHeldItem(entitylivingbaseIn, itemstack1, ItemCameraTransforms.TransformType.THIRD_PERSON_LEFT_HAND, EnumHandSide.LEFT, age, limbSwing, speed);
+        if (mainStack != null) renderHeldItem(entitylivingbaseIn, mainStack, ItemCameraTransforms.TransformType.THIRD_PERSON_RIGHT_HAND, EnumHandSide.RIGHT, age, limbSwing, speed);
+        if (offStack != null) renderHeldItem(entitylivingbaseIn, offStack, ItemCameraTransforms.TransformType.THIRD_PERSON_LEFT_HAND, EnumHandSide.LEFT, age, limbSwing, speed);
     }
 
     private void renderHeldItem(EntityLivingBase entity, ItemStack stack, ItemCameraTransforms.TransformType transform, EnumHandSide handSide, float age, float time, float speed)
@@ -41,24 +41,7 @@ public class LayerHeldItem implements LayerRenderer<EntityLivingBase>
         {
             GlStateManager.pushMatrix();
             boolean flag = handSide == EnumHandSide.LEFT;
-            GlStateManager.translate((float)(flag ? -1 : 1) / 2.28F, 0.65f, 0.0F);
-            GlStateManager.rotate(-146.0F, 1.0F, 0.0F, 0.0F);
-            GlStateManager.rotate(180.0F, 0.0F, 1.0F, 0.0F);
-
-            if (blockling.isSitting())
-            {
-                GlStateManager.translate(0.0f, -0.03f, -0.03F);
-                GlStateManager.rotate(8.0F, 1.0F, 0.0F, 0.0F);
-            }
-
-            // Animation
-
-            float logSpeed = (float) Math.log(speed + 1);
-            float swingHeight = 0.05f + logSpeed / 4.0f;
-            float swingSpeed = 1.2f;
-            float rot = (flipFlopper(age + time * 30.0f, swingSpeed) * (swingHeight));
-            double angle = handSide == EnumHandSide.LEFT ? rot :  -rot;
-            GlStateManager.rotate((float) Math.toDegrees(angle), 1.0F, 0.0F, 0.0F);
+            GlStateManager.translate((float)(flag ? 1 : -1) / 2.28F, 0.65f, 0.0F);
 
             GlStateManager.translate(0.0F, -0.14f, -0.31F);
             Minecraft.getMinecraft().getItemRenderer().renderItemSide(entity, stack, transform, flag);

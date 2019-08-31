@@ -2,7 +2,9 @@ package com.blocklings.gui;
 
 import com.blocklings.entity.entities.EntityBlockling;
 import com.blocklings.gui.containers.ContainerEquipmentBlockling;
+import com.blocklings.gui.containers.ContainerInventoryBlockling;
 import com.blocklings.gui.screens.GuiBlocklingEquipment;
+import com.blocklings.gui.screens.GuiBlocklingInventory;
 import com.blocklings.gui.screens.GuiBlocklingStats;
 import com.blocklings.gui.screens.GuiBlocklingTasks;
 import com.blocklings.util.Tab;
@@ -24,7 +26,7 @@ public class GuiHandler implements IGuiHandler
             EntityBlockling blockling = (EntityBlockling) entity;
 
             if (id == Tab.EQUIPMENT.ordinal()) return new ContainerEquipmentBlockling(blockling, player.inventory, blockling.getInv());
-            else if (id == Tab.INVENTORY.ordinal()) return new ContainerEquipmentBlockling(blockling, player.inventory, blockling.getInv());
+            else if (id == Tab.INVENTORY.ordinal()) return new ContainerInventoryBlockling(blockling, player.inventory, blockling.getInv());
         }
 
         return null;
@@ -42,7 +44,7 @@ public class GuiHandler implements IGuiHandler
             if (id == Tab.STATS.ordinal()) return new GuiBlocklingStats(blockling, player);
             else if (id == Tab.TASKS.ordinal()) return new GuiBlocklingTasks(blockling, player);
             else if (id == Tab.EQUIPMENT.ordinal()) return new GuiBlocklingEquipment(blockling, player);
-            else if (id == Tab.INVENTORY.ordinal()) return new GuiBlocklingStats(blockling, player);
+            else if (id == Tab.INVENTORY.ordinal()) return new GuiBlocklingInventory(blockling, player);
             else if (id == Tab.GENERAL.ordinal()) return new GuiBlocklingStats(blockling, player);
             else if (id == Tab.COMBAT.ordinal()) return new GuiBlocklingStats(blockling, player);
             else if (id == Tab.MINING.ordinal()) return new GuiBlocklingStats(blockling, player);

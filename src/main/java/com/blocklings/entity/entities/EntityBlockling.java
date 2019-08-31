@@ -1,16 +1,11 @@
 package com.blocklings.entity.entities;
 
 import com.blocklings.Blocklings;
-import com.blocklings.entity.ai.BlocklingAIFollowOwner;
-import com.blocklings.entity.ai.BlocklingAISit;
-import com.blocklings.entity.ai.BlocklingAIWander;
+import com.blocklings.entity.ai.*;
 import com.blocklings.inventory.inventories.InventoryBlockling;
 import com.blocklings.item.ItemHelper;
 import com.blocklings.network.NetworkHelper;
-import com.blocklings.network.messages.BlocklingTypeMessage;
-import com.blocklings.network.messages.CurrentGuiTabMessage;
-import com.blocklings.network.messages.OpenGuiMessage;
-import com.blocklings.network.messages.StateMessage;
+import com.blocklings.network.messages.*;
 import com.blocklings.util.*;
 import net.minecraft.entity.EntityAgeable;
 import net.minecraft.entity.SharedMonsterAttributes;
@@ -38,6 +33,8 @@ public class EntityBlockling extends EntityTameable
     /* Which gui tab is currently selected */
     private Tab currentGuiTab;
 
+    public boolean isInGui;
+
     private BlocklingType blocklingType;
 
     private State state;
@@ -47,8 +44,13 @@ public class EntityBlockling extends EntityTameable
     private BlocklingAIFollowOwner aiFollowOwner;
     private BlocklingAIWander aiWander;
 
+    private BlocklingAIMine aiMine;
+    private BlocklingAIChop aiChop;
+    private BlocklingAIFarm aiFarm;
+
     // Base stats
-    public static final double BASE_MAX_HEALTH = 10;
+    public static final double BASE_MAX_HEALTH = 10.0;
+    public static final double BASE_ARMOUR = 10.0;
     public static final double BASE_MOVEMENT_SPEED = 0.5;
     public static final double BASE_ATTACK_DAMAGE = 1.0;
 
@@ -67,7 +69,15 @@ public class EntityBlockling extends EntityTameable
         setupInventory();
 
         blocklingStats = new BlocklingStats(this);
-        blocklingStats.setScale(1.0f, false);
+        blocklingStats.setScale(0.75f, false);
+        blocklingStats.setCombatLevel(rand.nextInt(20), false);
+        blocklingStats.setMiningLevel(rand.nextInt(20), false);
+        blocklingStats.setWoodcuttingLevel(rand.nextInt(20), false);
+        blocklingStats.setFarmingLevel(rand.nextInt(20), false);
+        blocklingStats.setCombatXp(rand.nextInt(getXpUntilNextLevel(blocklingStats.getCombatLevel())), false);
+        blocklingStats.setMiningXp(rand.nextInt(getXpUntilNextLevel(blocklingStats.getMiningLevel())), false);
+        blocklingStats.setWoodcuttingXp(rand.nextInt(getXpUntilNextLevel(blocklingStats.getWoodcuttingLevel())), false);
+        blocklingStats.setFarmingXp(rand.nextInt(getXpUntilNextLevel(blocklingStats.getFarmingLevel())), false);
 
         currentGuiTab = Tab.TASKS;
         blocklingType = BlocklingType.blocklingTypes.get(new Random().nextInt(11));
@@ -82,11 +92,13 @@ public class EntityBlockling extends EntityTameable
         super.applyEntityAttributes();
 
         getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(BASE_MAX_HEALTH);
-        getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(BASE_MOVEMENT_SPEED);
+        getEntityAttribute(SharedMonsterAttributes.ARMOR).setBaseValue(BASE_ARMOUR);
         getAttributeMap().registerAttribute(SharedMonsterAttributes.ATTACK_DAMAGE);
         getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).setBaseValue(BASE_ATTACK_DAMAGE);
-    }
+        getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(BASE_MOVEMENT_SPEED);
 
+        blocklingStats.updateBlocklingTypeStats();
+    }
 
     @Override
     protected void initEntityAI()
@@ -94,9 +106,15 @@ public class EntityBlockling extends EntityTameable
         aiSit = new BlocklingAISit(this);
         aiFollowOwner = new BlocklingAIFollowOwner(this);
         aiWander = new BlocklingAIWander(this);
+        aiMine = new BlocklingAIMine(this);
+        aiChop = new BlocklingAIChop(this);
+        aiFarm = new BlocklingAIFarm(this);
 
         tasks.addTask(0, new EntityAISwimming(this));
         tasks.addTask(1, aiSit);
+        tasks.addTask(5, aiMine);
+        tasks.addTask(5, aiChop);
+        tasks.addTask(6, aiFarm);
         tasks.addTask(7, aiFollowOwner);
         tasks.addTask(8, aiWander);
         tasks.addTask(10, new EntityAIWatchClosest(this, EntityPlayer.class, 8.0F));
@@ -122,11 +140,6 @@ public class EntityBlockling extends EntityTameable
         super.onLivingUpdate();
 
         eatMaterial();
-
-        if (!world.isRemote && rand.nextInt(30) == 0)
-        {
-            playSound(SoundEvents.ENTITY_VILLAGER_AMBIENT, 1.0f, 1.7f);
-        }
     }
 
     @Override
@@ -166,7 +179,7 @@ public class EntityBlockling extends EntityTameable
             }
             else if (ItemHelper.isEquipable(item))
             {
-                if (!world.isRemote) setHeldItem(EnumHand.MAIN_HAND, stack);
+                if (!world.isRemote) setHeldItem(EnumHand.MAIN_HAND, stack.copy());
             }
             else
             {
@@ -180,7 +193,7 @@ public class EntityBlockling extends EntityTameable
         {
             if (ItemHelper.isEquipable(item))
             {
-                if (!world.isRemote) setHeldItem(EnumHand.OFF_HAND, stack);
+                if (!world.isRemote) setHeldItem(EnumHand.OFF_HAND, stack.copy());
             }
             else
             {
@@ -223,6 +236,33 @@ public class EntityBlockling extends EntityTameable
     {
         int index = hand == EnumHand.MAIN_HAND ? InventoryBlockling.MAIN_HAND_SLOT : InventoryBlockling.OFF_HAND_SLOT;
         inv.setInventorySlotContents(index, stack);
+    }
+
+    public boolean hasAxe()
+    {
+        return hasAxe(EnumHand.MAIN_HAND) || hasAxe(EnumHand.OFF_HAND);
+    }
+    public boolean hasAxe(EnumHand hand)
+    {
+        return ItemHelper.isAxe(getHeldItem(hand).getItem());
+    }
+
+    public boolean hasHoe()
+    {
+        return hasHoe(EnumHand.MAIN_HAND) || hasHoe(EnumHand.OFF_HAND);
+    }
+    public boolean hasHoe(EnumHand hand)
+    {
+        return ItemHelper.isHoe(getHeldItem(hand).getItem());
+    }
+
+    public boolean hasPickaxe()
+    {
+        return hasPickaxe(EnumHand.MAIN_HAND) || hasPickaxe(EnumHand.OFF_HAND);
+    }
+    public boolean hasPickaxe(EnumHand hand)
+    {
+        return ItemHelper.isPickaxe(getHeldItem(hand).getItem());
     }
 
     private void eatMaterial()
@@ -276,6 +316,11 @@ public class EntityBlockling extends EntityTameable
         playTameEffect(true);
         world.setEntityState(this, (byte) 7);
         setCustomNameTag(!getCustomNameTag().equals("") ? getCustomNameTag() : "Blockling");
+    }
+
+    public static int getXpUntilNextLevel(int level)
+    {
+        return (int) (Math.exp(level / 25.0) * 40) - 30;
     }
 
     public void openGui(EntityPlayer player)
@@ -347,6 +392,7 @@ public class EntityBlockling extends EntityTameable
     public void setBlocklingType(BlocklingType value, boolean sync)
     {
         blocklingType = value;
+        blocklingStats.updateBlocklingTypeStats();
         if (sync) NetworkHelper.sync(world, new BlocklingTypeMessage(blocklingType, getEntityId()));
     }
 
@@ -372,6 +418,10 @@ public class EntityBlockling extends EntityTameable
     {
         setTask(task, !blocklingTasks[task.ordinal()]);
     }
+    public void toggleTask(Task task, boolean sync)
+    {
+        setTask(task, !blocklingTasks[task.ordinal()], sync);
+    }
     public void setTask(Task task, boolean value)
     {
         setTask(task, value, true);
@@ -379,7 +429,7 @@ public class EntityBlockling extends EntityTameable
     public void setTask(Task task, boolean value, boolean sync)
     {
         blocklingTasks[task.ordinal()] = value;
-        if (sync) NetworkHelper.sync(world, new StateMessage(state, getEntityId()));
+        if (sync) NetworkHelper.sync(world, new TaskMessage(task, value, getEntityId()));
     }
 }
 

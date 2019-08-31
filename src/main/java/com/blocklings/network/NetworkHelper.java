@@ -30,6 +30,8 @@ public class NetworkHelper
         network.registerMessage(FarmingIntervalMessage.Handler.class, FarmingIntervalMessage.class, id++, Side.SERVER);
         network.registerMessage(FarmingLevelMessage.Handler.class, FarmingLevelMessage.class, id++, Side.CLIENT);
         network.registerMessage(FarmingLevelMessage.Handler.class, FarmingLevelMessage.class, id++, Side.SERVER);
+        network.registerMessage(FarmingRangeMessage.Handler.class, FarmingRangeMessage.class, id++, Side.CLIENT);
+        network.registerMessage(FarmingRangeMessage.Handler.class, FarmingRangeMessage.class, id++, Side.SERVER);
         network.registerMessage(FarmingTimerMessage.Handler.class, FarmingTimerMessage.class, id++, Side.CLIENT);
         network.registerMessage(FarmingTimerMessage.Handler.class, FarmingTimerMessage.class, id++, Side.SERVER);
         network.registerMessage(FarmingXpMessage.Handler.class, FarmingXpMessage.class, id++, Side.CLIENT);
@@ -40,6 +42,8 @@ public class NetworkHelper
         network.registerMessage(MiningIntervalMessage.Handler.class, MiningIntervalMessage.class, id++, Side.SERVER);
         network.registerMessage(MiningLevelMessage.Handler.class, MiningLevelMessage.class, id++, Side.CLIENT);
         network.registerMessage(MiningLevelMessage.Handler.class, MiningLevelMessage.class, id++, Side.SERVER);
+        network.registerMessage(MiningRangeMessage.Handler.class, MiningRangeMessage.class, id++, Side.CLIENT);
+        network.registerMessage(MiningRangeMessage.Handler.class, MiningRangeMessage.class, id++, Side.SERVER);
         network.registerMessage(MiningTimerMessage.Handler.class, MiningTimerMessage.class, id++, Side.CLIENT);
         network.registerMessage(MiningTimerMessage.Handler.class, MiningTimerMessage.class, id++, Side.SERVER);
         network.registerMessage(MiningXpMessage.Handler.class, MiningXpMessage.class, id++, Side.CLIENT);
@@ -58,6 +62,8 @@ public class NetworkHelper
         network.registerMessage(WoodcuttingIntervalMessage.Handler.class, WoodcuttingIntervalMessage.class, id++, Side.SERVER);
         network.registerMessage(WoodcuttingLevelMessage.Handler.class, WoodcuttingLevelMessage.class, id++, Side.CLIENT);
         network.registerMessage(WoodcuttingLevelMessage.Handler.class, WoodcuttingLevelMessage.class, id++, Side.SERVER);
+        network.registerMessage(WoodcuttingRangeMessage.Handler.class, WoodcuttingRangeMessage.class, id++, Side.CLIENT);
+        network.registerMessage(WoodcuttingRangeMessage.Handler.class, WoodcuttingRangeMessage.class, id++, Side.SERVER);
         network.registerMessage(WoodcuttingTimerMessage.Handler.class, WoodcuttingTimerMessage.class, id++, Side.CLIENT);
         network.registerMessage(WoodcuttingTimerMessage.Handler.class, WoodcuttingTimerMessage.class, id++, Side.SERVER);
         network.registerMessage(WoodcuttingXpMessage.Handler.class, WoodcuttingXpMessage.class, id++, Side.CLIENT);

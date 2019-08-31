@@ -118,13 +118,26 @@ public class GuiBlocklingTasks extends GuiBlocklingTabbed
         State hoveredState = getHoveredState(mouseX, mouseY);
         if (hoveredState != null)
         {
-            blockling.setState(hoveredState);
+            blockling.setState(hoveredState, false);
         }
 
         Task hoveredTask = getHoveredTask(mouseX, mouseY);
         if (hoveredTask != null)
         {
-            blockling.toggleTask(hoveredTask);
+            blockling.toggleTask(hoveredTask, false);
+        }
+    }
+
+    @Override
+    public void onGuiClosed()
+    {
+        super.onGuiClosed();
+
+        // Only change states on the server when we leave the GUI
+        blockling.setState(blockling.getState(), true);
+        for (Task task : Task.values())
+        {
+            blockling.setTask(task, blockling.isTaskActive(task), true);
         }
     }
 

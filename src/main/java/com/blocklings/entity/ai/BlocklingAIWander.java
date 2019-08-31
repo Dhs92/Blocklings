@@ -2,7 +2,6 @@ package com.blocklings.entity.ai;
 
 import com.blocklings.entity.entities.EntityBlockling;
 import com.blocklings.util.State;
-import net.minecraft.entity.ai.EntityAIFollowOwner;
 import net.minecraft.entity.ai.EntityAIWander;
 
 public class BlocklingAIWander extends EntityAIWander
@@ -11,8 +10,9 @@ public class BlocklingAIWander extends EntityAIWander
 
     public BlocklingAIWander(EntityBlockling blockling)
     {
-        super(blockling, 1.0, 10);
+        super(blockling, 0.5, 30);
         this.blockling = blockling;
+        setMutexBits(3);
     }
 
     @Override

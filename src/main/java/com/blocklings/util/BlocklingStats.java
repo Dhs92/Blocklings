@@ -3,6 +3,10 @@ package com.blocklings.util;
 import com.blocklings.entity.entities.EntityBlockling;
 import com.blocklings.network.NetworkHelper;
 import com.blocklings.network.messages.*;
+import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.ai.attributes.AttributeModifier;
+
+import java.util.UUID;
 
 public class BlocklingStats
 {
@@ -14,15 +18,66 @@ public class BlocklingStats
     private int combatXp = 0, miningXp = 0, woodcuttingXp = 0, farmingXp = 0;
     private int combatInterval = 10, miningInterval = 20, woodcuttingInterval = 20, farmingInterval = 20;
     private int combatTimer = 20, miningTimer = 20, woodcuttingTimer = 20, farmingTimer = 20;
+    private double miningRange = 2, woodcuttingRange = 2, farmingRange = 2;
+    private double miningRangeSq = 4, woodcuttingRangeSq = 4, farmingRangeSq = 4;
 
     private EntityBlockling blockling;
+
+    private UUID typeBonusHealthUUID;
+    private UUID typeBonusAttackDamageUUID;
+    private UUID typeBonusMovementSpeedUUID;
 
     public BlocklingStats(EntityBlockling blockling)
     {
         this.blockling = blockling;
+
+        typeBonusHealthUUID = UUID.randomUUID();
+        typeBonusAttackDamageUUID = UUID.randomUUID();
+        typeBonusMovementSpeedUUID = UUID.randomUUID();
     }
 
-    
+    public void updateBlocklingTypeStats()
+    {
+        BlocklingType blocklingType = blockling.getBlocklingType();
+
+        AttributeModifier typeBonusHealth = new AttributeModifier(typeBonusHealthUUID, "type_bonus_health", blocklingType.bonusHealth, 0);
+        AttributeModifier typeBonusAttackDamage = new AttributeModifier(typeBonusAttackDamageUUID, "type_bonus_attack_damage", blocklingType.bonusAttackDamage, 0);
+        AttributeModifier typeBonusMovementSpeed = new AttributeModifier(typeBonusMovementSpeedUUID, "type_bonus_movements_peed", blocklingType.bonusMovementSpeed / 40.0, 0);
+
+        if (blockling.getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE) != null)
+        {
+            blockling.getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).removeModifier(typeBonusHealth);
+            blockling.getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).removeModifier(typeBonusAttackDamage);
+            blockling.getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).removeModifier(typeBonusMovementSpeed);
+
+            blockling.getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).applyModifier(typeBonusHealth);
+            blockling.getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).applyModifier(typeBonusAttackDamage);
+            blockling.getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).applyModifier(typeBonusMovementSpeed);
+        }
+
+        updateHealth();
+    }
+
+    public void updateHealth()
+    {
+        if (blockling.getHealth() > blockling.getMaxHealth())
+        {
+            blockling.setHealth(blockling.getMaxHealth());
+        }
+    }
+
+    public double getArmour()
+    {
+        return blockling.getEntityAttribute(SharedMonsterAttributes.ARMOR).getAttributeValue();
+    }
+    public double getAttackDamage()
+    {
+        return blockling.getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).getAttributeValue();
+    }
+    public double getMovementSpeed()
+    {
+        return blockling.getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).getAttributeValue();
+    }
 
     public float getScale()
     {
@@ -342,5 +397,62 @@ public class BlocklingStats
     {
         farmingTimer = value;
         if (sync) NetworkHelper.sync(blockling.world, new FarmingTimerMessage(farmingTimer, blockling.getEntityId()));
+    }
+
+    public double getMiningRange()
+    {
+        return miningRange;
+    }
+    public double getMiningRangeSq()
+    {
+        return miningRangeSq;
+    }
+    public void setMiningRange(double value)
+    {
+        setMiningRange(value, true);
+    }
+    public void setMiningRange(double value, boolean sync)
+    {
+        miningRange = value;
+        miningRangeSq = miningRange * miningRange;
+        if (sync) NetworkHelper.sync(blockling.world, new MiningRangeMessage(miningRange, blockling.getEntityId()));
+    }
+
+    public double getWoodcuttingRange()
+    {
+        return woodcuttingRange;
+    }
+    public double getWoodcuttingRangeSq()
+    {
+        return woodcuttingRangeSq;
+    }
+    public void setWoodcuttingRange(double value)
+    {
+        setWoodcuttingRange(value, true);
+    }
+    public void setWoodcuttingRange(double value, boolean sync)
+    {
+        woodcuttingRange = value;
+        woodcuttingRangeSq = woodcuttingRange * woodcuttingRange;
+        if (sync) NetworkHelper.sync(blockling.world, new WoodcuttingRangeMessage(woodcuttingRange, blockling.getEntityId()));
+    }
+
+    public double getFarmingRange()
+    {
+        return farmingRange;
+    }
+    public double getFarmingRangeSq()
+    {
+        return farmingRangeSq;
+    }
+    public void setFarmingRange(double value)
+    {
+        setFarmingRange(value, true);
+    }
+    public void setFarmingRange(double value, boolean sync)
+    {
+        farmingRange = value;
+        farmingRangeSq = farmingRange * farmingRange;
+        if (sync) NetworkHelper.sync(blockling.world, new FarmingRangeMessage(farmingRange, blockling.getEntityId()));
     }
 }

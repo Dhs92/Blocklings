@@ -8,16 +8,18 @@ import net.minecraft.inventory.Container;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 
-public class ContainerEquipmentBlockling extends Container
+public class ContainerInventoryBlockling extends Container
 {
     private EntityBlockling blockling;
     private InventoryBlockling blocklingInv;
     private InventoryPlayer playerInv;
 
+    private int blocklingInventoryX = 36;
+    private int blocklingInventoryY = -2;
     private int playerInventoryX = 36;
     private int playerInventoryY = 74;
 
-    public ContainerEquipmentBlockling(EntityBlockling blockling, InventoryPlayer playerInv, InventoryBlockling blocklingInv)
+    public ContainerInventoryBlockling(EntityBlockling blockling, InventoryPlayer playerInv, InventoryBlockling blocklingInv)
     {
         this.blockling = blockling;
         this.blocklingInv = blocklingInv;
@@ -35,9 +37,13 @@ public class ContainerEquipmentBlockling extends Container
 
     private void bindBlocklingInventory()
     {
-        addSlotToContainer(new Slot(blocklingInv, InventoryBlockling.UPGRADE_MATERIAL_SLOT, 65, 6));
-        addSlotToContainer(new Slot(blocklingInv, InventoryBlockling.MAIN_HAND_SLOT, 47, 34));
-        addSlotToContainer(new Slot(blocklingInv, InventoryBlockling.OFF_HAND_SLOT, 83, 34));
+        for (int i = 0; i < 4; i++)
+        {
+            for (int j = 0; j < 9; j++)
+            {
+                addSlotToContainer(new Slot(blocklingInv, j + (i * 9) + 3, blocklingInventoryX + (j * 18), blocklingInventoryY + (i * 18)));
+            }
+        }
     }
 
     private void bindPlayerInventory()
@@ -67,43 +73,32 @@ public class ContainerEquipmentBlockling extends Container
             ItemStack itemStack = slot.getStack();
             stack = itemStack.copy();
 
-            if (slotIndex == InventoryBlockling.UPGRADE_MATERIAL_SLOT || slotIndex == InventoryBlockling.MAIN_HAND_SLOT || slotIndex == InventoryBlockling.OFF_HAND_SLOT)
+            if (slotIndex >= 36)
             {
-                if (!this.mergeItemStack(itemStack, 3, 39, true))
+                int unlockedSlots = 36;
+                int u = unlockedSlots / 12;
+
+                if (!this.mergeItemStack(itemStack, 0, 3 * u, false))
                 {
-                    return ItemStack.EMPTY;
+                    if (!this.mergeItemStack(itemStack, 9, 12 * u, false))
+                    {
+                        if (!this.mergeItemStack(itemStack, 18, 21 * u, false))
+                        {
+                            if (!this.mergeItemStack(itemStack, 27, 30 * u, false))
+                            {
+                                return ItemStack.EMPTY;
+                            }
+                        }
+                    }
                 }
             }
             else
             {
-//                if (ItemHelper.isUpgradeMaterial(itemStack))
-//                {
-//                    int stackSize = itemStack.getCount();
-//                    itemStack.setCount(1);
-//
-//                    if (!this.mergeItemStack(itemStack, InventoryBlockling.UPGRADE_MATERIAL_SLOT, InventoryBlockling.UPGRADE_MATERIAL_SLOT + 1, false))
-//                    {
-//                        itemStack.setCount(stackSize);
-//                        return ItemStack.EMPTY;
-//                    }
-//                    else
-//                    {
-//                        itemStack.setCount(stackSize - 1);
-//                        return ItemStack.EMPTY;
-//                    }
-//                }
-//                else
-                if (!this.mergeItemStack(itemStack, 0, 3, false))
+                if (!this.mergeItemStack(itemStack, 36, 72, false))
                 {
                     return ItemStack.EMPTY;
                 }
             }
-        }
-
-        if (!blockling.world.isRemote)
-        {
-            ItemStack slotStack = slot.getStack();
-            slot.inventory.setInventorySlotContents(slot.getSlotIndex(), slotStack);
         }
 
         return stack;

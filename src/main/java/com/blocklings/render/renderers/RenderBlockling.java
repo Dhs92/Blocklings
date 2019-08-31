@@ -63,7 +63,7 @@ public class RenderBlockling extends RenderLiving<EntityBlockling>
     @Override
     protected void renderLivingLabel(EntityBlockling blockling, String label, double x, double y, double z, int maxDistance)
     {
-        super.renderLivingLabel(blockling, label, x, y, z, maxDistance);
+        if (!blockling.isInGui) super.renderLivingLabel(blockling, label, x, y, z, maxDistance);
     }
 
     @Override
