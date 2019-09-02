@@ -149,7 +149,7 @@ public class BlocklingAIMine extends BlocklingAIGather
         }
 
         world.destroyBlock(blockPos, false);
-        addDropsToInventoryOrWorld(BlockHelper.getDrops(world, blockPos, blockState, mainStack, offStack));
+        addDropsToInventoryOrWorld(BlockHelper.getDrops(world, blockPos, blockState, mainStack, offStack), blockPos);
     }
 
     private boolean findVeinStart()

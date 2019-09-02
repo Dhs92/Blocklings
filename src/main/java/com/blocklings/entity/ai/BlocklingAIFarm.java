@@ -6,8 +6,14 @@ import com.blocklings.util.Task;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockCrops;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.pathfinding.Path;
 import net.minecraft.util.math.BlockPos;
+import net.minecraftforge.fml.relauncher.ReflectionHelper;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 public class BlocklingAIFarm extends BlocklingAIGather
 {
@@ -71,8 +77,7 @@ public class BlocklingAIFarm extends BlocklingAIGather
             }
             else if (AIHelper.distanceSqTo(blockling, targetPos) < blockling.getBlocklingStats().getFarmingRangeSq() + 1)
             {
-                world.destroyBlock(targetPos, false);
-                world.setBlockState(targetPos, targetCrop.getDefaultState());
+                farmBlock();
                 resetTask();
                 repathTimer = repathMaxTimer;
                 return;
@@ -108,6 +113,54 @@ public class BlocklingAIFarm extends BlocklingAIGather
         }
 
         super.updateTask();
+    }
+
+    private void farmBlock()
+    {
+        IBlockState blockState = world.getBlockState(targetPos);
+
+        ItemStack mainStack = blockling.getHeldItemMainhand();
+        ItemStack offStack = blockling.getHeldItemOffhand();
+
+        boolean canMainHarvest = mainStack.canHarvestBlock(blockState);
+        boolean canOffHarvest = offStack.canHarvestBlock(blockState);
+
+        if (!canMainHarvest)
+        {
+            mainStack = ItemStack.EMPTY;
+        }
+        if (!canOffHarvest)
+        {
+            offStack = ItemStack.EMPTY;
+        }
+
+        addDropsToInventoryOrWorld(BlockHelper.getDrops(world, targetPos, blockState, mainStack, offStack), targetPos);
+
+        ItemStack seedStack = ItemStack.EMPTY;
+        try
+        {
+            Method getSeed = ReflectionHelper.findMethod(targetCrop.getClass(), "getSeed", null, null);
+            getSeed.setAccessible(true);
+            Item seedItem = (Item)getSeed.invoke(targetCrop);
+            seedStack = new ItemStack(seedItem);
+        }
+        catch (IllegalAccessException e)
+        {
+            e.printStackTrace();
+        }
+        catch (InvocationTargetException e)
+        {
+            e.printStackTrace();
+        }
+
+        if (blockling.getInv().takeStackFromInventory(seedStack))
+        {
+            world.setBlockState(targetPos, targetCrop.getDefaultState());
+        }
+        else
+        {
+            world.destroyBlock(targetPos, false);
+        }
     }
 
     private boolean findCrop()

@@ -1,6 +1,5 @@
-package com.blocklings.util;
+package com.blocklings.entity.entities;
 
-import com.blocklings.entity.entities.EntityBlockling;
 import com.blocklings.network.NetworkHelper;
 import com.blocklings.network.messages.*;
 import net.minecraft.entity.SharedMonsterAttributes;

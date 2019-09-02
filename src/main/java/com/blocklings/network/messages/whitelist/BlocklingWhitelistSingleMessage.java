@@ -1,48 +1,55 @@
-package com.blocklings.network.messages;
+package com.blocklings.network.messages.whitelist;
 
 import com.blocklings.Blocklings;
 import com.blocklings.entity.entities.EntityBlockling;
-import com.blocklings.util.Task;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.fml.common.network.ByteBufUtils;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 
-public class TaskMessage implements IMessage
+import java.util.UUID;
+
+public class BlocklingWhitelistSingleMessage implements IMessage
 {
-    Task task;
+    UUID id;
+    ResourceLocation entityResource;
     boolean value;
     int entityId;
 
-    public TaskMessage()
+    public BlocklingWhitelistSingleMessage()
     {
     }
 
-    public TaskMessage(Task task, boolean value, int entityID)
+    public BlocklingWhitelistSingleMessage(UUID id, ResourceLocation entityResource, boolean value, int entityID)
     {
-        this.task = task;
+        this.id = id;
+        this.entityResource = entityResource;
         this.value = value;
         this.entityId = entityID;
     }
 
     public void fromBytes(ByteBuf buf)
     {
-        this.task = Task.values()[buf.readInt()];
+        this.id = UUID.fromString(ByteBufUtils.readUTF8String(buf));
+        this.entityResource = new ResourceLocation(ByteBufUtils.readUTF8String(buf));
         this.value = buf.readBoolean();
         this.entityId = buf.readInt();
     }
 
     public void toBytes(ByteBuf buf)
     {
-        buf.writeInt(this.task.ordinal());
+        ByteBufUtils.writeUTF8String(buf, this.id.toString());
+        ByteBufUtils.writeUTF8String(buf, this.entityResource.toString());
         buf.writeBoolean(this.value);
         buf.writeInt(this.entityId);
     }
 
-    public static class Handler implements net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler<TaskMessage, IMessage>
+    public static class Handler implements net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler<BlocklingWhitelistSingleMessage, IMessage>
     {
-        public IMessage onMessage(TaskMessage msg, MessageContext ctx)
+        public IMessage onMessage(BlocklingWhitelistSingleMessage msg, MessageContext ctx)
         {
             EntityPlayer player = Blocklings.proxy.getPlayer(ctx);
             if (player == null)
@@ -54,7 +61,7 @@ public class TaskMessage implements IMessage
             if (entity instanceof EntityBlockling)
             {
                 EntityBlockling blockling = (EntityBlockling) entity;
-                blockling.setTask(msg.task, msg.value, ctx.side.isServer());
+                blockling.setWhitelistEntry(msg.id, msg.entityResource, msg.value, ctx.side.isServer());
             }
 
             return null;

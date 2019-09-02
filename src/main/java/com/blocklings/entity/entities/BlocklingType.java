@@ -1,6 +1,7 @@
-package com.blocklings.util;
+package com.blocklings.entity.entities;
 
 import com.blocklings.item.BlocklingsItems;
+import com.blocklings.util.ResourceLocationBlocklings;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;

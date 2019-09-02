@@ -2,7 +2,6 @@ package com.blocklings.network.messages;
 
 import com.blocklings.Blocklings;
 import com.blocklings.entity.entities.EntityBlockling;
-import com.blocklings.util.Tab;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
@@ -11,24 +10,28 @@ import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 
 public class OpenGuiMessage implements IMessage
 {
+    int guiId;
     int entityId;
 
     public OpenGuiMessage()
     {
     }
 
-    public OpenGuiMessage(int entityID)
+    public OpenGuiMessage(int guiId, int entityID)
     {
+        this.guiId = guiId;
         this.entityId = entityID;
     }
 
     public void fromBytes(ByteBuf buf)
     {
+        this.guiId = buf.readInt();
         this.entityId = buf.readInt();
     }
 
     public void toBytes(ByteBuf buf)
     {
+        buf.writeInt(this.guiId);
         buf.writeInt(this.entityId);
     }
 
@@ -46,7 +49,7 @@ public class OpenGuiMessage implements IMessage
             if (entity instanceof EntityBlockling)
             {
                 EntityBlockling blockling = (EntityBlockling) entity;
-                blockling.openGui(player, ctx.side.isServer());
+                blockling.openGui(player, msg.guiId, ctx.side.isServer());
             }
 
             return null;

@@ -1,10 +1,10 @@
-package com.blocklings.gui.screens;
+package com.blocklings.gui.screens.blockling;
 
 import com.blocklings.entity.entities.EntityBlockling;
+import com.blocklings.gui.GuiHelper;
 import com.blocklings.util.GuiTextFieldCentered;
 import com.blocklings.util.ResourceLocationBlocklings;
 import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.ResourceLocation;
 
@@ -52,7 +52,7 @@ public class GuiBlocklingStats extends GuiBlocklingTabbed
     public void drawScreen(int mouseX, int mouseY, float partialTicks)
     {
         mc.getTextureManager().bindTexture(STATS);
-        drawTexturedModalRect(left + ((UI_WIDTH - SCREEN_TEXTURE_WIDTH) / 2), top, 0, 0, SCREEN_TEXTURE_WIDTH, SCREEN_TEXTURE_HEIGHT);
+        drawTexturedModalRect(uiStartX + ((UI_WIDTH - MAIN_TEXTURE_WIDTH) / 2), uiStartY, 0, 0, MAIN_TEXTURE_WIDTH, MAIN_TEXTURE_HEIGHT);
 
         drawIcons();
         drawXpBars();
@@ -61,7 +61,7 @@ public class GuiBlocklingStats extends GuiBlocklingTabbed
         GlStateManager.color(1.0f, 1.0f, 1.0f);
         nameTextField.drawTextBox();
 
-        drawEntityOnScreen(centerX, centerY - 6, 34, centerX - mouseX, centerY - mouseY - 12, blockling);
+        GuiHelper.drawEntityOnScreen(centerX, centerY - 6, 34, centerX - mouseX, centerY - mouseY - 12, blockling);
 
         super.drawScreen(mouseX, mouseY, partialTicks);
     }
@@ -157,14 +157,14 @@ public class GuiBlocklingStats extends GuiBlocklingTabbed
         int startY = 90;
         int gapY = 5;
 
-        if (xTex == 0 && yTex == 0) return top + startY;
-        else if (xTex == 1 && yTex == 0) return top + startY + (gapY + ICON_SIZE);
-        else if (xTex == 2 && yTex == 0) return top + startY + (gapY + ICON_SIZE) * 2;
-        else if (xTex == 3 && yTex == 0) return top + startY + (gapY + ICON_SIZE) * 3;
-        else if (xTex == 0 && yTex == 1) return top + offsetY;
-        else if (xTex == 1 && yTex == 1) return top + offsetY + 22;
-        else if (xTex == 2 && yTex == 1) return top + offsetY;
-        else if (xTex == 3 && yTex == 1) return top + offsetY + 22;
+        if (xTex == 0 && yTex == 0) return uiStartY + startY;
+        else if (xTex == 1 && yTex == 0) return uiStartY + startY + (gapY + ICON_SIZE);
+        else if (xTex == 2 && yTex == 0) return uiStartY + startY + (gapY + ICON_SIZE) * 2;
+        else if (xTex == 3 && yTex == 0) return uiStartY + startY + (gapY + ICON_SIZE) * 3;
+        else if (xTex == 0 && yTex == 1) return uiStartY + offsetY;
+        else if (xTex == 1 && yTex == 1) return uiStartY + offsetY + 22;
+        else if (xTex == 2 && yTex == 1) return uiStartY + offsetY;
+        else if (xTex == 3 && yTex == 1) return uiStartY + offsetY + 22;
 
         return -1;
     }

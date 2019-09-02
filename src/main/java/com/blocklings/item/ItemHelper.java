@@ -1,6 +1,6 @@
 package com.blocklings.item;
 
-import com.blocklings.util.BlocklingType;
+import com.blocklings.entity.entities.BlocklingType;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;

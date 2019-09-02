@@ -2,7 +2,7 @@ package com.blocklings.item;
 
 import com.blocklings.Blocklings;
 import com.blocklings.item.items.ItemBlockling;
-import com.blocklings.util.BlocklingType;
+import com.blocklings.entity.entities.BlocklingType;
 import net.minecraft.client.renderer.ItemMeshDefinition;
 import net.minecraft.client.renderer.block.model.ModelBakery;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;

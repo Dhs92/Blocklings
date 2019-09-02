@@ -8,6 +8,9 @@ public class BlocklingAIFollowOwner extends EntityAIFollowOwner
 {
     private EntityBlockling blockling;
 
+    private int followTimer = 0;
+    private int followTimerMax = 20;
+
     public BlocklingAIFollowOwner(EntityBlockling blockling)
     {
         super(blockling, 1.0, 2.0f, 2.0f);
@@ -18,11 +21,15 @@ public class BlocklingAIFollowOwner extends EntityAIFollowOwner
     @Override
     public boolean shouldExecute()
     {
-        if (blockling.getState() != State.FOLLOW)
+        if (blockling.getState() != State.FOLLOW) return false;
+
+        if (followTimer > 5)
         {
-            return false;
+            followTimer = 0;
+            return super.shouldExecute();
         }
 
-        return super.shouldExecute();
+        followTimer++;
+        return false;
     }
 }

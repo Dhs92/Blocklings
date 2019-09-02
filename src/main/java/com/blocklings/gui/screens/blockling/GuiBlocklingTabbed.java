@@ -1,17 +1,11 @@
-package com.blocklings.gui.screens;
+package com.blocklings.gui.screens.blockling;
 
 import com.blocklings.entity.entities.EntityBlockling;
+import com.blocklings.gui.GuiHelper;
 import com.blocklings.gui.containers.ContainerBlank;
 import com.blocklings.util.ResourceLocationBlocklings;
 import com.blocklings.util.Tab;
-import com.sun.jna.platform.unix.X11;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.inventory.GuiContainer;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.OpenGlHelper;
-import net.minecraft.client.renderer.RenderHelper;
-import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
 import net.minecraft.util.ResourceLocation;
@@ -29,8 +23,8 @@ abstract public class GuiBlocklingTabbed extends GuiContainer
     protected static final int UI_HEIGHT = 166;
 
     // The width/height the center screen's texture takes up
-    protected static final int SCREEN_TEXTURE_WIDTH = 176;
-    protected static final int SCREEN_TEXTURE_HEIGHT = 166;
+    protected static final int MAIN_TEXTURE_WIDTH = 176;
+    protected static final int MAIN_TEXTURE_HEIGHT = 166;
 
     // The width/height the center screen takes up
     protected static final int SCREEN_WIDTH = 160;
@@ -40,15 +34,23 @@ abstract public class GuiBlocklingTabbed extends GuiContainer
     private static final int TAB_HEIGHT = 28;
     private static final int TAB_HIGHLIGHTED_WIDTH = 32;
 
-    protected int left, top;
+    protected int uiStartX, uiStartY;
     protected int centerX, centerY;
+
+    protected int prevMouseX, prevMouseY;
+    protected boolean mouseDown = false;
+    protected int prevKeyCode;
 
     protected EntityBlockling blockling;
     protected EntityPlayer player;
 
+    protected boolean drawTabToolTips = true;
+    private boolean drawContainer = false;
+
     protected GuiBlocklingTabbed(EntityBlockling blockling, EntityPlayer player)
     {
         this(new ContainerBlank(), blockling, player);
+        drawContainer = false;
     }
 
     protected GuiBlocklingTabbed(Container container, EntityBlockling blockling, EntityPlayer player)
@@ -57,6 +59,7 @@ abstract public class GuiBlocklingTabbed extends GuiContainer
 
         this.blockling = blockling;
         this.player = player;
+        drawContainer = true;
     }
 
     @Override
@@ -67,19 +70,19 @@ abstract public class GuiBlocklingTabbed extends GuiContainer
         xSize = UI_WIDTH;
         ySize = UI_HEIGHT;
 
-        super.initGui();
-
-        left = (width - UI_WIDTH) / 2;
-        top = (height - UI_HEIGHT) / 2 + Y_OFFSET;
-
         centerX = width / 2;
-        centerY = height / 2 + Y_OFFSET;
+        centerY = height / 2 + GuiHelper.STANDARD_Y_OFFSET;
+
+        uiStartX = centerX - (MAIN_TEXTURE_WIDTH / 2) - TAB_WIDTH;
+        uiStartY = centerY - (MAIN_TEXTURE_HEIGHT / 2);
+
+        super.initGui();
     }
 
     @Override
     public void updateScreen()
     {
-
+        super.updateScreen();
     }
 
     @Override
@@ -94,21 +97,21 @@ abstract public class GuiBlocklingTabbed extends GuiContainer
             {
                 posX = tab.left ? posX : posX - 4;
                 int texturePosX = tab.left ? 64 : 96;
-                int screenPosX = posX + left;
-                drawTexturedModalRect(screenPosX, posY + top, texturePosX, posY, TAB_HIGHLIGHTED_WIDTH, TAB_HEIGHT);
+                int screenPosX = posX + uiStartX;
+                drawTexturedModalRect(screenPosX, posY + uiStartY, texturePosX, posY, TAB_HIGHLIGHTED_WIDTH, TAB_HEIGHT);
             }
             else
             {
                 int texturePosX = tab.left ? 0 : 32;
-                int screenPosX = tab.left ? posX + left + 2 : posX + left - 3;
-                drawTexturedModalRect(screenPosX, posY + top, texturePosX, posY, TAB_WIDTH, TAB_HEIGHT);
+                int screenPosX = tab.left ? posX + uiStartX + 2 : posX + uiStartX - 3;
+                drawTexturedModalRect(screenPosX, posY + uiStartY, texturePosX, posY, TAB_WIDTH, TAB_HEIGHT);
             }
         }
 
-        super.drawScreen(mouseX, mouseY, partialTicks);
+        if (drawContainer) super.drawScreen(mouseX, mouseY, partialTicks);
 
         Tab hoveredTab = getHoveredTab(mouseX, mouseY);
-        if (hoveredTab != null)
+        if (drawTabToolTips && hoveredTab != null)
         {
             drawHoveringText(hoveredTab.displayName, mouseX, mouseY);
         }
@@ -124,6 +127,8 @@ abstract public class GuiBlocklingTabbed extends GuiContainer
     protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException
     {
         super.mouseClicked(mouseX, mouseY, mouseButton);
+
+        mouseDown = true;
     }
 
     @Override
@@ -137,6 +142,16 @@ abstract public class GuiBlocklingTabbed extends GuiContainer
             blockling.setCurrentGuiTab(hoveredTab);
             blockling.openGui(player);
         }
+
+        mouseDown = false;
+    }
+
+    @Override
+    protected void keyTyped(char typedChar, int keyCode) throws IOException
+    {
+        super.keyTyped(typedChar, keyCode);
+
+        prevKeyCode = keyCode;
     }
 
     @Override
@@ -162,8 +177,8 @@ abstract public class GuiBlocklingTabbed extends GuiContainer
     {
         for (Tab tab : Tab.values())
         {
-            int posX = tab.left ? left + 7 : UI_WIDTH - TAB_WIDTH + left + 1;
-            int posY = tab.pos * 29 + top + 4;
+            int posX = tab.left ? uiStartX + 7 : UI_WIDTH - TAB_WIDTH + uiStartX + 1;
+            int posY = tab.pos * 29 + uiStartY + 4;
             if (isMouseOver(mouseX, mouseY, posX, posY, 20, 20))
             {
                 return tab;
@@ -171,49 +186,5 @@ abstract public class GuiBlocklingTabbed extends GuiContainer
         }
 
         return null;
-    }
-
-    protected static void drawEntityOnScreen(int posX, int posY, int scale, float mouseX, float mouseY, EntityBlockling ent)
-    {
-        GlStateManager.color(1.0f, 1.0f, 1.0f, 1.0f);
-        GlStateManager.enableBlend();
-        RenderHelper.disableStandardItemLighting();
-        float scale2 = ent.getBlocklingStats().getScale();
-        GlStateManager.enableColorMaterial();
-        GlStateManager.pushMatrix();
-        GlStateManager.translate((float)posX, (float)posY, 50.0F);
-        GlStateManager.scale((float)(-scale) / scale2, (float)scale / scale2, (float)scale / scale2);
-        GlStateManager.rotate(180.0F, 0.0F, 0.0F, 1.0F);
-        float f = ent.renderYawOffset;
-        float f1 = ent.rotationYaw;
-        float f2 = ent.rotationPitch;
-        float f3 = ent.prevRotationYawHead;
-        float f4 = ent.rotationYawHead;
-        GlStateManager.rotate(135.0F, 0.0F, 1.0F, 0.0F);
-        RenderHelper.enableStandardItemLighting();
-        GlStateManager.rotate(-135.0F, 0.0F, 1.0F, 0.0F);
-        GlStateManager.rotate(-((float)Math.atan((double)(mouseY / 40.0F))) * 20.0F, 1.0F, 0.0F, 0.0F);
-        ent.renderYawOffset = (float)Math.atan((double)(mouseX / 40.0F)) * 20.0F;
-        ent.rotationYaw = (float)Math.atan((double)(mouseX / 40.0F)) * 40.0F;
-        ent.rotationPitch = -((float)Math.atan((double)(mouseY / 40.0F))) * 20.0F;
-        ent.rotationYawHead = ent.rotationYaw;
-        ent.prevRotationYawHead = ent.rotationYaw;
-        GlStateManager.translate(0.0F, 0.0F, 0.0F);
-        RenderManager rendermanager = Minecraft.getMinecraft().getRenderManager();
-        rendermanager.setPlayerViewY(180.0F);
-        rendermanager.setRenderShadow(false);
-        rendermanager.renderEntity(ent, 0.0D, 0.0D, 0.0D, 0.0F, 1.0F, false);
-        rendermanager.setRenderShadow(true);
-        ent.renderYawOffset = f;
-        ent.rotationYaw = f1;
-        ent.rotationPitch = f2;
-        ent.prevRotationYawHead = f3;
-        ent.rotationYawHead = f4;
-        GlStateManager.popMatrix();
-        RenderHelper.disableStandardItemLighting();
-        GlStateManager.disableRescaleNormal();
-        GlStateManager.setActiveTexture(OpenGlHelper.lightmapTexUnit);
-        GlStateManager.disableTexture2D();
-        GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
     }
 }

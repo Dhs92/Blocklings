@@ -1,4 +1,4 @@
-package com.blocklings.gui.screens;
+package com.blocklings.gui.screens.blockling;
 
 import com.blocklings.entity.entities.EntityBlockling;
 import com.blocklings.gui.containers.ContainerInventoryBlockling;
@@ -25,9 +25,10 @@ public class GuiBlocklingInventory extends GuiBlocklingTabbed
     public void drawScreen(int mouseX, int mouseY, float partialTicks)
     {
         mc.getTextureManager().bindTexture(INVENTORY);
-        drawTexturedModalRect(left + ((UI_WIDTH - SCREEN_TEXTURE_WIDTH) / 2), top, 0, 0, SCREEN_TEXTURE_WIDTH, SCREEN_TEXTURE_HEIGHT);
+        drawTexturedModalRect(uiStartX + ((UI_WIDTH - MAIN_TEXTURE_WIDTH) / 2), uiStartY, 0, 0, MAIN_TEXTURE_WIDTH, MAIN_TEXTURE_HEIGHT);
 
         super.drawScreen(mouseX, mouseY, partialTicks);
+        this.renderHoveredToolTip(mouseX, mouseY);
     }
 
     @Override

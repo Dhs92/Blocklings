@@ -2,44 +2,47 @@ package com.blocklings.network.messages;
 
 import com.blocklings.Blocklings;
 import com.blocklings.entity.entities.EntityBlockling;
-import com.blocklings.entity.entities.BlocklingType;
+import com.blocklings.util.Task;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraftforge.fml.common.network.ByteBufUtils;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 
-public class BlocklingTypeMessage implements IMessage
+public class TaskPriorityMessage implements IMessage
 {
-    BlocklingType value;
+    Task task;
+    int priority;
     int entityId;
 
-    public BlocklingTypeMessage()
+    public TaskPriorityMessage()
     {
     }
 
-    public BlocklingTypeMessage(BlocklingType value, int entityID)
+    public TaskPriorityMessage(Task task, int priority, int entityID)
     {
-        this.value = value;
+        this.task = task;
+        this.priority = priority;
         this.entityId = entityID;
     }
 
     public void fromBytes(ByteBuf buf)
     {
-        this.value = BlocklingType.getTypeFromTextureName(ByteBufUtils.readUTF8String(buf));
+        this.task = Task.values()[buf.readInt()];
+        this.priority = buf.readInt();
         this.entityId = buf.readInt();
     }
 
     public void toBytes(ByteBuf buf)
     {
-        ByteBufUtils.writeUTF8String(buf, this.value.textureName);
+        buf.writeInt(this.task.ordinal());
+        buf.writeInt(this.priority);
         buf.writeInt(this.entityId);
     }
 
-    public static class Handler implements net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler<BlocklingTypeMessage, IMessage>
+    public static class Handler implements net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler<TaskPriorityMessage, IMessage>
     {
-        public IMessage onMessage(BlocklingTypeMessage msg, MessageContext ctx)
+        public IMessage onMessage(TaskPriorityMessage msg, MessageContext ctx)
         {
             EntityPlayer player = Blocklings.proxy.getPlayer(ctx);
             if (player == null)
@@ -51,7 +54,7 @@ public class BlocklingTypeMessage implements IMessage
             if (entity instanceof EntityBlockling)
             {
                 EntityBlockling blockling = (EntityBlockling) entity;
-                blockling.setBlocklingType(msg.value, ctx.side.isServer());
+                blockling.setTaskPriority(msg.task, msg.priority, ctx.side.isServer());
             }
 
             return null;

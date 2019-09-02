@@ -6,6 +6,7 @@ import net.minecraft.entity.ai.EntityAIBase;
 import net.minecraft.inventory.InventoryHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.NonNullList;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 public class BlocklingAIGather extends EntityAIBase
@@ -55,7 +56,7 @@ public class BlocklingAIGather extends EntityAIBase
         return true;
     }
 
-    protected void addDropsToInventoryOrWorld(NonNullList<ItemStack> drops)
+    protected void addDropsToInventoryOrWorld(NonNullList<ItemStack> drops, BlockPos dropPos)
     {
         for (ItemStack stack : drops)
         {

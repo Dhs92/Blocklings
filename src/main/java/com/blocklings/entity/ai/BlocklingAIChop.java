@@ -5,6 +5,7 @@ import com.blocklings.entity.entities.EntityBlockling;
 import com.blocklings.util.Task;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.item.ItemStack;
 import net.minecraft.pathfinding.Path;
 import net.minecraft.util.math.BlockPos;
 
@@ -72,7 +73,7 @@ public class BlocklingAIChop extends BlocklingAIGather
             }
             else if (AIHelper.distanceSqTo(blockling, targetPos) < blockling.getBlocklingStats().getWoodcuttingRangeSq() + 1)
             {
-                world.destroyBlock((BlockPos)tree.toArray()[tree.size()-1], false);
+                chopBlock((BlockPos)tree.toArray()[tree.size()-1]);
                 tree.remove(tree.toArray()[tree.size()-1]);
                 repathTimer = repathMaxTimer;
             }
@@ -107,6 +108,29 @@ public class BlocklingAIChop extends BlocklingAIGather
         repathTimer++;
 
         super.updateTask();
+    }
+
+    private void chopBlock(BlockPos blockPos)
+    {
+        IBlockState blockState = world.getBlockState(blockPos);
+
+        ItemStack mainStack = blockling.getHeldItemMainhand();
+        ItemStack offStack = blockling.getHeldItemOffhand();
+
+        boolean canMainHarvest = mainStack.canHarvestBlock(blockState);
+        boolean canOffHarvest = offStack.canHarvestBlock(blockState);
+
+        if (!canMainHarvest)
+        {
+            mainStack = ItemStack.EMPTY;
+        }
+        if (!canOffHarvest)
+        {
+            offStack = ItemStack.EMPTY;
+        }
+
+        world.destroyBlock(blockPos, false);
+        addDropsToInventoryOrWorld(BlockHelper.getDrops(world, blockPos, blockState, mainStack, offStack), blockPos);
     }
 
     private boolean findTreeStart()

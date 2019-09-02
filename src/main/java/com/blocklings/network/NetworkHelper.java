@@ -2,6 +2,8 @@ package com.blocklings.network;
 
 import com.blocklings.Blocklings;
 import com.blocklings.network.messages.*;
+import com.blocklings.network.messages.whitelist.BlocklingWhitelistAllMessage;
+import com.blocklings.network.messages.whitelist.BlocklingWhitelistSingleMessage;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper;
@@ -14,6 +16,11 @@ public class NetworkHelper
 
     public static void registerMessages()
     {
+        network.registerMessage(BlocklingWhitelistAllMessage.Handler.class, BlocklingWhitelistAllMessage.class, id++, Side.CLIENT);
+        network.registerMessage(BlocklingWhitelistAllMessage.Handler.class, BlocklingWhitelistAllMessage.class, id++, Side.SERVER);
+        network.registerMessage(BlocklingWhitelistSingleMessage.Handler.class, BlocklingWhitelistSingleMessage.class, id++, Side.CLIENT);
+        network.registerMessage(BlocklingWhitelistSingleMessage.Handler.class, BlocklingWhitelistSingleMessage.class, id++, Side.SERVER);
+
         network.registerMessage(BlocklingTypeMessage.Handler.class, BlocklingTypeMessage.class, id++, Side.CLIENT);
         network.registerMessage(BlocklingTypeMessage.Handler.class, BlocklingTypeMessage.class, id++, Side.SERVER);
         network.registerMessage(CombatIntervalMessage.Handler.class, CombatIntervalMessage.class, id++, Side.CLIENT);
@@ -56,8 +63,10 @@ public class NetworkHelper
         network.registerMessage(SkillPointsMessage.Handler.class, SkillPointsMessage.class, id++, Side.SERVER);
         network.registerMessage(StateMessage.Handler.class, StateMessage.class, id++, Side.CLIENT);
         network.registerMessage(StateMessage.Handler.class, StateMessage.class, id++, Side.SERVER);
-        network.registerMessage(TaskMessage.Handler.class, TaskMessage.class, id++, Side.CLIENT);
-        network.registerMessage(TaskMessage.Handler.class, TaskMessage.class, id++, Side.SERVER);
+        network.registerMessage(TaskActiveMessage.Handler.class, TaskActiveMessage.class, id++, Side.CLIENT);
+        network.registerMessage(TaskActiveMessage.Handler.class, TaskActiveMessage.class, id++, Side.SERVER);
+        network.registerMessage(TaskPriorityMessage.Handler.class, TaskPriorityMessage.class, id++, Side.CLIENT);
+        network.registerMessage(TaskPriorityMessage.Handler.class, TaskPriorityMessage.class, id++, Side.SERVER);
         network.registerMessage(WoodcuttingIntervalMessage.Handler.class, WoodcuttingIntervalMessage.class, id++, Side.CLIENT);
         network.registerMessage(WoodcuttingIntervalMessage.Handler.class, WoodcuttingIntervalMessage.class, id++, Side.SERVER);
         network.registerMessage(WoodcuttingLevelMessage.Handler.class, WoodcuttingLevelMessage.class, id++, Side.CLIENT);

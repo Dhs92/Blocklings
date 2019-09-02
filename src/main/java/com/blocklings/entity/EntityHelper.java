@@ -4,8 +4,11 @@ import com.blocklings.Blocklings;
 import com.blocklings.entity.entities.EntityBlockling;
 import com.blocklings.render.renderers.RenderBlockling;
 import com.blocklings.util.ResourceLocationBlocklings;
+import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EnumCreatureType;
 import net.minecraft.init.Biomes;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.text.translation.I18n;
 import net.minecraftforge.fml.client.registry.RenderingRegistry;
 import net.minecraftforge.fml.common.registry.EntityRegistry;
 import net.minecraftforge.fml.relauncher.Side;
@@ -32,5 +35,10 @@ public class EntityHelper
     public static void registerRenderers()
     {
         RenderingRegistry.registerEntityRenderingHandler(EntityBlockling.class, RenderBlockling.FACTORY);
+    }
+
+    public static String getDisplayName(ResourceLocation entity)
+    {
+        return I18n.translateToLocal("entity." + EntityRegistry.getEntry(EntityList.getClass(entity)).getName() + ".name");
     }
 }
