@@ -24,7 +24,7 @@ public class InventoryContainer extends Container
         {
             for (int j = 0; j < 9; j++)
             {
-                addSlot(new Slot(blocklingInv, j + i * 9 + BlocklingInventory.INVENTORY_START_SLOT, playerInvX + (j * 18), playerInvY + (i * 18)));
+                addSlot(new Slot(blocklingInv, j + i * 9 + BlocklingInventory.INVENTORY_START_SLOT, playerInvX + (j * 18), -2 + (i * 18)));
             }
         }
 

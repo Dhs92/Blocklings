@@ -22,15 +22,15 @@ public class TabbedScreen extends AbstractGui
 
     public static final int LEFT_TAB_OFF_WIDTH = 26;
     public static final int RIGHT_TAB_OFF_WIDTH = 28;
-    public static final int LEFT_TAB_ON_WIDTH = 32;
-    public static final int RIGHT_TAB_ON_WIDTH = 32;
+    public static final int LEFT_TAB_ON_WIDTH = 33;
+    public static final int RIGHT_TAB_ON_WIDTH = 34;
 
     public static final int TAB_OFF_OFFSET_X = 3;
 
     public static final int LEFT_TAB_OFF_TEXTURE_X = 0;
     public static final int RIGHT_TAB_OFF_TEXTURE_X = 26;
     public static final int LEFT_TAB_ON_TEXTURE_X = 54;
-    public static final int RIGHT_TAB_ON_TEXTURE_X = 86;
+    public static final int RIGHT_TAB_ON_TEXTURE_X = 87;
 
     public static final int ICON_TEXTURE_Y = 140;
     public static final int ICON_SIZE = 22;
@@ -210,7 +210,7 @@ public class TabbedScreen extends AbstractGui
 
     private int getRightIconOnX(int i)
     {
-        return getRightTabOnX(i) + RIGHT_TAB_ON_WIDTH - ICON_SIZE - ICON_OFFSET_X - TAB_OFF_OFFSET_X;
+        return getRightTabOnX(i) + RIGHT_TAB_ON_WIDTH - ICON_SIZE - ICON_OFFSET_X - TAB_OFF_OFFSET_X - 1;
     }
     private int getRightIconOnY(int i)
     {
@@ -228,7 +228,7 @@ public class TabbedScreen extends AbstractGui
 
     private int getRightTabOnX(int i)
     {
-        return right + 1 - RIGHT_TAB_ON_WIDTH;
+        return right + 2 - RIGHT_TAB_ON_WIDTH;
     }
     private int getRightTabOnY(int i)
     {

@@ -19,7 +19,7 @@ public class EntityTypeBuilder
 
     public <T extends Entity> EntityType createEntityType(String name, EntityType.IFactory<T> factory, EntityClassification classification)
     {
-        EntityType<T> type = EntityType.Builder.create(factory, classification).setTrackingRange(64).size(1.0f, 1.0f).build(Blocklings.MODID + ":" + name);
+        EntityType<T> type = EntityType.Builder.create(factory, classification).setTrackingRange(64).size(0.9f, 0.9f).build(Blocklings.MODID + ":" + name);
         type.setRegistryName(new ResourceLocation(Blocklings.MODID, name));
 
         ENTITY_TYPES.add(type);
@@ -29,7 +29,7 @@ public class EntityTypeBuilder
 
     public <T extends Entity> EntityType createEntityType(String name, EntityType.IFactory<T> factory, EntityClassification classification, int colour1, int colour2)
     {
-        EntityType<T> type = EntityType.Builder.create(factory, classification).setTrackingRange(64).size(1.0f, 1.0f).build(Blocklings.MODID + ":" + name);
+        EntityType<T> type = EntityType.Builder.create(factory, classification).setTrackingRange(64).size(0.9f, 0.9f).build(Blocklings.MODID + ":" + name);
         type.setRegistryName(new ResourceLocation(Blocklings.MODID, name));
 
         ENTITY_TYPES.add(type);

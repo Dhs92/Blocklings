@@ -9,6 +9,8 @@ import net.minecraftforge.fml.network.NetworkRegistry;
 import net.minecraftforge.fml.network.simple.SimpleChannel;
 import willr27.blocklings.Blocklings;
 import willr27.blocklings.network.messages.CurrentGuiMessage;
+import willr27.blocklings.network.messages.GoalActiveMessage;
+import willr27.blocklings.network.messages.GoalPriorityMessage;
 import willr27.blocklings.network.messages.OpenGuiMessage;
 
 public class NetworkHandler
@@ -26,6 +28,8 @@ public class NetworkHandler
         int id = 0;
 
         HANDLER.registerMessage(id++, CurrentGuiMessage.class, CurrentGuiMessage::encode, CurrentGuiMessage::decode, CurrentGuiMessage::handle);
+        HANDLER.registerMessage(id++, GoalActiveMessage.class, GoalActiveMessage::encode, GoalActiveMessage::decode, GoalActiveMessage::handle);
+        HANDLER.registerMessage(id++, GoalPriorityMessage.class, GoalPriorityMessage::encode, GoalPriorityMessage::decode, GoalPriorityMessage::handle);
         HANDLER.registerMessage(id++, OpenGuiMessage.class, OpenGuiMessage::encode, OpenGuiMessage::decode, OpenGuiMessage::handle);
     }
 

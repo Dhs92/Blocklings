@@ -55,14 +55,19 @@ public class StatsScreen extends Screen
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int state)
     {
-        tabbedScreen.mouseReleased((int)mouseX, (int)mouseY, state);
-
         return super.mouseClicked(mouseX, mouseY, state);
     }
 
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int state)
     {
+        tabbedScreen.mouseReleased((int)mouseX, (int)mouseY, state);
         return super.mouseReleased(mouseX, mouseY, state);
+    }
+
+    @Override
+    public boolean isPauseScreen()
+    {
+        return false;
     }
 }
