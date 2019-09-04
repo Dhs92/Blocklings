@@ -1,0 +1,10 @@
+modLoader="javafml" #mandatory
+loaderVersion="[25,)" #mandatory
+credits="Me" #optional
+[[mods]] #mandatory
+modId="blocklings" #mandatory
+version="6.1.0" #mandatory
+displayName="Blocklings" #mandatory
+description='''
+DESCRIPTION
+'''
