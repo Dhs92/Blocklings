@@ -6,10 +6,9 @@ import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.pathfinding.Path;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import willr27.blocklings.block.BlockUtil;
-import willr27.blocklings.entity.BlocklingEntity;
 import willr27.blocklings.entity.ai.AIManager;
 import willr27.blocklings.entity.ai.AiUtil;
+import willr27.blocklings.entity.blockling.BlocklingEntity;
 
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -18,18 +17,18 @@ import java.util.Set;
 
 public class BlocklingMineNearbyGoal extends Goal
 {
+    public static final int ORE_WHITELIST_ID = 0;
+
     private int searchRadiusX = 20;
     private int searchRadiusY = 20;
 
     private BlocklingEntity blockling;
     private World world;
 
+    private Set<BlockPos> failedBlocks = new LinkedHashSet<>();
     private Set<BlockPos> vein = new LinkedHashSet<>();
     private BlockPos veinStartPos;
     private BlockPos targetPos;
-
-    private double range = 3;
-    private double rangeSq = 9;
 
     public BlocklingMineNearbyGoal(BlocklingEntity blockling)
     {
@@ -55,6 +54,7 @@ public class BlocklingMineNearbyGoal extends Goal
     @Override
     public boolean shouldExecute()
     {
+        if (blockling.getThousandTimer() % 80 == 0) failedBlocks.clear();
         if (!blockling.aiManager.isActive(AIManager.MINE_NEARBY_ID)) return false;
 
         if (!findVeinStart()) return false;
@@ -85,7 +85,7 @@ public class BlocklingMineNearbyGoal extends Goal
         {
             double distanceSq = blockling.getPosition().distanceSq(targetPos);
 
-            if (distanceSq < rangeSq)
+            if (distanceSq < blockling.getStats().getMiningRangeSq())
             {
                 world.destroyBlock(targetPos, false);
                 vein.remove(targetPos);
@@ -101,8 +101,14 @@ public class BlocklingMineNearbyGoal extends Goal
             BlockState targetState = world.getBlockState(targetPos);
             Block targetBlock = targetState.getBlock();
 
-            if (!BlockUtil.isOre(targetBlock))
+            if (!blockling.aiManager.getWhitelist(AIManager.MINE_NEARBY_ID, ORE_WHITELIST_ID).isWhitelisted(targetBlock))
             {
+                vein.remove(targetPos);
+                targetPos = null;
+            }
+            else if (!blockling.hasMoved())
+            {
+                failedBlocks.add(targetPos);
                 vein.remove(targetPos);
                 targetPos = null;
             }
@@ -111,66 +117,100 @@ public class BlocklingMineNearbyGoal extends Goal
 
     private void moveToTarget()
     {
-        if (targetPos == null || blockling.getNavigator().getPath() == null || !blockling.velocityChanged)
+        if (targetPos == null || blockling.getNavigator().getPath() == null || !blockling.hasMoved())
         {
+            boolean foundTarget = false;
+
             for (BlockPos blockPos : vein)
             {
-                Path path = AiUtil.getPathTo(blockling, blockPos);
-
-                if (path != null)
+                if (AiUtil.canSeeBlock(blockling, blockPos))
                 {
-                    double distanceSq = AiUtil.distanceSqFromTarget(path, blockPos);
+                    double distanceSq = blockling.getPosition().distanceSq(blockPos);
 
-                    if (distanceSq < rangeSq)
+                    if (distanceSq < blockling.getStats().getMiningRangeSq())
                     {
                         targetPos = blockPos;
-                        blockling.getNavigator().setPath(path, 1.0);
-                        return;
+                        foundTarget = true;
+                        break;
+                    }
+
+                    Path path = AiUtil.getPathTo(blockling, blockPos, blockling.getStats().getMiningRangeSq());
+
+                    if (path != null)
+                    {
+                        distanceSq = AiUtil.distanceSqFromTarget(path, blockPos);
+
+                        if (distanceSq < blockling.getStats().getMiningRangeSq())
+                        {
+                            targetPos = blockPos;
+                            blockling.getNavigator().setPath(path, 1.0);
+                            foundTarget = true;
+                            break;
+                        }
                     }
                 }
             }
 
-            vein.clear();
+            if (!foundTarget)
+            {
+                failedBlocks.addAll(vein);
+                vein.clear();
+            }
         }
     }
 
     private boolean findVeinStart()
     {
-        int blocklingX = (int)blockling.posX;
-        int blocklingY = (int)blockling.posY;
-        int blocklingZ = (int)blockling.posZ;
+        int blocklingX = (int)Math.floor(blockling.posX);
+        int blocklingY = (int)Math.floor(blockling.posY);
+        int blocklingZ = (int)Math.floor(blockling.posZ);
 
         int startX = blocklingX - searchRadiusX;
         int startY = blocklingY + searchRadiusY;
         int startZ = blocklingZ - searchRadiusX;
 
-        int endX = blocklingX + searchRadiusX;
-        int endY = blocklingY - searchRadiusY;
-        int endZ = blocklingZ + searchRadiusX;
+        int endX = blocklingX + searchRadiusX + 1;
+        int endY = blocklingY - searchRadiusY - 1;
+        int endZ = blocklingZ + searchRadiusX + 1;
 
-        BlockPos.MutableBlockPos testPos = new BlockPos.MutableBlockPos();
         for (int y = startY; y > endY; y--)
         {
             for (int x = startX; x < endX; x++)
             {
                 for (int z = startZ; z < endZ; z++)
                 {
-                    testPos.setPos(x, y, z);
+                    BlockPos testPos = new BlockPos(x, y, z);
                     BlockState testState = world.getBlockState(testPos);
                     Block testBlock = testState.getBlock();
 
-                    if (BlockUtil.isOre(testBlock))
+                    if (failedBlocks.contains(testPos))
                     {
-                        Path testPath = AiUtil.getPathTo(blockling, testPos);
+                        continue;
+                    }
 
-                        if (testPath != null)
+                    if (blockling.aiManager.getWhitelist(AIManager.MINE_NEARBY_ID, ORE_WHITELIST_ID).isWhitelisted(testBlock))
+                    {
+                        if (AiUtil.canSeeBlock(blockling, testPos))
                         {
-                            double distanceSq = AiUtil.distanceSqFromTarget(testPath, testPos);
+                            double distanceSq = blockling.getPosition().distanceSq(testPos);
 
-                            if (distanceSq < rangeSq)
+                            if (distanceSq < blockling.getStats().getMiningRangeSq())
                             {
                                 veinStartPos = testPos;
                                 return true;
+                            }
+
+                            Path testPath = AiUtil.getPathTo(blockling, testPos, blockling.getStats().getMiningRangeSq());
+
+                            if (testPath != null)
+                            {
+                                distanceSq = AiUtil.distanceSqFromTarget(testPath, testPos);
+
+                                if (distanceSq < blockling.getStats().getMiningRangeSq())
+                                {
+                                    veinStartPos = testPos;
+                                    return true;
+                                }
                             }
                         }
                     }
@@ -218,7 +258,7 @@ public class BlocklingMineNearbyGoal extends Goal
                             continue;
                         }
 
-                        if (BlockUtil.isOre(surroundingBlock))
+                        if (blockling.aiManager.getWhitelist(AIManager.MINE_NEARBY_ID, ORE_WHITELIST_ID).isWhitelisted(surroundingBlock))
                         {
                             positionsToTest.add(surroundingPos);
                         }

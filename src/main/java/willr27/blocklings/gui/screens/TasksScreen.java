@@ -4,7 +4,7 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.text.StringTextComponent;
-import willr27.blocklings.entity.BlocklingEntity;
+import willr27.blocklings.entity.blockling.BlocklingEntity;
 import willr27.blocklings.entity.ai.goals.GoalInfo;
 import willr27.blocklings.gui.util.GuiUtil;
 

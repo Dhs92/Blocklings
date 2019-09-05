@@ -6,7 +6,7 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.inventory.container.Container;
-import willr27.blocklings.entity.BlocklingEntity;
+import willr27.blocklings.entity.blockling.BlocklingEntity;
 import willr27.blocklings.gui.container.containers.EquipmentContainer;
 import willr27.blocklings.gui.container.containers.InventoryContainer;
 import willr27.blocklings.gui.screens.*;

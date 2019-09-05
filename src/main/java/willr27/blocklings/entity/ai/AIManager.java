@@ -1,11 +1,15 @@
 package willr27.blocklings.entity.ai;
 
-import willr27.blocklings.entity.BlocklingEntity;
+import net.minecraft.util.ResourceLocation;
+import willr27.blocklings.config.BlocklingsConfig;
 import willr27.blocklings.entity.ai.goals.*;
+import willr27.blocklings.entity.blockling.BlocklingEntity;
+import willr27.blocklings.whitelist.BlocklingWhitelist;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 public class AIManager
@@ -32,6 +36,7 @@ public class AIManager
         goals.add(new GoalInfo(this, WANDER_ID, "Wander", new BlocklingWanderGoal(blockling), 2, 2, 0));
         goals.add(new GoalInfo(this, MINE_NEARBY_ID, "Mine Nearby Ores", new BlocklingMineNearbyGoal(blockling), 3, 6, 0));
 
+        addWhitelists();
         reapplyGoals();
     }
 
@@ -132,5 +137,17 @@ public class AIManager
     private void removeTargetGoal(GoalInfo goal)
     {
         blockling.targetSelector.removeGoal(goal.goal);
+    }
+
+    private void addWhitelists()
+    {
+        BlocklingWhitelist mineNearbyWhitelist = new BlocklingWhitelist(blockling);
+        BlocklingsConfig.ORES.get().stream().forEach(s -> mineNearbyWhitelist.put(new ResourceLocation(s), new Random().nextInt(2) == 0));
+        getGoalFromId(MINE_NEARBY_ID).addWhitelist(BlocklingMineNearbyGoal.ORE_WHITELIST_ID, mineNearbyWhitelist);
+    }
+
+    public BlocklingWhitelist getWhitelist(int goalId, int whitelistId)
+    {
+        return getGoalFromId(goalId).getWhitelist(whitelistId);
     }
 }

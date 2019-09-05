@@ -3,7 +3,7 @@ package willr27.blocklings.inventory;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
-import willr27.blocklings.entity.BlocklingEntity;
+import willr27.blocklings.entity.blockling.BlocklingEntity;
 
 public class BlocklingInventory implements IInventory
 {

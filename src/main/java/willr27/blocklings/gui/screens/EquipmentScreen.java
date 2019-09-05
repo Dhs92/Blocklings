@@ -3,7 +3,7 @@ package willr27.blocklings.gui.screens;
 import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.text.StringTextComponent;
-import willr27.blocklings.entity.BlocklingEntity;
+import willr27.blocklings.entity.blockling.BlocklingEntity;
 import willr27.blocklings.gui.container.containers.EquipmentContainer;
 import willr27.blocklings.gui.util.GuiUtil;
 

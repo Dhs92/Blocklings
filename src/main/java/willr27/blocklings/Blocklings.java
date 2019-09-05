@@ -7,17 +7,21 @@ import net.minecraft.item.Item;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.client.registry.RenderingRegistry;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.InterModEnqueueEvent;
 import net.minecraftforge.fml.event.lifecycle.InterModProcessEvent;
 import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import willr27.blocklings.entity.BlocklingEntity;
+import net.minecraftforge.fml.loading.FMLPaths;
+import willr27.blocklings.config.BlocklingsConfig;
 import willr27.blocklings.entity.EntityTypeBuilder;
 import willr27.blocklings.entity.EntityTypes;
+import willr27.blocklings.entity.blockling.BlocklingEntity;
 import willr27.blocklings.gui.container.ContainerTypes;
 import willr27.blocklings.network.NetworkHandler;
 import willr27.blocklings.render.BlocklingRenderer;
@@ -39,7 +43,11 @@ public class Blocklings
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::processIMC);
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::doClientStuff);
 
-        //ScreenManager.registerFactory(null, EquipmentScreen::new);
+        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, BlocklingsConfig.CLIENT_CONFIG);
+        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, BlocklingsConfig.COMMON_CONFIG);
+
+        BlocklingsConfig.loadConfig(BlocklingsConfig.CLIENT_CONFIG, FMLPaths.CONFIGDIR.get().resolve("blocklings-client.toml"));
+        BlocklingsConfig.loadConfig(BlocklingsConfig.COMMON_CONFIG, FMLPaths.CONFIGDIR.get().resolve("blocklings-common.toml"));
 
         MinecraftForge.EVENT_BUS.register(this);
     }

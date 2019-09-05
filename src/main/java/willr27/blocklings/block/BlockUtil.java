@@ -8,7 +8,7 @@ import java.util.List;
 
 public class BlockUtil
 {
-    public static final List<Block> ORES = new ArrayList<>();
+    public static List<Block> ORES = new ArrayList<>();
     static
     {
         ORES.add(Blocks.COAL_ORE);

@@ -3,7 +3,7 @@ package willr27.blocklings.gui.screens;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.text.StringTextComponent;
-import willr27.blocklings.entity.BlocklingEntity;
+import willr27.blocklings.entity.blockling.BlocklingEntity;
 import willr27.blocklings.gui.util.GuiUtil;
 
 public class StatsScreen extends Screen

@@ -5,6 +5,10 @@ import willr27.blocklings.entity.ai.AIManager;
 import willr27.blocklings.network.NetworkHandler;
 import willr27.blocklings.network.messages.GoalActiveMessage;
 import willr27.blocklings.network.messages.GoalPriorityMessage;
+import willr27.blocklings.whitelist.BlocklingWhitelist;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class GoalInfo
 {
@@ -17,6 +21,7 @@ public class GoalInfo
     private int priority;
     private boolean unlocked;
     private boolean active;
+    private Map<Integer, BlocklingWhitelist> whitelists = new HashMap<>();
 
     public GoalInfo(AIManager aiManager, int goalId, String name, Goal goal, int priority, int iconX, int iconY)
     {
@@ -43,4 +48,9 @@ public class GoalInfo
     public boolean isActive() { return active; }
     public void toggleActive() { setActive(!active, true); }
     public void setActive(boolean value, boolean sync) { active = value; aiManager.reapplyGoals(); if (sync) NetworkHandler.sync(aiManager.blockling.world, new GoalActiveMessage(goalId, active, aiManager.blockling.getEntityId())); }
+
+    public Map<Integer, BlocklingWhitelist> getWhitelists() { return whitelists; }
+    public void addWhitelist(int id, BlocklingWhitelist whitelist) { whitelists.put(id, whitelist); }
+
+    public BlocklingWhitelist getWhitelist(int id) { return whitelists.get(id); }
 }

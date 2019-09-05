@@ -1,4 +1,4 @@
-package willr27.blocklings.entity;
+package willr27.blocklings.entity.blockling;
 
 import net.minecraft.entity.*;
 import net.minecraft.entity.passive.TameableEntity;
@@ -10,8 +10,11 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.Hand;
+import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
 import net.minecraftforge.event.ForgeEventFactory;
+import willr27.blocklings.config.BlocklingsConfig;
 import willr27.blocklings.entity.ai.AIManager;
 import willr27.blocklings.gui.container.containers.EquipmentContainer;
 import willr27.blocklings.gui.util.GuiHandler;
@@ -27,6 +30,11 @@ public class BlocklingEntity extends TameableEntity implements INamedContainerPr
 {
     public final BlocklingInventory inventory;
     public final AIManager aiManager;
+
+    private int thousandTimer;
+
+    private boolean hasMoved;
+    private Vec3d hasMovedLastPosition = new Vec3d(0, 0, 0);
 
     private BlocklingStats stats;
     private int currentGuiId;
@@ -59,6 +67,25 @@ public class BlocklingEntity extends TameableEntity implements INamedContainerPr
     public void livingTick()
     {
         super.livingTick();
+
+        checkIfMoved();
+        checkThousandTimer();
+    }
+
+    private void checkThousandTimer()
+    {
+        if (thousandTimer > 1000) thousandTimer = 0;
+        thousandTimer++;
+    }
+
+    private void checkIfMoved()
+    {
+        if (thousandTimer % 20 == 0)
+        {
+            if (hasMovedLastPosition.distanceTo(getPositionVec()) < 0.05) hasMoved = false;
+            else hasMoved = true;
+            hasMovedLastPosition = getPositionVector();
+        }
     }
 
     @Override
@@ -171,4 +198,9 @@ public class BlocklingEntity extends TameableEntity implements INamedContainerPr
     public int getCurrentGuiId() { return currentGuiId; }
     public void setCurrentGuiId(int value) { setCurrentGuiId(value, true); }
     public void setCurrentGuiId(int value, boolean sync) { currentGuiId = value; if (sync) NetworkHandler.sync(world, new CurrentGuiMessage(currentGuiId, getEntityId())); }
+
+    public BlocklingStats getStats() { return stats; }
+
+    public int getThousandTimer() { return thousandTimer; }
+    public boolean hasMoved() { return hasMoved; }
 }

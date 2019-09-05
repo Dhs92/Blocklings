@@ -2,7 +2,7 @@ package willr27.blocklings.model;
 
 import net.minecraft.client.renderer.entity.model.EntityModel;
 import net.minecraft.client.renderer.entity.model.RendererModel;
-import willr27.blocklings.entity.BlocklingEntity;
+import willr27.blocklings.entity.blockling.BlocklingEntity;
 
 public class ModelBlockling<T extends BlocklingEntity> extends EntityModel<T>
 {

@@ -1,7 +1,7 @@
 package willr27.blocklings.entity.ai.goals;
 
 import net.minecraft.entity.ai.goal.WaterAvoidingRandomWalkingGoal;
-import willr27.blocklings.entity.BlocklingEntity;
+import willr27.blocklings.entity.blockling.BlocklingEntity;
 import willr27.blocklings.entity.ai.AIManager;
 
 import java.util.EnumSet;
