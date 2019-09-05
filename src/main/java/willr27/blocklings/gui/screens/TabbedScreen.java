@@ -148,7 +148,7 @@ public class TabbedScreen extends AbstractGui
     {
         for (Tab tab : Tab.values())
         {
-            if (tab.guiId == blockling.getCurrentGuiId())
+            if (tab.guiId == blockling.getGuiInfo().mostRecentTabbedGuiId)
             {
                 return tab;
             }

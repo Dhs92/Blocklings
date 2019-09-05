@@ -2,7 +2,7 @@ package willr27.blocklings.whitelist;
 
 import java.util.TreeMap;
 
-public abstract class Whitelist<T> extends TreeMap<T, Boolean>
+public class Whitelist<T> extends TreeMap<T, Boolean>
 {
     public boolean isWhitelisted(T entry)
     {

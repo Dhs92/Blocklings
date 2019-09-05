@@ -31,7 +31,7 @@ public class GoalInfo
         this.goal = goal;
         this.priority = priority;
         this.unlocked = true;
-        this.active = true;
+        this.active = false;
         this.iconX = iconX;
         this.iconY = iconY;
     }
@@ -51,6 +51,8 @@ public class GoalInfo
 
     public Map<Integer, BlocklingWhitelist> getWhitelists() { return whitelists; }
     public void addWhitelist(int id, BlocklingWhitelist whitelist) { whitelists.put(id, whitelist); }
+    public void setWhitelist(int id, BlocklingWhitelist whitelist) { whitelists.replace(id, whitelist); }
 
+    public boolean hasWhitelist() { return !whitelists.isEmpty(); }
     public BlocklingWhitelist getWhitelist(int id) { return whitelists.get(id); }
 }

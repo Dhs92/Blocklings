@@ -1,11 +1,14 @@
 package willr27.blocklings.gui.screens;
 
 import com.mojang.blaze3d.platform.GlStateManager;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.util.InputMappings;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.text.StringTextComponent;
-import willr27.blocklings.entity.blockling.BlocklingEntity;
 import willr27.blocklings.entity.ai.goals.GoalInfo;
+import willr27.blocklings.entity.blockling.BlocklingEntity;
+import willr27.blocklings.gui.util.GuiHandler;
 import willr27.blocklings.gui.util.GuiUtil;
 
 public class TasksScreen extends Screen
@@ -100,11 +103,24 @@ public class TasksScreen extends Screen
         GoalInfo hoveredGoal = getHoveredGoal((int) mouseX, (int) mouseY);
         if (selectedGoal == null)
         {
-            if (hoveredGoal != null) hoveredGoal.toggleActive();
+            if (hoveredGoal != null)
+            {
+                if (InputMappings.isKeyDown(Minecraft.getInstance().mainWindow.getHandle(), 341) && hoveredGoal.hasWhitelist())
+                {
+                    blockling.openGui(player, GuiHandler.WHITELIST_ID, hoveredGoal.goalId);
+                }
+                else
+                {
+                    hoveredGoal.toggleActive();
+                }
+            }
         }
         else
         {
-            if (hoveredGoal != null && hoveredGoal != selectedGoal) selectedGoal.setPriority(hoveredGoal.getPriority());
+            if (hoveredGoal != null && hoveredGoal != selectedGoal)
+            {
+                selectedGoal.setPriority(hoveredGoal.getPriority());
+            }
         }
 
         mouseDown = false;

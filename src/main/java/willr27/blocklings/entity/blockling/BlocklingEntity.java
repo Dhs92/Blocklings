@@ -11,10 +11,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
 import net.minecraftforge.event.ForgeEventFactory;
-import willr27.blocklings.config.BlocklingsConfig;
 import willr27.blocklings.entity.ai.AIManager;
 import willr27.blocklings.gui.container.containers.EquipmentContainer;
 import willr27.blocklings.gui.util.GuiHandler;
@@ -22,7 +20,7 @@ import willr27.blocklings.gui.util.Tab;
 import willr27.blocklings.inventory.BlocklingInventory;
 import willr27.blocklings.item.ItemUtil;
 import willr27.blocklings.network.NetworkHandler;
-import willr27.blocklings.network.messages.CurrentGuiMessage;
+import willr27.blocklings.network.messages.GuiInfoMessage;
 
 import javax.annotation.Nullable;
 
@@ -31,20 +29,20 @@ public class BlocklingEntity extends TameableEntity implements INamedContainerPr
     public final BlocklingInventory inventory;
     public final AIManager aiManager;
 
+    private BlocklingStats stats;
+    private BlocklingGuiInfo guiInfo;
+
     private int thousandTimer;
 
     private boolean hasMoved;
     private Vec3d hasMovedLastPosition = new Vec3d(0, 0, 0);
-
-    private BlocklingStats stats;
-    private int currentGuiId;
 
     public BlocklingEntity(EntityType<? extends TameableEntity> type, World worldIn)
     {
         super(type, worldIn);
         inventory = new BlocklingInventory(this);
         aiManager = new AIManager(this);
-        currentGuiId = GuiHandler.STATS_ID;
+        guiInfo = new BlocklingGuiInfo(-1, GuiHandler.STATS_ID, -1);
     }
 
     protected void registerAttributes()
@@ -187,17 +185,23 @@ public class BlocklingEntity extends TameableEntity implements INamedContainerPr
     public void openGui(PlayerEntity player, int guiId)
     {
         // TODO: CLEAN UP EXTRA PACKETS
-        if (Tab.hasTab(guiId)) setCurrentGuiId(guiId);
-        openCurrentGui(player);
+        openGui(player, guiId, -1);
+    }
+    public void openGui(PlayerEntity player, int guiId, int selectedGoalId)
+    {
+        // TODO: CLEAN UP EXTRA PACKETS
+        int recentTab = Tab.hasTab(guiId) ? guiId : guiInfo.mostRecentTabbedGuiId;
+        setGuiInfo(new BlocklingGuiInfo(guiId, recentTab, selectedGoalId));
+        GuiHandler.openGui(guiId, this, player);
     }
     public void openCurrentGui(PlayerEntity player)
     {
-        GuiHandler.openGui(currentGuiId, this, player);
+        GuiHandler.openGui(guiInfo.mostRecentTabbedGuiId, this, player);
     }
 
-    public int getCurrentGuiId() { return currentGuiId; }
-    public void setCurrentGuiId(int value) { setCurrentGuiId(value, true); }
-    public void setCurrentGuiId(int value, boolean sync) { currentGuiId = value; if (sync) NetworkHandler.sync(world, new CurrentGuiMessage(currentGuiId, getEntityId())); }
+    public BlocklingGuiInfo getGuiInfo() { return guiInfo; }
+    public void setGuiInfo(BlocklingGuiInfo value) { setGuiInfo(value, true); }
+    public void setGuiInfo(BlocklingGuiInfo value, boolean sync) { guiInfo = value; if (sync) NetworkHandler.sync(world, new GuiInfoMessage(guiInfo, getEntityId())); }
 
     public BlocklingStats getStats() { return stats; }
 

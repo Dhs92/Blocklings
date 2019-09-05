@@ -12,6 +12,7 @@ public class GuiUtil
     public static final ResourceLocation EQUIPMENT = new BlocklingsResourceLocation("textures/gui/equipment.png");
     public static final ResourceLocation INVENTORY = new BlocklingsResourceLocation("textures/gui/inventory.png");
     public static final ResourceLocation ABILITIES = new BlocklingsResourceLocation("textures/gui/abilities.png");
+    public static final ResourceLocation WHITELIST = new BlocklingsResourceLocation("textures/gui/whitelist.png");
 
     public static void bindTexture(ResourceLocation texture)
     {

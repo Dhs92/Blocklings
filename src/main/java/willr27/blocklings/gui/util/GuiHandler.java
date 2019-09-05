@@ -24,6 +24,7 @@ public class GuiHandler
     public static final int MINING_ID = 6;
     public static final int WOODCUTTING_ID = 7;
     public static final int FARMING_ID = 8;
+    public static final int WHITELIST_ID = 32;
 
     public static void openGui(int guiId, BlocklingEntity blockling, PlayerEntity player)
     {
@@ -73,7 +74,8 @@ public class GuiHandler
         switch (guiId)
         {
             case EQUIPMENT_ID:
-            case INVENTORY_ID: return false;
+            case INVENTORY_ID:
+                return false;
 
             case STATS_ID:
             case TASKS_ID:
@@ -81,7 +83,9 @@ public class GuiHandler
             case COMBAT_ID:
             case MINING_ID:
             case WOODCUTTING_ID:
-            case FARMING_ID: return true;
+            case FARMING_ID:
+            case WHITELIST_ID:
+                return true;
         }
 
         return true;
@@ -111,6 +115,7 @@ public class GuiHandler
             case MINING_ID: return new AbilitiesScreen(blockling, player);
             case WOODCUTTING_ID: return new AbilitiesScreen(blockling, player);
             case FARMING_ID: return new AbilitiesScreen(blockling, player);
+            case WHITELIST_ID: return new WhitelistScreen(blockling, player);
         }
 
         return null;

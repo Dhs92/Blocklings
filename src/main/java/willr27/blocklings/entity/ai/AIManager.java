@@ -5,6 +5,7 @@ import willr27.blocklings.config.BlocklingsConfig;
 import willr27.blocklings.entity.ai.goals.*;
 import willr27.blocklings.entity.blockling.BlocklingEntity;
 import willr27.blocklings.whitelist.BlocklingWhitelist;
+import willr27.blocklings.whitelist.WhitelistType;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -141,7 +142,7 @@ public class AIManager
 
     private void addWhitelists()
     {
-        BlocklingWhitelist mineNearbyWhitelist = new BlocklingWhitelist(blockling);
+        BlocklingWhitelist mineNearbyWhitelist = new BlocklingWhitelist(blockling, WhitelistType.BLOCK);
         BlocklingsConfig.ORES.get().stream().forEach(s -> mineNearbyWhitelist.put(new ResourceLocation(s), new Random().nextInt(2) == 0));
         getGoalFromId(MINE_NEARBY_ID).addWhitelist(BlocklingMineNearbyGoal.ORE_WHITELIST_ID, mineNearbyWhitelist);
     }

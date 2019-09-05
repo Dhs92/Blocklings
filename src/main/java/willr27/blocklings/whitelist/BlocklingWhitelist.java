@@ -8,29 +8,34 @@ import java.util.Map;
 
 public class BlocklingWhitelist extends Whitelist<ResourceLocation>
 {
+    public final WhitelistType type;
     private BlocklingEntity blockling;
 
-    public BlocklingWhitelist(BlocklingEntity blockling)
+    public BlocklingWhitelist(BlocklingEntity blockling, WhitelistType type)
     {
         this.blockling = blockling;
+        this.type = type;
     }
 
-    public BlocklingWhitelist(BlocklingEntity blockling, Map whitelist)
+    public BlocklingWhitelist(BlocklingEntity blockling, Map whitelist, WhitelistType type)
     {
-        this(blockling);
+        this(blockling, type);
         clear();
         putAll(whitelist);
     }
 
-    public boolean isWhitelisted(Block block)
+    public boolean isInWhitelist(Object entry)
     {
-        Boolean result = get(block.getRegistryName());
+        Boolean result = null;
+        if (entry instanceof Block) result = get(((Block)entry).getRegistryName());
+        else result = get(entry);
+
         return result != null ? result : false;
     }
 
-    public boolean isBlacklisted(Block block)
+    public boolean isInBlacklist(Object entry)
     {
-        return !isWhitelisted(block);
+        return !isInWhitelist(entry);
     }
 
     @Override

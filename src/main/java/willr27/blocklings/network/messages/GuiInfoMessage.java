@@ -6,32 +6,33 @@ import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.fml.network.NetworkDirection;
 import net.minecraftforge.fml.network.NetworkEvent;
 import willr27.blocklings.entity.blockling.BlocklingEntity;
+import willr27.blocklings.entity.blockling.BlocklingGuiInfo;
 import willr27.blocklings.network.IMessage;
 
 import java.util.function.Supplier;
 
-public class CurrentGuiMessage implements IMessage
+public class GuiInfoMessage implements IMessage
 {
-    int guiId;
+    BlocklingGuiInfo guiInfo;
     int entityId;
 
-    private CurrentGuiMessage() {}
-    public CurrentGuiMessage(int guiId, int entityId)
+    private GuiInfoMessage() {}
+    public GuiInfoMessage(BlocklingGuiInfo guiInfo, int entityId)
     {
-        this.guiId = guiId;
+        this.guiInfo = guiInfo;
         this.entityId = entityId;
     }
 
-    public static void encode(CurrentGuiMessage msg, PacketBuffer buf)
+    public static void encode(GuiInfoMessage msg, PacketBuffer buf)
     {
-        buf.writeInt(msg.guiId);
+        msg.guiInfo.writeToBuf(buf);
         buf.writeInt(msg.entityId);
     }
 
-    public static CurrentGuiMessage decode(PacketBuffer buf)
+    public static GuiInfoMessage decode(PacketBuffer buf)
     {
-        CurrentGuiMessage msg = new CurrentGuiMessage();
-        msg.guiId = buf.readInt();
+        GuiInfoMessage msg = new GuiInfoMessage();
+        msg.guiInfo = BlocklingGuiInfo.readFromBuf(buf);
         msg.entityId = buf.readInt();
 
         return msg;
@@ -50,7 +51,7 @@ public class CurrentGuiMessage implements IMessage
                 BlocklingEntity blockling = (BlocklingEntity) player.world.getEntityByID(entityId);
                 if (blockling != null)
                 {
-                    blockling.setCurrentGuiId(guiId, !isClient);
+                    blockling.setGuiInfo(guiInfo, !isClient);
                 }
             }
         });

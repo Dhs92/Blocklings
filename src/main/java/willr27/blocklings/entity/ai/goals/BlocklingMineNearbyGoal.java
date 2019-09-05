@@ -101,7 +101,7 @@ public class BlocklingMineNearbyGoal extends Goal
             BlockState targetState = world.getBlockState(targetPos);
             Block targetBlock = targetState.getBlock();
 
-            if (!blockling.aiManager.getWhitelist(AIManager.MINE_NEARBY_ID, ORE_WHITELIST_ID).isWhitelisted(targetBlock))
+            if (blockling.aiManager.getWhitelist(AIManager.MINE_NEARBY_ID, ORE_WHITELIST_ID).isInBlacklist(targetBlock))
             {
                 vein.remove(targetPos);
                 targetPos = null;
@@ -188,7 +188,7 @@ public class BlocklingMineNearbyGoal extends Goal
                         continue;
                     }
 
-                    if (blockling.aiManager.getWhitelist(AIManager.MINE_NEARBY_ID, ORE_WHITELIST_ID).isWhitelisted(testBlock))
+                    if (blockling.aiManager.getWhitelist(AIManager.MINE_NEARBY_ID, ORE_WHITELIST_ID).isInWhitelist(testBlock))
                     {
                         if (AiUtil.canSeeBlock(blockling, testPos))
                         {
@@ -258,7 +258,7 @@ public class BlocklingMineNearbyGoal extends Goal
                             continue;
                         }
 
-                        if (blockling.aiManager.getWhitelist(AIManager.MINE_NEARBY_ID, ORE_WHITELIST_ID).isWhitelisted(surroundingBlock))
+                        if (blockling.aiManager.getWhitelist(AIManager.MINE_NEARBY_ID, ORE_WHITELIST_ID).isInWhitelist(surroundingBlock))
                         {
                             positionsToTest.add(surroundingPos);
                         }
