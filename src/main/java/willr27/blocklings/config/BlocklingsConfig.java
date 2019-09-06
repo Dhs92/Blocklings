@@ -10,6 +10,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import willr27.blocklings.block.BlockUtil;
+import willr27.blocklings.entity.EntityUtil;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -21,7 +22,8 @@ import java.util.stream.Collectors;
 @Mod.EventBusSubscriber
 public class BlocklingsConfig
 {
-    public static final String CATEGORY_SETTINGS = "blocks";
+    public static final String CATEGORY_GENERAL = "General";
+    public static final String CATEGORY_ENTITIES = "Entities";
 
     private static final ForgeConfigSpec.Builder COMMON_BUILDER = new ForgeConfigSpec.Builder();
     private static final ForgeConfigSpec.Builder CLIENT_BUILDER = new ForgeConfigSpec.Builder();
@@ -30,10 +32,23 @@ public class BlocklingsConfig
     public static ForgeConfigSpec CLIENT_CONFIG;
 
 
+    private static ForgeConfigSpec.ConfigValue<List<String>> entities;
     private static ForgeConfigSpec.ConfigValue<List<String>> ores;
     private static ForgeConfigSpec.ConfigValue<List<String>> logs;
     private static ForgeConfigSpec.ConfigValue<List<String>> cropsSeeds;
 
+    public static List<String> getEntities()
+    {
+        return entities.get();
+    }
+    public static void initEntities()
+    {
+        if (entities.get().isEmpty())
+        {
+            List<String> strings = EntityUtil.ENTITIES.stream().map(entity -> entity.toString()).collect(Collectors.toList());
+            entities.set(strings);
+        }
+    }
     public static List<String> getOres()
     {
         return ores.get();
@@ -57,7 +72,7 @@ public class BlocklingsConfig
 
     static
     {
-        COMMON_BUILDER.comment("Settings").push(CATEGORY_SETTINGS);
+        COMMON_BUILDER.push(CATEGORY_GENERAL);
 
         ores = COMMON_BUILDER.define("ores", BlockUtil.ORES.stream().map(block -> block.getRegistryName().toString()).collect(Collectors.toList()));
         logs = COMMON_BUILDER.define("logs", BlockUtil.LOGS.stream().map(block -> block.getRegistryName().toString()).collect(Collectors.toList()));
@@ -72,6 +87,14 @@ public class BlocklingsConfig
         cropsSeeds = COMMON_BUILDER.define("crops_seeds", cropsToSeeds);
 
         COMMON_BUILDER.pop();
+
+
+        COMMON_BUILDER.push(CATEGORY_ENTITIES);
+
+        entities = COMMON_BUILDER.define("entities", new ArrayList<>());
+
+        COMMON_BUILDER.pop();
+
 
         COMMON_CONFIG = COMMON_BUILDER.build();
         CLIENT_CONFIG = CLIENT_BUILDER.build();

@@ -1,6 +1,7 @@
 package willr27.blocklings.whitelist;
 
 import net.minecraft.block.Block;
+import net.minecraft.entity.Entity;
 import net.minecraft.item.Item;
 import net.minecraft.util.ResourceLocation;
 import willr27.blocklings.entity.blockling.BlocklingEntity;
@@ -44,6 +45,7 @@ public class BlocklingWhitelist extends Whitelist<ResourceLocation>
         Boolean result = null;
         if (entry instanceof Block) result = get(((Block)entry).getRegistryName());
         else if (entry instanceof Item) result = get(((Item)entry).getRegistryName());
+        else if (entry instanceof Entity) result = get(((Entity)entry).getType().getRegistryName());
         else result = get(entry);
 
         return result != null ? result : false;

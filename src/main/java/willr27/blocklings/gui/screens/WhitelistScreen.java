@@ -207,6 +207,11 @@ public class WhitelistScreen extends Screen
                 Item item = Registry.ITEM.getOrDefault(entry);
                 renderTooltip(item.getName().getString(), mouseX, mouseY);
             }
+            else if (whitelist.type == WhitelistType.ENTITY)
+            {
+                Entity ent = Registry.ENTITY_TYPE.getValue(entry).get().create(blockling.world);
+                renderTooltip(ent.getName().getString(), mouseX, mouseY);
+            }
         }
     }
 
@@ -275,7 +280,7 @@ public class WhitelistScreen extends Screen
                 if (ent instanceof LivingEntity)
                 {
                     LivingEntity entity = (LivingEntity) ent;
-                    GuiUtil.drawEntityOnScreen(getButtonX(i), getButtonY(i), 10, 0, 0, entity);
+                    GuiUtil.drawEntityOnScreen(getButtonX(i) + ENTRY_BUTTON_SIZE / 2, getButtonY(i) + ENTRY_BUTTON_SIZE / 2 + 11, 18, 0, 0, entity);
                 }
             }
 

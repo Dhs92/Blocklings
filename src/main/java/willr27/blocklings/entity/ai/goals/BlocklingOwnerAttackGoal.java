@@ -18,6 +18,12 @@ public class BlocklingOwnerAttackGoal extends Goal
     }
 
     @Override
+    public void resetTask()
+    {
+        blockling.setAttackTarget(null);
+    }
+
+    @Override
     public boolean shouldExecute()
     {
         if (!blockling.aiManager.isActive(AIManager.OWNER_HURT_ID)) return false;
@@ -25,7 +31,10 @@ public class BlocklingOwnerAttackGoal extends Goal
         LivingEntity entity = blockling.getOwner().getLastAttackedEntity();
         if (entity != null)
         {
-            blockling.setAttackTarget(entity);
+            if (blockling.aiManager.getWhitelist(AIManager.OWNER_HURT_WHITELIST_ID).isInWhitelist(entity))
+            {
+                blockling.setAttackTarget(entity);
+            }
         }
 
         return blockling.getAttackTarget() != null;

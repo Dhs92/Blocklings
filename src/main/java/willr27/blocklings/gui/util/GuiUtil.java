@@ -34,7 +34,8 @@ public class GuiUtil
         GlStateManager.enableColorMaterial();
         GlStateManager.pushMatrix();
         GlStateManager.translatef((float)posX, (float)posY, 50.0F);
-        GlStateManager.scalef((float)(-scale), (float)scale, (float)scale);
+        float scale2 = 1.0f / Math.max(ent.getWidth(), ent.getHeight());
+        GlStateManager.scalef((float)(-scale * scale2), (float)scale * scale2, (float)scale * scale2);
         GlStateManager.rotatef(180.0F, 0.0F, 0.0F, 1.0F);
         float f = ent.renderYawOffset;
         float f1 = ent.rotationYaw;
@@ -42,7 +43,6 @@ public class GuiUtil
         float f3 = ent.prevRotationYawHead;
         float f4 = ent.rotationYawHead;
         GlStateManager.rotatef(135.0F, 0.0F, 1.0F, 0.0F);
-        RenderHelper.enableStandardItemLighting();
         GlStateManager.rotatef(-135.0F, 0.0F, 1.0F, 0.0F);
         GlStateManager.rotatef(-((float)Math.atan((double)(mouseY / 40.0F))) * 20.0F, 1.0F, 0.0F, 0.0F);
         ent.renderYawOffset = (float)Math.atan((double)(mouseX / 40.0F)) * 20.0F;

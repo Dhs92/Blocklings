@@ -16,7 +16,13 @@ public class BlocklingAttackMeleeGoal extends MeleeAttackGoal
         setMutexFlags(EnumSet.of(Flag.MOVE));
         this.blockling = blockling;
     }
-    
+
+    @Override
+    public void resetTask()
+    {
+        blockling.setAttackTarget(null);
+    }
+
     @Override
     public boolean shouldExecute()
     {
