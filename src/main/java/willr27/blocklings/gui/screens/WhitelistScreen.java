@@ -4,7 +4,10 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import net.minecraft.block.Block;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.renderer.RenderHelper;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.registry.Registry;
@@ -24,6 +27,8 @@ public class WhitelistScreen extends Screen
     private int contentLeft, contentTop;
 
     private BlocklingWhitelist whitelist;
+    private int[] whitelists;
+    private int whitelistPage;
 
     public WhitelistScreen(BlocklingEntity blockling, PlayerEntity player)
     {
@@ -44,7 +49,9 @@ public class WhitelistScreen extends Screen
         contentLeft = centerX - TabbedScreen.CONTENT_WIDTH / 2;
         contentTop = top;
 
-        whitelist = blockling.aiManager.getWhitelist(AIManager.getWhitelistIdsForGoal(blockling.getGuiInfo().currentlySelectedGoalId)[0]);
+        whitelistPage = 0;
+        whitelists = AIManager.getWhitelistIdsForGoal(blockling.getGuiInfo().currentlySelectedGoalId);
+        whitelist = blockling.aiManager.getWhitelist(whitelists[whitelistPage]);
 
         maxPages = (int) Math.ceil(whitelist.size() / (float) ENTRIES_PER_PAGE);
 
@@ -57,7 +64,7 @@ public class WhitelistScreen extends Screen
         GuiUtil.bindTexture(GuiUtil.WHITELIST);
         blit(contentLeft, contentTop, 0, 0, TabbedScreen.CONTENT_WIDTH, TabbedScreen.CONTENT_HEIGHT);
 
-        font.drawString(blockling.aiManager.getGoalFromId(blockling.getGuiInfo().currentlySelectedGoalId).name, contentLeft + 8, contentTop + 6, 0xffffff);
+        font.drawString(whitelist.name, contentLeft + 47, contentTop + 6, 0xffffff);
 
         drawButtons(mouseX, mouseY);
         drawScroll(mouseX, mouseY);
@@ -82,43 +89,63 @@ public class WhitelistScreen extends Screen
     private static final int SCROLL_START_Y = 17;
     private static final int SCROLL_LENGTH = 141 - SCROLL_HEIGHT;
 
-    private static final int ON_OFF_BUTTON_SIZE = 11;
-    private static final int ON_BUTTON_X = 108;
-    private static final int ON_BUTTON_Y = 4;
-    private static final int ON_BUTTON_TEXTURE_Y = 211;
-    private static final int OFF_BUTTON_X = 119;
-    private static final int OFF_BUTTON_Y = 4;
-    private static final int OFF_BUTTON_TEXTURE_Y = 222;
+    private static final int BUTTON_SIZE = 11;
+    private static final int BUTTON_Y = 4;
+    private static final int BUTTON_TEXTURE_Y = 211;
 
-    private static final int SWAP_BUTTON_WIDTH = 12;
-    private static final int SWAP_BUTTON_HEIGHT = 11;
-    private static final int SWAP_BUTTON_X = 133;
-    private static final int SWAP_BUTTON_Y = 4;
-    private static final int SWAP_BUTTON_TEXTURE_Y = 233;
+    private static final int ON_BUTTON_X = 8;
+    private static final int OFF_BUTTON_X = 20;
+    private static final int SWAP_BUTTON_X = 32;
+
+    private static final int ARROW_BUTTON_TEXTURE_Y = 222;
+    private static final int LEFT_BUTTON_X = 127;
+    private static final int RIGHT_BUTTON_x = 139;
 
     private int index;
     private int page;
     private int maxPages;
     private int maxForPage;
     private float scroll;
-    private boolean mouseDown;
     private boolean scrollPressed;
     private boolean onPressed;
     private boolean offPressed;
     private boolean swapPressed;
+    private boolean leftPressed;
+    private boolean rightPressed;
 
     private void drawButtons(int mouseX, int mouseY)
     {
         GuiUtil.bindTexture(GuiUtil.WHITELIST);
 
-        int onTextureX = onPressed ? ON_OFF_BUTTON_SIZE : 0;
-        blit(getOnX(), getOnY(), onTextureX, ON_BUTTON_TEXTURE_Y, ON_OFF_BUTTON_SIZE, ON_OFF_BUTTON_SIZE);
+        int onTextureX = onPressed ? BUTTON_SIZE : 0;
+        GlStateManager.color3f(0.0f, 1.0f, 0.0f);
+        blit(getOnX(), getOnY(), onTextureX, BUTTON_TEXTURE_Y, BUTTON_SIZE, BUTTON_SIZE);
 
-        int offTextureX = offPressed ? ON_OFF_BUTTON_SIZE : 0;
-        blit(getOffX(), getOffY(), offTextureX, OFF_BUTTON_TEXTURE_Y, ON_OFF_BUTTON_SIZE, ON_OFF_BUTTON_SIZE);
+        int offTextureX = offPressed ? BUTTON_SIZE : 0;
+        GlStateManager.color3f(1.0f, 0.0f, 0.0f);
+        blit(getOffX(), getOffY(), offTextureX, BUTTON_TEXTURE_Y, BUTTON_SIZE, BUTTON_SIZE);
 
-        int swapTextureX = swapPressed ? SWAP_BUTTON_WIDTH : 0;
-        blit(getSwapX(), getSwapY(), swapTextureX, SWAP_BUTTON_TEXTURE_Y, SWAP_BUTTON_WIDTH, SWAP_BUTTON_HEIGHT);
+        int swapTextureX = swapPressed ? BUTTON_SIZE : 0;
+        GlStateManager.color3f(1.0f, 1.0f, 0.0f);
+        blit(getSwapX(), getSwapY(), swapTextureX, BUTTON_TEXTURE_Y, BUTTON_SIZE, BUTTON_SIZE);
+
+
+        if (whitelists.length > 1)
+        {
+            int leftTextureX = leftPressed ? BUTTON_SIZE : 0;
+            if (leftPressed) GlStateManager.color3f(0.6f, 0.6f, 0.6f);
+            else GlStateManager.color3f(0.9f, 0.9f, 0.9f);
+            blit(getLeftX(), getLeftY(), leftTextureX, BUTTON_TEXTURE_Y, BUTTON_SIZE, BUTTON_SIZE);
+            blit(getLeftX(), getLeftY(), 0, ARROW_BUTTON_TEXTURE_Y, BUTTON_SIZE, BUTTON_SIZE);
+
+            int rightTextureX = rightPressed ? BUTTON_SIZE : 0;
+            if (rightPressed) GlStateManager.color3f(0.6f, 0.6f, 0.6f);
+            else GlStateManager.color3f(0.9f, 0.9f, 0.9f);
+            blit(getRightX(), getRightY(), rightTextureX, BUTTON_TEXTURE_Y, BUTTON_SIZE, BUTTON_SIZE);
+            blit(getRightX(), getRightY(), BUTTON_SIZE, ARROW_BUTTON_TEXTURE_Y, BUTTON_SIZE, BUTTON_SIZE);
+        }
+
+        GlStateManager.color3f(1.0f, 1.0f, 1.0f);
     }
 
     private int getOnX()
@@ -127,7 +154,7 @@ public class WhitelistScreen extends Screen
     }
     private int getOnY()
     {
-        return contentTop + ON_BUTTON_Y;
+        return contentTop + BUTTON_Y;
     }
     private int getOffX()
     {
@@ -135,7 +162,7 @@ public class WhitelistScreen extends Screen
     }
     private int getOffY()
     {
-        return contentTop + OFF_BUTTON_Y;
+        return contentTop + BUTTON_Y;
     }
     private int getSwapX()
     {
@@ -143,7 +170,24 @@ public class WhitelistScreen extends Screen
     }
     private int getSwapY()
     {
-        return contentTop + SWAP_BUTTON_Y;
+        return contentTop + BUTTON_Y;
+    }
+
+    private int getLeftX()
+    {
+        return contentLeft + LEFT_BUTTON_X;
+    }
+    private int getLeftY()
+    {
+        return contentTop + BUTTON_Y;
+    }
+    private int getRightX()
+    {
+        return contentLeft + RIGHT_BUTTON_x;
+    }
+    private int getRightY()
+    {
+        return contentTop + BUTTON_Y;
     }
 
     private void drawTooltips(int mouseX, int mouseY)
@@ -157,6 +201,11 @@ public class WhitelistScreen extends Screen
             {
                 Block block = Registry.BLOCK.getOrDefault(entry);
                 renderTooltip(block.getNameTextComponent().getString(), mouseX, mouseY);
+            }
+            else if (whitelist.type == WhitelistType.ITEM)
+            {
+                Item item = Registry.ITEM.getOrDefault(entry);
+                renderTooltip(item.getName().getString(), mouseX, mouseY);
             }
         }
     }
@@ -212,7 +261,22 @@ public class WhitelistScreen extends Screen
             {
                 Block block = Registry.BLOCK.getOrDefault(entry);
                 ItemStack stack = new ItemStack(block);
-                drawItemStack(stack, getBlockX(i), getBlockY(i), i);
+                drawItemStack(stack, getItemX(i), getItemY(i), i);
+            }
+            else if (whitelist.type == WhitelistType.ITEM)
+            {
+                Item item = Registry.ITEM.getOrDefault(entry);
+                ItemStack stack = new ItemStack(item);
+                drawItemStack(stack, getItemX(i), getItemY(i), i);
+            }
+            else if (whitelist.type == WhitelistType.ENTITY)
+            {
+                Entity ent = Registry.ENTITY_TYPE.getValue(entry).get().create(blockling.world);
+                if (ent instanceof LivingEntity)
+                {
+                    LivingEntity entity = (LivingEntity) ent;
+                    GuiUtil.drawEntityOnScreen(getButtonX(i), getButtonY(i), 10, 0, 0, entity);
+                }
             }
 
             if (!isInWhitelist)
@@ -236,11 +300,11 @@ public class WhitelistScreen extends Screen
         return -1;
     }
 
-    private int getBlockX(int i)
+    private int getItemX(int i)
     {
         return getButtonX(i) + 6;
     }
-    private int getBlockY(int i)
+    private int getItemY(int i)
     {
         return getButtonY(i)+ 6;
     }
@@ -280,20 +344,26 @@ public class WhitelistScreen extends Screen
             page = (int)((percent * whitelist.size()) / ENTRIES_PER_PAGE);
             scroll = dy / (float) SCROLL_LENGTH;
         }
-        else if (GuiUtil.isMouseOver((int) mouseX, (int) mouseY, getOnX(), getOnY(), ON_OFF_BUTTON_SIZE, ON_OFF_BUTTON_SIZE))
+        else if (GuiUtil.isMouseOver((int) mouseX, (int) mouseY, getOnX(), getOnY(), BUTTON_SIZE, BUTTON_SIZE))
         {
             onPressed = true;
         }
-        else if (GuiUtil.isMouseOver((int) mouseX, (int) mouseY, getOffX(), getOffY(), ON_OFF_BUTTON_SIZE, ON_OFF_BUTTON_SIZE))
+        else if (GuiUtil.isMouseOver((int) mouseX, (int) mouseY, getOffX(), getOffY(), BUTTON_SIZE, BUTTON_SIZE))
         {
             offPressed = true;
         }
-        else if (GuiUtil.isMouseOver((int) mouseX, (int) mouseY, getSwapX(), getSwapY(), SWAP_BUTTON_WIDTH, SWAP_BUTTON_HEIGHT))
+        else if (GuiUtil.isMouseOver((int) mouseX, (int) mouseY, getSwapX(), getSwapY(), BUTTON_SIZE, BUTTON_SIZE))
         {
             swapPressed = true;
         }
-
-        mouseDown = true;
+        else if (GuiUtil.isMouseOver((int) mouseX, (int) mouseY, getLeftX(), getLeftY(), BUTTON_SIZE, BUTTON_SIZE))
+        {
+            leftPressed = true;
+        }
+        else if (GuiUtil.isMouseOver((int) mouseX, (int) mouseY, getRightX(), getRightY(), BUTTON_SIZE, BUTTON_SIZE))
+        {
+            rightPressed = true;
+        }
 
         return super.mouseClicked(mouseX, mouseY, state);
     }
@@ -307,24 +377,37 @@ public class WhitelistScreen extends Screen
             ResourceLocation entry = (ResourceLocation) whitelist.keySet().toArray()[i];
             whitelist.toggleEntry(entry);
         }
-        else if (GuiUtil.isMouseOver((int) mouseX, (int) mouseY, getOnX(), getOnY(), ON_OFF_BUTTON_SIZE, ON_OFF_BUTTON_SIZE))
+        else if (GuiUtil.isMouseOver((int) mouseX, (int) mouseY, getOnX(), getOnY(), BUTTON_SIZE, BUTTON_SIZE))
         {
             whitelist.setAll(true);
         }
-        else if (GuiUtil.isMouseOver((int) mouseX, (int) mouseY, getOffX(), getOffY(), ON_OFF_BUTTON_SIZE, ON_OFF_BUTTON_SIZE))
+        else if (GuiUtil.isMouseOver((int) mouseX, (int) mouseY, getOffX(), getOffY(), BUTTON_SIZE, BUTTON_SIZE))
         {
             whitelist.setAll(false);
         }
-        else if (GuiUtil.isMouseOver((int) mouseX, (int) mouseY, getSwapX(), getSwapY(), SWAP_BUTTON_WIDTH, SWAP_BUTTON_HEIGHT))
+        else if (GuiUtil.isMouseOver((int) mouseX, (int) mouseY, getSwapX(), getSwapY(), BUTTON_SIZE, BUTTON_SIZE))
         {
             whitelist.toggleAll();
         }
+        else if (GuiUtil.isMouseOver((int) mouseX, (int) mouseY, getLeftX(), getLeftY(), BUTTON_SIZE, BUTTON_SIZE))
+        {
+            whitelistPage--;
+            if (whitelistPage < 0) whitelistPage = whitelists.length - 1;
+            whitelist = blockling.aiManager.getWhitelist(whitelists[whitelistPage]);
+        }
+        else if (GuiUtil.isMouseOver((int) mouseX, (int) mouseY, getRightX(), getRightY(), BUTTON_SIZE, BUTTON_SIZE))
+        {
+            whitelistPage++;
+            if (whitelistPage > whitelists.length - 1) whitelistPage = 0;
+            whitelist = blockling.aiManager.getWhitelist(whitelists[whitelistPage]);
+        }
 
-        mouseDown = false;
         scrollPressed = false;
         onPressed = false;
         offPressed = false;
         swapPressed = false;
+        leftPressed = false;
+        rightPressed = false;
 
         return super.mouseReleased(mouseX, mouseY, state);
     }

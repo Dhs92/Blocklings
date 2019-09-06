@@ -1,6 +1,7 @@
 package willr27.blocklings.whitelist;
 
 import net.minecraft.block.Block;
+import net.minecraft.item.Item;
 import net.minecraft.util.ResourceLocation;
 import willr27.blocklings.entity.blockling.BlocklingEntity;
 import willr27.blocklings.network.NetworkHandler;
@@ -13,18 +14,20 @@ public class BlocklingWhitelist extends Whitelist<ResourceLocation>
 {
     public final WhitelistType type;
     public final int id;
+    public final String name;
     private BlocklingEntity blockling;
 
-    public BlocklingWhitelist(int whitelistId, BlocklingEntity blockling, WhitelistType type)
+    public BlocklingWhitelist(int whitelistId, String name, BlocklingEntity blockling, WhitelistType type)
     {
         this.blockling = blockling;
         this.type = type;
+        this.name = name;
         this.id = whitelistId;
     }
 
-    public BlocklingWhitelist(int whitelistId, BlocklingEntity blockling, Map whitelist, WhitelistType type)
+    public BlocklingWhitelist(int whitelistId, String name, BlocklingEntity blockling, Map whitelist, WhitelistType type)
     {
-        this(whitelistId, blockling, type);
+        this(whitelistId, name, blockling, type);
         clear();
         putAll(whitelist);
     }
@@ -40,6 +43,7 @@ public class BlocklingWhitelist extends Whitelist<ResourceLocation>
     {
         Boolean result = null;
         if (entry instanceof Block) result = get(((Block)entry).getRegistryName());
+        else if (entry instanceof Item) result = get(((Item)entry).getRegistryName());
         else result = get(entry);
 
         return result != null ? result : false;

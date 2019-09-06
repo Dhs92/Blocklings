@@ -4,9 +4,16 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.CropsBlock;
+import net.minecraft.item.Item;
+import net.minecraft.item.Items;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.registry.Registry;
+import willr27.blocklings.config.BlocklingsConfig;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class BlockUtil
 {
@@ -73,20 +80,31 @@ public class BlockUtil
     }
 
 
-    public static List<Block> CROPS = new ArrayList<>();
+    public static Map<Block, Item> CROPS_SEEDS = new HashMap<>();
     static
     {
-        CROPS.add(Blocks.WHEAT);
-        CROPS.add(Blocks.CARROTS);
-        CROPS.add(Blocks.POTATOES);
-        CROPS.add(Blocks.BEETROOTS);
+        CROPS_SEEDS.put(Blocks.WHEAT, Items.WHEAT_SEEDS);
+        CROPS_SEEDS.put(Blocks.CARROTS, Items.CARROT);
+        CROPS_SEEDS.put(Blocks.POTATOES, Items.POTATO);
+        CROPS_SEEDS.put(Blocks.BEETROOTS, Items.BEETROOT_SEEDS);
     }
     public static boolean isCrop(Block block)
     {
-        return CROPS.contains(block);
+        return CROPS_SEEDS.keySet().contains(block);
     }
     public static boolean isGrown(BlockState state)
     {
         return ((CropsBlock)state.getBlock()).isMaxAge(state);
+    }
+
+    public static boolean isSeed(Item item)
+    {
+        return CROPS_SEEDS.values().contains(item);
+    }
+    public static Item getSeed(CropsBlock block)
+    {
+        String registryName = block.getRegistryName().toString();
+        String itemName = BlocklingsConfig.getCropsSeeds().get(registryName);
+        return Registry.ITEM.getOrDefault(new ResourceLocation(itemName));
     }
 }

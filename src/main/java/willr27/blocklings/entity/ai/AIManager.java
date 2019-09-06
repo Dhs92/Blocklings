@@ -1,7 +1,9 @@
 package willr27.blocklings.entity.ai;
 
+import net.minecraft.entity.ai.goal.SwimGoal;
 import net.minecraft.util.ResourceLocation;
 import willr27.blocklings.config.BlocklingsConfig;
+import willr27.blocklings.entity.EntityUtil;
 import willr27.blocklings.entity.ai.goals.*;
 import willr27.blocklings.entity.blockling.BlocklingEntity;
 import willr27.blocklings.whitelist.BlocklingWhitelist;
@@ -12,21 +14,32 @@ import java.util.stream.Collectors;
 
 public class AIManager
 {
-    public static final int SIT_ID = 0;
-    public static final int FOLLOW_ID = 1;
-    public static final int WANDER_ID = 2;
-    public static final int MINE_NEARBY_ID = 3;
-    public static final int CHOP_NEARBY_ID = 4;
-    public static final int FARM_NEARBY_ID = 5;
+    private static int id = 0;
+    public static final int SIT_ID = id++;
+    public static final int FOLLOW_ID = id++;
+    public static final int WANDER_ID = id++;
+    public static final int ATTACK_MELEE_ID = id++;
+    public static final int HURT_BY_ID = id++;
+    public static final int OWNER_HURT_BY_ID = id++;
+    public static final int OWNER_HURT_ID = id++;
+    public static final int MINE_NEARBY_ID = id++;
+    public static final int CHOP_NEARBY_ID = id++;
+    public static final int FARM_NEARBY_ID = id++;
 
-    public static final int MINE_NEARBY_ORES_WHITELIST_ID = 0;
-    public static final int CHOP_NEARBY_LOGS_WHITELIST_ID = 1;
+    static { id = 0; }
+    public static final int HURT_BY_ID_WHITELIST_ID = id++;
+    public static final int MINE_NEARBY_ORES_WHITELIST_ID = id++;
+    public static final int CHOP_NEARBY_LOGS_WHITELIST_ID = id++;
+    public static final int FARM_NEARBY_CROPS_CROPS_WHITELIST_ID = id++;
+    public static final int FARM_NEARBY_CROPS_SEEDS_WHITELIST_ID = id++;
 
     public static final Map<Integer, int[]> GOALS_TO_WHITELISTS = new LinkedHashMap<>();
     static
     {
+        GOALS_TO_WHITELISTS.put(HURT_BY_ID, new int[] {HURT_BY_ID_WHITELIST_ID});
         GOALS_TO_WHITELISTS.put(MINE_NEARBY_ID, new int[] {MINE_NEARBY_ORES_WHITELIST_ID});
         GOALS_TO_WHITELISTS.put(CHOP_NEARBY_ID, new int[] {CHOP_NEARBY_LOGS_WHITELIST_ID});
+        GOALS_TO_WHITELISTS.put(FARM_NEARBY_ID, new int[] {FARM_NEARBY_CROPS_CROPS_WHITELIST_ID, FARM_NEARBY_CROPS_SEEDS_WHITELIST_ID});
     }
 
     public BlocklingEntity blockling;
@@ -41,9 +54,15 @@ public class AIManager
 
     public void reset()
     {
-        int i = 0;
+        int i = 1;
+        blockling.goalSelector.addGoal(0 , new SwimGoal(blockling));
+        goals.add(new GoalInfo(this, ATTACK_MELEE_ID, "Melee Attack", new BlocklingAttackMeleeGoal(blockling), i++, 4, 0));
+        goals.add(new GoalInfo(this, HURT_BY_ID, "Retaliate", new BlocklingAttackedGoal(blockling), i++, 3, 0));
+        goals.add(new GoalInfo(this, OWNER_HURT_BY_ID, "Attack Owner's Attacker", new BlocklingOwnerAttackedGoal(blockling), i++, 3, 0));
+        goals.add(new GoalInfo(this, OWNER_HURT_ID, "Attack Owner's Target", new BlocklingOwnerAttackGoal(blockling), i++, 3, 0));
         goals.add(new GoalInfo(this, MINE_NEARBY_ID, "Mine Nearby Ores", new BlocklingMineNearbyGoal(blockling), i++, 6, 0));
         goals.add(new GoalInfo(this, CHOP_NEARBY_ID, "Chop Nearby Trees", new BlocklingChopNearbyGoal(blockling), i++, 7, 0));
+        goals.add(new GoalInfo(this, FARM_NEARBY_ID, "Farm Nearby Crops", new BlocklingFarmCropsNearbyGoal(blockling), i++, 8, 0));
         goals.add(new GoalInfo(this, FOLLOW_ID, "Follow", new BlocklingFollowOwnerGoal(blockling), i++, 1, 0));
         goals.add(new GoalInfo(this, SIT_ID, "Sit", new BlocklingSitGoal(blockling), i++, 0, 0));
         goals.add(new GoalInfo(this, WANDER_ID, "Wander", new BlocklingWanderGoal(blockling), i++, 2, 0));
@@ -54,13 +73,25 @@ public class AIManager
 
     private void addWhitelists()
     {
-        BlocklingWhitelist mineNearbyWhitelist = new BlocklingWhitelist(MINE_NEARBY_ORES_WHITELIST_ID, blockling, WhitelistType.BLOCK);
-        BlocklingsConfig.ORES.get().stream().forEach(s -> mineNearbyWhitelist.put(new ResourceLocation(s), new Random().nextInt(2) == 0));
+        BlocklingWhitelist hurtByWhitelist = new BlocklingWhitelist(HURT_BY_ID_WHITELIST_ID, "Mobs", blockling, WhitelistType.ENTITY);
+        EntityUtil.ENTITIES.stream().forEach(s -> hurtByWhitelist.put(s, new Random().nextInt(2) == 0));
+        getGoalFromId(HURT_BY_ID).addWhitelist(HURT_BY_ID_WHITELIST_ID, hurtByWhitelist);
+
+        BlocklingWhitelist mineNearbyWhitelist = new BlocklingWhitelist(MINE_NEARBY_ORES_WHITELIST_ID, "Ores", blockling, WhitelistType.BLOCK);
+        BlocklingsConfig.getOres().stream().forEach(s -> mineNearbyWhitelist.put(new ResourceLocation(s), new Random().nextInt(2) == 0));
         getGoalFromId(MINE_NEARBY_ID).addWhitelist(MINE_NEARBY_ORES_WHITELIST_ID, mineNearbyWhitelist);
 
-        BlocklingWhitelist chopNearbyWhitelist = new BlocklingWhitelist(CHOP_NEARBY_LOGS_WHITELIST_ID, blockling, WhitelistType.BLOCK);
-        BlocklingsConfig.LOGS.get().stream().forEach(s -> chopNearbyWhitelist.put(new ResourceLocation(s), new Random().nextInt(2) == 0));
+        BlocklingWhitelist chopNearbyWhitelist = new BlocklingWhitelist(CHOP_NEARBY_LOGS_WHITELIST_ID, "Logs", blockling, WhitelistType.BLOCK);
+        BlocklingsConfig.getLogs().stream().forEach(s -> chopNearbyWhitelist.put(new ResourceLocation(s), new Random().nextInt(2) == 0));
         getGoalFromId(CHOP_NEARBY_ID).addWhitelist(CHOP_NEARBY_LOGS_WHITELIST_ID, chopNearbyWhitelist);
+
+        BlocklingWhitelist farmNearbyCropsWhitelist = new BlocklingWhitelist(FARM_NEARBY_CROPS_CROPS_WHITELIST_ID, "Crops", blockling, WhitelistType.BLOCK);
+        BlocklingsConfig.getCropsSeeds().keySet().stream().forEach(s -> farmNearbyCropsWhitelist.put(new ResourceLocation(s), new Random().nextInt(2) == 0));
+        getGoalFromId(FARM_NEARBY_ID).addWhitelist(FARM_NEARBY_CROPS_CROPS_WHITELIST_ID, farmNearbyCropsWhitelist);
+
+        BlocklingWhitelist farmNearbySeedsWhitelist = new BlocklingWhitelist(FARM_NEARBY_CROPS_SEEDS_WHITELIST_ID, "Seeds", blockling, WhitelistType.ITEM);
+        BlocklingsConfig.getCropsSeeds().values().stream().forEach(s -> farmNearbySeedsWhitelist.put(new ResourceLocation(s), new Random().nextInt(2) == 0));
+        getGoalFromId(FARM_NEARBY_ID).addWhitelist(FARM_NEARBY_CROPS_SEEDS_WHITELIST_ID, farmNearbySeedsWhitelist);
     }
 
     public void updateGoalsOrder(GoalInfo updatedGoal, int oldPriority, int newPriority)

@@ -66,6 +66,8 @@ public class BlocklingEntity extends TameableEntity implements INamedContainerPr
     {
         super.livingTick();
 
+        if (getAttackTarget() != null && !getAttackTarget().isAlive()) setAttackTarget(null);
+
         checkIfMoved();
         checkThousandTimer();
     }
