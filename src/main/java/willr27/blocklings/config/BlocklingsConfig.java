@@ -26,12 +26,13 @@ public class BlocklingsConfig
 
 
     public static ForgeConfigSpec.ConfigValue<List<String>> ORES;
-
+    public static ForgeConfigSpec.ConfigValue<List<String>> LOGS;
 
     static
     {
         COMMON_BUILDER.comment("Block settings").push(CATEGORY_BLOCKS);
         ORES = COMMON_BUILDER.define("ores", BlockUtil.ORES.stream().map(block -> block.getRegistryName().toString()).collect(Collectors.toList()));
+        LOGS = COMMON_BUILDER.define("logs", BlockUtil.LOGS.stream().map(block -> block.getRegistryName().toString()).collect(Collectors.toList()));
         COMMON_BUILDER.pop();
 
         COMMON_CONFIG = COMMON_BUILDER.build();

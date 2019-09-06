@@ -13,16 +13,14 @@ import java.util.function.Supplier;
 
 public class WhitelistSingleMessage implements IMessage
 {
-    int goalId;
     int whitelistId;
     ResourceLocation entry;
     boolean value;
     int entityId;
 
     private WhitelistSingleMessage() {}
-    public WhitelistSingleMessage(int goalId, int whitelistId, ResourceLocation entry, boolean value, int entityId)
+    public WhitelistSingleMessage(int whitelistId, ResourceLocation entry, boolean value, int entityId)
     {
-        this.goalId = goalId;
         this.whitelistId = whitelistId;
         this.entry = entry;
         this.value = value;
@@ -31,7 +29,6 @@ public class WhitelistSingleMessage implements IMessage
 
     public static void encode(WhitelistSingleMessage msg, PacketBuffer buf)
     {
-        buf.writeInt(msg.goalId);
         buf.writeInt(msg.whitelistId);
         buf.writeString(msg.entry.toString());
         buf.writeBoolean(msg.value);
@@ -41,7 +38,6 @@ public class WhitelistSingleMessage implements IMessage
     public static WhitelistSingleMessage decode(PacketBuffer buf)
     {
         WhitelistSingleMessage msg = new WhitelistSingleMessage();
-        msg.goalId = buf.readInt();
         msg.whitelistId = buf.readInt();
         msg.entry = new ResourceLocation(buf.readString());
         msg.value = buf.readBoolean();
@@ -63,7 +59,7 @@ public class WhitelistSingleMessage implements IMessage
                 BlocklingEntity blockling = (BlocklingEntity) player.world.getEntityByID(entityId);
                 if (blockling != null)
                 {
-                    blockling.aiManager.getWhitelist(goalId, whitelistId).setEntry(entry, value, !isClient);
+                    blockling.aiManager.getWhitelist(whitelistId).setEntry(entry, value, !isClient);
                 }
             }
         });

@@ -53,8 +53,9 @@ public class BlocklingInventory implements IInventory
     public ItemStack decrStackSize(int index, int count)
     {
         ItemStack stack = getStackInSlot(index);
+        ItemStack copy = stack.copy();
         stack.shrink(count);
-        return stack;
+        return copy;
     }
 
     @Override

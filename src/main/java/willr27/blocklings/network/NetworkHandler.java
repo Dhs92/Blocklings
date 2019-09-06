@@ -8,10 +8,7 @@ import net.minecraftforge.fml.network.NetworkDirection;
 import net.minecraftforge.fml.network.NetworkRegistry;
 import net.minecraftforge.fml.network.simple.SimpleChannel;
 import willr27.blocklings.Blocklings;
-import willr27.blocklings.network.messages.GuiInfoMessage;
-import willr27.blocklings.network.messages.GoalActiveMessage;
-import willr27.blocklings.network.messages.GoalPriorityMessage;
-import willr27.blocklings.network.messages.OpenGuiMessage;
+import willr27.blocklings.network.messages.*;
 
 public class NetworkHandler
 {
@@ -31,6 +28,8 @@ public class NetworkHandler
         HANDLER.registerMessage(id++, GoalPriorityMessage.class, GoalPriorityMessage::encode, GoalPriorityMessage::decode, GoalPriorityMessage::handle);
         HANDLER.registerMessage(id++, GuiInfoMessage.class, GuiInfoMessage::encode, GuiInfoMessage::decode, GuiInfoMessage::handle);
         HANDLER.registerMessage(id++, OpenGuiMessage.class, OpenGuiMessage::encode, OpenGuiMessage::decode, OpenGuiMessage::handle);
+        HANDLER.registerMessage(id++, WhitelistAllMessage.class, WhitelistAllMessage::encode, WhitelistAllMessage::decode, WhitelistAllMessage::handle);
+        HANDLER.registerMessage(id++, WhitelistSingleMessage.class, WhitelistSingleMessage::encode, WhitelistSingleMessage::decode, WhitelistSingleMessage::handle);
     }
 
     public static void sendToServer(IMessage message)

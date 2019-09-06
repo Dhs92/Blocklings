@@ -1,7 +1,9 @@
 package willr27.blocklings.block;
 
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.block.CropsBlock;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,5 +54,39 @@ public class BlockUtil
     public static boolean isOre(Block block)
     {
         return ORES.contains(block);
+    }
+
+
+    public static List<Block> LOGS = new ArrayList<>();
+    static
+    {
+        LOGS.add(Blocks.ACACIA_LOG);
+        LOGS.add(Blocks.BIRCH_LOG);
+        LOGS.add(Blocks.DARK_OAK_LOG);
+        LOGS.add(Blocks.JUNGLE_LOG);
+        LOGS.add(Blocks.OAK_LOG);
+        LOGS.add(Blocks.SPRUCE_LOG);
+    }
+    public static boolean isLog(Block block)
+    {
+        return LOGS.contains(block);
+    }
+
+
+    public static List<Block> CROPS = new ArrayList<>();
+    static
+    {
+        CROPS.add(Blocks.WHEAT);
+        CROPS.add(Blocks.CARROTS);
+        CROPS.add(Blocks.POTATOES);
+        CROPS.add(Blocks.BEETROOTS);
+    }
+    public static boolean isCrop(Block block)
+    {
+        return CROPS.contains(block);
+    }
+    public static boolean isGrown(BlockState state)
+    {
+        return ((CropsBlock)state.getBlock()).isMaxAge(state);
     }
 }

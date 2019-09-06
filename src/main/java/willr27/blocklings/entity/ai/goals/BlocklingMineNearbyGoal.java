@@ -17,8 +17,6 @@ import java.util.Set;
 
 public class BlocklingMineNearbyGoal extends Goal
 {
-    public static final int ORE_WHITELIST_ID = 0;
-
     private int searchRadiusX = 20;
     private int searchRadiusY = 20;
 
@@ -55,6 +53,7 @@ public class BlocklingMineNearbyGoal extends Goal
     public boolean shouldExecute()
     {
         if (blockling.getThousandTimer() % 80 == 0) failedBlocks.clear();
+        if (blockling.getThousandTimer() % 20 != 0) return false;
         if (!blockling.aiManager.isActive(AIManager.MINE_NEARBY_ID)) return false;
 
         if (!findVeinStart()) return false;
@@ -101,7 +100,7 @@ public class BlocklingMineNearbyGoal extends Goal
             BlockState targetState = world.getBlockState(targetPos);
             Block targetBlock = targetState.getBlock();
 
-            if (blockling.aiManager.getWhitelist(AIManager.MINE_NEARBY_ID, ORE_WHITELIST_ID).isInBlacklist(targetBlock))
+            if (blockling.aiManager.getWhitelist(AIManager.MINE_NEARBY_ID, AIManager.MINE_NEARBY_ORES_WHITELIST_ID).isInBlacklist(targetBlock))
             {
                 vein.remove(targetPos);
                 targetPos = null;
@@ -188,7 +187,7 @@ public class BlocklingMineNearbyGoal extends Goal
                         continue;
                     }
 
-                    if (blockling.aiManager.getWhitelist(AIManager.MINE_NEARBY_ID, ORE_WHITELIST_ID).isInWhitelist(testBlock))
+                    if (blockling.aiManager.getWhitelist(AIManager.MINE_NEARBY_ID, AIManager.MINE_NEARBY_ORES_WHITELIST_ID).isInWhitelist(testBlock))
                     {
                         if (AiUtil.canSeeBlock(blockling, testPos))
                         {
@@ -258,7 +257,7 @@ public class BlocklingMineNearbyGoal extends Goal
                             continue;
                         }
 
-                        if (blockling.aiManager.getWhitelist(AIManager.MINE_NEARBY_ID, ORE_WHITELIST_ID).isInWhitelist(surroundingBlock))
+                        if (blockling.aiManager.getWhitelist(AIManager.MINE_NEARBY_ID, AIManager.MINE_NEARBY_ORES_WHITELIST_ID).isInWhitelist(surroundingBlock))
                         {
                             positionsToTest.add(surroundingPos);
                         }

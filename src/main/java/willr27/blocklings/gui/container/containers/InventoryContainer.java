@@ -4,6 +4,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.Slot;
+import net.minecraft.item.ItemStack;
 import willr27.blocklings.inventory.BlocklingInventory;
 
 public class InventoryContainer extends Container
@@ -40,6 +41,49 @@ public class InventoryContainer extends Container
             addSlot(new Slot(playerInv, i, playerInvX + (i * 18), playerInvY + 58));
         }
     }
+
+    @Override
+    public ItemStack transferStackInSlot(PlayerEntity player, int slotIndex)
+    {
+        ItemStack stack = ItemStack.EMPTY;
+        Slot slot = inventorySlots.get(slotIndex);
+
+        if (slot != null && slot.getHasStack())
+        {
+            ItemStack itemStack = slot.getStack();
+            stack = itemStack.copy();
+
+            if (slotIndex >= 36)
+            {
+                int unlockedSlots = 36;
+                int u = unlockedSlots / 12;
+
+                if (!this.mergeItemStack(itemStack, 0, 3 * u, false))
+                {
+                    if (!this.mergeItemStack(itemStack, 9, 12 * u, false))
+                    {
+                        if (!this.mergeItemStack(itemStack, 18, 21 * u, false))
+                        {
+                            if (!this.mergeItemStack(itemStack, 27, 30 * u, false))
+                            {
+                                return ItemStack.EMPTY;
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                if (!this.mergeItemStack(itemStack, 36, 72, false))
+                {
+                    return ItemStack.EMPTY;
+                }
+            }
+        }
+
+        return stack;
+    }
+
     @Override
     public boolean canInteractWith(PlayerEntity playerIn)
     {

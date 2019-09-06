@@ -4,7 +4,7 @@ import net.minecraft.client.renderer.entity.model.EntityModel;
 import net.minecraft.client.renderer.entity.model.RendererModel;
 import willr27.blocklings.entity.blockling.BlocklingEntity;
 
-public class ModelBlockling<T extends BlocklingEntity> extends EntityModel<T>
+public class BlocklingModel<T extends BlocklingEntity> extends EntityModel<T>
 {
     private final RendererModel body;
     private final RendererModel rightLeg;
@@ -24,7 +24,7 @@ public class ModelBlockling<T extends BlocklingEntity> extends EntityModel<T>
 
     private int[] attackAnimation = { 0, 18, 39, 62, 85, 70, 58, 47, 37, 28, 20, 14, 8, 3, 0 };
 
-    public ModelBlockling()
+    public BlocklingModel()
     {
         this.textureWidth = 128;
         this.textureHeight = 64;

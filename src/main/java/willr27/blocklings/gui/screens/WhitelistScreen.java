@@ -9,6 +9,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.util.text.StringTextComponent;
+import willr27.blocklings.entity.ai.AIManager;
 import willr27.blocklings.entity.blockling.BlocklingEntity;
 import willr27.blocklings.gui.util.GuiUtil;
 import willr27.blocklings.whitelist.BlocklingWhitelist;
@@ -43,7 +44,8 @@ public class WhitelistScreen extends Screen
         contentLeft = centerX - TabbedScreen.CONTENT_WIDTH / 2;
         contentTop = top;
 
-        whitelist = blockling.aiManager.getWhitelist(blockling.getGuiInfo().currentlySelectedGoalId, 0);
+        whitelist = blockling.aiManager.getWhitelist(AIManager.getWhitelistIdsForGoal(blockling.getGuiInfo().currentlySelectedGoalId)[0]);
+
         maxPages = (int) Math.ceil(whitelist.size() / (float) ENTRIES_PER_PAGE);
 
         super.init();
@@ -317,15 +319,6 @@ public class WhitelistScreen extends Screen
         {
             whitelist.toggleAll();
         }
-//        else if (GuiUtil.isMouseOver((int) mouseX, (int) mouseY, getScrollX(), contentTop + SCROLL_START_Y, SCROLL_WIDTH, SCROLL_HEIGHT + SCROLL_LENGTH))
-//        {
-//            int dy = (int) mouseY - contentTop - SCROLL_START_Y - SCROLL_HEIGHT / 2;
-//            dy = Math.min(dy, SCROLL_LENGTH);
-//            dy = Math.max(dy, 0);
-//            float percent = (float) dy / (float) SCROLL_LENGTH;
-//            page = (int)((percent * whitelist.size()) / ENTRIES_PER_PAGE);
-//            scroll = dy / (float) SCROLL_LENGTH;
-//        }
 
         mouseDown = false;
         scrollPressed = false;
