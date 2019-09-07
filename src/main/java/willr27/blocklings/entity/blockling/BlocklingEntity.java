@@ -10,7 +10,9 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.Hand;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.IWorld;
 import net.minecraft.world.World;
 import net.minecraftforge.event.ForgeEventFactory;
 import willr27.blocklings.entity.ai.AIManager;
@@ -19,10 +21,14 @@ import willr27.blocklings.gui.util.GuiHandler;
 import willr27.blocklings.gui.util.Tab;
 import willr27.blocklings.inventory.BlocklingInventory;
 import willr27.blocklings.item.ItemUtil;
+import willr27.blocklings.item.ToolType;
+import willr27.blocklings.item.ToolUtil;
 import willr27.blocklings.network.NetworkHandler;
 import willr27.blocklings.network.messages.GuiInfoMessage;
 
 import javax.annotation.Nullable;
+import javax.tools.Tool;
+import java.util.function.Predicate;
 
 public class BlocklingEntity extends TameableEntity implements INamedContainerProvider
 {
@@ -31,9 +37,14 @@ public class BlocklingEntity extends TameableEntity implements INamedContainerPr
 
     private BlocklingStats stats;
     private BlocklingGuiInfo guiInfo;
+    private BlocklingType blocklingType;
+
+    private int blockBreakTimer = -1;
+    private int blockBreakInterval;
+    private boolean blockBroken;
+    private BlockPos blockBreaking;
 
     private int thousandTimer;
-
     private boolean hasMoved;
     private Vec3d hasMovedLastPosition = new Vec3d(0, 0, 0);
 
@@ -43,20 +54,18 @@ public class BlocklingEntity extends TameableEntity implements INamedContainerPr
         inventory = new BlocklingInventory(this);
         aiManager = new AIManager(this);
         guiInfo = new BlocklingGuiInfo(-1, GuiHandler.STATS_ID, -1);
+        blocklingType = BlocklingType.OAK_LOG;
     }
 
     protected void registerAttributes()
     {
-        super.registerAttributes();
-        this.getAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue((double)0.3F);
-        this.getAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(8.0D);
-        this.getAttributes().registerAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).setBaseValue(2.0D);
     }
 
     @Override
     protected void registerData()
     {
         super.registerData();
+        super.registerAttributes();
         stats = new BlocklingStats(this);
         stats.registerData();
     }
@@ -68,17 +77,18 @@ public class BlocklingEntity extends TameableEntity implements INamedContainerPr
 
         if (getAttackTarget() != null && !getAttackTarget().isAlive()) setAttackTarget(null);
 
-        checkIfMoved();
-        checkThousandTimer();
+        updateHasMoved();
+        updateBlockBreakTimer();
+        updateThousandTimer();
     }
 
-    private void checkThousandTimer()
+    private void updateThousandTimer()
     {
         if (thousandTimer > 1000) thousandTimer = 0;
         thousandTimer++;
     }
 
-    private void checkIfMoved()
+    private void updateHasMoved()
     {
         if (thousandTimer % 20 == 0)
         {
@@ -119,14 +129,26 @@ public class BlocklingEntity extends TameableEntity implements INamedContainerPr
                     }
                 }
             }
-
-            if (!player.isSneaking())
-            {
-
-            }
             else
             {
-                if (!world.isRemote) openCurrentGui(player);
+                if (!player.isSneaking())
+                {
+                    if (ToolUtil.isTool(item))
+                    {
+                        setHeldItem(Hand.MAIN_HAND, stack);
+                    }
+                }
+                else
+                {
+                    if (ToolUtil.isTool(item))
+                    {
+                        setHeldItem(Hand.OFF_HAND, stack);
+                    }
+                    else if (!world.isRemote)
+                    {
+                        openCurrentGui(player);
+                    }
+                }
             }
         }
 
@@ -170,6 +192,15 @@ public class BlocklingEntity extends TameableEntity implements INamedContainerPr
         inventory.setInventorySlotContents(slot, stack);
     }
 
+    public boolean hasToolType(ToolType type, Hand hand)
+    {
+        return ToolType.isTooltype(type, getHeldItem(hand).getItem());
+    }
+    public boolean hasToolType(ToolType type)
+    {
+        return hasToolType(type, Hand.MAIN_HAND) || hasToolType(type, Hand.OFF_HAND);
+    }
+
     @Nullable
     @Override
     public AgeableEntity createChild(AgeableEntity ageable)
@@ -182,6 +213,34 @@ public class BlocklingEntity extends TameableEntity implements INamedContainerPr
     public Container createMenu(int id, PlayerInventory inv, PlayerEntity player)
     {
         return new EquipmentContainer(id, inv, inventory);
+    }
+
+    @Override
+    public void onDeath(DamageSource cause)
+    {
+        if (getBlockBreaking() != null)
+        {
+            world.sendBlockBreakProgress(getEntityId(), getBlockBreaking(), -1);
+        }
+
+        super.onDeath(cause);
+    }
+
+    @Override
+    public boolean canSpawn(IWorld worldIn, SpawnReason spawnReasonIn)
+    {
+        if (spawnReasonIn == SpawnReason.NATURAL)
+        {
+            for (Predicate<BlocklingEntity> predicate : blocklingType.predicates)
+            {
+                if (!predicate.test(this))
+                {
+                    return false;
+                }
+            }
+        }
+
+        return super.canSpawn(worldIn, spawnReasonIn);
     }
 
     public void openGui(PlayerEntity player, int guiId)
@@ -207,6 +266,19 @@ public class BlocklingEntity extends TameableEntity implements INamedContainerPr
 
     public BlocklingStats getStats() { return stats; }
 
+    public int getBlockBreakInterval() { return blockBreakInterval; }
+    public int getBlockBreakTimer() { return blockBreakTimer; }
+    public boolean isBreakingBlock() { return blockBreakTimer != -1; }
+    public boolean hasBrokenBlock() { return blockBroken; }
+    public void startBreakingBlock(BlockPos blockPos, int interval) { setBlockBreaking(blockPos); blockBreakInterval = interval; blockBreakTimer = 0; blockBroken = false; }
+    public void stopBreakingBlock() { setBlockBreaking(null); blockBreakTimer = -1; }
+    private void updateBlockBreakTimer() { if (blockBreakTimer >= blockBreakInterval) { blockBroken = true; stopBreakingBlock(); } else if (blockBreakTimer < blockBreakInterval && blockBreakTimer != -1) blockBreakTimer++; }
+
+    public BlockPos getBlockBreaking() { return blockBreaking; }
+    public void setBlockBreaking(BlockPos blockPos) { blockBreaking = blockPos; }
+
     public int getThousandTimer() { return thousandTimer; }
     public boolean hasMoved() { return hasMoved; }
+
+    public BlocklingType getBlocklingType() { return blocklingType; }
 }

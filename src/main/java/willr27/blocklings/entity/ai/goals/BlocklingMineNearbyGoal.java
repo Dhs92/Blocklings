@@ -9,6 +9,7 @@ import net.minecraft.world.World;
 import willr27.blocklings.entity.ai.AIManager;
 import willr27.blocklings.entity.ai.AiUtil;
 import willr27.blocklings.entity.blockling.BlocklingEntity;
+import willr27.blocklings.item.ToolType;
 
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -17,6 +18,8 @@ import java.util.Set;
 
 public class BlocklingMineNearbyGoal extends Goal
 {
+    public static final ToolType TOOL_TYPE = ToolType.PICKAXE;
+
     private int searchRadiusX = 20;
     private int searchRadiusY = 20;
 
@@ -46,6 +49,13 @@ public class BlocklingMineNearbyGoal extends Goal
     {
         vein.clear();
         veinStartPos = null;
+        resetTarget();
+        blockling.stopBreakingBlock();
+    }
+
+    private void resetTarget()
+    {
+        if (targetPos != null) world.sendBlockBreakProgress(blockling.getEntityId(), targetPos, -1);
         targetPos = null;
     }
 
@@ -55,6 +65,7 @@ public class BlocklingMineNearbyGoal extends Goal
         if (blockling.getThousandTimer() % 80 == 0) failedBlocks.clear();
         if (blockling.getThousandTimer() % 20 != 0) return false;
         if (!blockling.aiManager.isActive(AIManager.MINE_NEARBY_ID)) return false;
+        if (!blockling.hasToolType(TOOL_TYPE)) return false;
 
         if (!findVeinStart()) return false;
         if (!findVein()) return false;
@@ -66,6 +77,7 @@ public class BlocklingMineNearbyGoal extends Goal
     public boolean shouldContinueExecuting()
     {
         if (vein.isEmpty()) return false;
+        if (!blockling.hasToolType(TOOL_TYPE)) return false;
 
         return true;
     }
@@ -86,9 +98,22 @@ public class BlocklingMineNearbyGoal extends Goal
 
             if (distanceSq < blockling.getStats().getMiningRangeSq())
             {
-                world.destroyBlock(targetPos, false);
-                vein.remove(targetPos);
-                targetPos = null;
+                if (blockling.hasBrokenBlock())
+                {
+                    world.destroyBlock(targetPos, false);
+                    vein.remove(targetPos);
+                    resetTarget();
+                }
+
+                if (!blockling.isBreakingBlock())
+                {
+                    blockling.startBreakingBlock(targetPos, blockling.getStats().getMiningInterval());
+                }
+                else if (targetPos != null)
+                {
+                    float percent = blockling.getBlockBreakTimer() / (float) blockling.getBlockBreakInterval();
+                    world.sendBlockBreakProgress(blockling.getEntityId(), targetPos, (int)(percent * 8));
+                }
             }
         }
     }
@@ -103,13 +128,13 @@ public class BlocklingMineNearbyGoal extends Goal
             if (blockling.aiManager.getWhitelist(AIManager.MINE_NEARBY_ID, AIManager.MINE_NEARBY_ORES_WHITELIST_ID).isInBlacklist(targetBlock))
             {
                 vein.remove(targetPos);
-                targetPos = null;
+                resetTarget();
             }
-            else if (!blockling.hasMoved())
+            else if (!blockling.isBreakingBlock() && !blockling.hasMoved())
             {
-                failedBlocks.add(targetPos);
                 vein.remove(targetPos);
-                targetPos = null;
+                failedBlocks.add(targetPos);
+                resetTarget();
             }
         }
     }

@@ -9,6 +9,7 @@ import net.minecraft.world.World;
 import willr27.blocklings.entity.ai.AIManager;
 import willr27.blocklings.entity.ai.AiUtil;
 import willr27.blocklings.entity.blockling.BlocklingEntity;
+import willr27.blocklings.item.ToolType;
 
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -17,6 +18,8 @@ import java.util.Set;
 
 public class BlocklingChopNearbyGoal extends Goal
 {
+    public static final ToolType TOOL_TYPE = ToolType.AXE;
+
     private int searchRadiusX = 20;
     private int searchRadiusY = 20;
 
@@ -26,7 +29,7 @@ public class BlocklingChopNearbyGoal extends Goal
     private Set<BlockPos> failedBlocks = new LinkedHashSet<>();
     private Set<BlockPos> tree = new LinkedHashSet<>();
     private BlockPos treeStartPos;
-    private BlockPos targetPos;
+    private BlockPos movePos;
 
     public BlocklingChopNearbyGoal(BlocklingEntity blockling)
     {
@@ -46,7 +49,14 @@ public class BlocklingChopNearbyGoal extends Goal
     {
         tree.clear();
         treeStartPos = null;
-        targetPos = null;
+        resetTarget();
+    }
+
+    private void resetTarget()
+    {
+        // TODO: LAST BLOCK, KEEP TRACK
+        if (blockling.getBlockBreaking() != null) world.sendBlockBreakProgress(blockling.getEntityId(), blockling.getBlockBreaking(), -1);
+        movePos = null;
     }
 
     @Override
@@ -55,6 +65,7 @@ public class BlocklingChopNearbyGoal extends Goal
         if (blockling.getThousandTimer() % 80 == 0) failedBlocks.clear();
         if (blockling.getThousandTimer() % 20 != 0) return false;
         if (!blockling.aiManager.isActive(AIManager.CHOP_NEARBY_ID)) return false;
+        if (!blockling.hasToolType(TOOL_TYPE)) return false;
 
         if (!findTreeStart()) return false;
         if (!findTree()) return false;
@@ -66,6 +77,7 @@ public class BlocklingChopNearbyGoal extends Goal
     public boolean shouldContinueExecuting()
     {
         if (tree.isEmpty()) return false;
+        if (!blockling.hasToolType(TOOL_TYPE)) return false;
 
         return true;
     }
@@ -80,43 +92,51 @@ public class BlocklingChopNearbyGoal extends Goal
 
     private void tryMineTarget()
     {
-        if (targetPos != null)
+        if (movePos != null)
         {
-            double distanceSq = blockling.getPosition().distanceSq(targetPos);
+            double distanceSq = blockling.getPosition().distanceSq(movePos);
 
             if (distanceSq < blockling.getStats().getMiningRangeSq())
             {
-                BlockPos logPos = (BlockPos) tree.toArray()[tree.size() - 1];
-                world.destroyBlock(logPos, false);
-                tree.remove(logPos);
+                if (blockling.hasBrokenBlock())
+                {
+                    BlockPos logPos = (BlockPos) tree.toArray()[tree.size() - 1];
+                    world.destroyBlock(logPos, false);
+                    tree.remove(logPos);
+                }
+
+                if (!blockling.isBreakingBlock() && !tree.isEmpty())
+                {
+                    BlockPos logPos = (BlockPos) tree.toArray()[tree.size() - 1];
+                    blockling.startBreakingBlock(logPos, blockling.getStats().getWoodcuttingInterval());
+                }
+                else if (blockling.getBlockBreaking() != null)
+                {
+                    float percent = blockling.getBlockBreakTimer() / (float) blockling.getBlockBreakInterval();
+                    world.sendBlockBreakProgress(blockling.getEntityId(), blockling.getBlockBreaking(), (int)(percent * 8));
+                }
             }
         }
     }
 
     private void updateToValidTarget()
     {
-        if (targetPos != null)
+        if (movePos != null)
         {
-            BlockState targetState = world.getBlockState(targetPos);
+            BlockState targetState = world.getBlockState(movePos);
             Block targetBlock = targetState.getBlock();
 
             if (blockling.aiManager.getWhitelist(AIManager.CHOP_NEARBY_ID, AIManager.CHOP_NEARBY_LOGS_WHITELIST_ID).isInBlacklist(targetBlock))
             {
-                tree.remove(targetPos);
-                targetPos = null;
+                tree.remove(movePos);
+                resetTarget();
             }
-//            else if (!blockling.hasMoved())
-//            {
-//                failedBlocks.add(targetPos);
-//                tree.remove(targetPos);
-//                targetPos = null;
-//            }
         }
     }
 
     private void moveToTarget()
     {
-        if (targetPos == null || blockling.getNavigator().getPath() == null /*|| !blockling.hasMoved()*/)
+        if (movePos == null || blockling.getNavigator().getPath() == null)
         {
             boolean foundTarget = false;
 
@@ -128,7 +148,7 @@ public class BlocklingChopNearbyGoal extends Goal
 
                     if (distanceSq < blockling.getStats().getWoodcuttingRangeSq())
                     {
-                        targetPos = blockPos;
+                        movePos = blockPos;
                         foundTarget = true;
                         break;
                     }
@@ -141,7 +161,7 @@ public class BlocklingChopNearbyGoal extends Goal
 
                         if (distanceSq < blockling.getStats().getWoodcuttingRangeSq())
                         {
-                            targetPos = blockPos;
+                            movePos = blockPos;
                             blockling.getNavigator().setPath(path, 1.0);
                             foundTarget = true;
                             break;

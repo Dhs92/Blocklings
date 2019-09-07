@@ -7,6 +7,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.SpawnEggItem;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.world.biome.Biome;
 import willr27.blocklings.Blocklings;
 
 import java.util.ArrayList;
@@ -24,6 +25,10 @@ public class EntityTypeBuilder
 
         ENTITY_TYPES.add(type);
 
+        addSpawnToAllBiomes(type, EntityClassification.CREATURE);
+        addSpawnToAllBiomes(type, EntityClassification.AMBIENT);
+        addSpawnToAllBiomes(type, EntityClassification.MONSTER);
+
         return type;
     }
 
@@ -35,6 +40,18 @@ public class EntityTypeBuilder
         ENTITY_TYPES.add(type);
         SPAWN_EGGS.add(new SpawnEggItem(type, colour1, colour2, new Item.Properties().group(ItemGroup.SEARCH)).setRegistryName(Blocklings.MODID,"item.spawn_egg." + name));
 
+        addSpawnToAllBiomes(type, EntityClassification.CREATURE);
+        addSpawnToAllBiomes(type, EntityClassification.AMBIENT);
+        addSpawnToAllBiomes(type, EntityClassification.MONSTER);
+
         return type;
+    }
+
+    public static void addSpawnToAllBiomes(EntityType<?> type, EntityClassification classification)
+    {
+        for (Biome biome : Biome.BIOMES)
+        {
+            biome.getSpawns(classification).add(new Biome.SpawnListEntry(type, 20, 1, 1));
+        }
     }
 }

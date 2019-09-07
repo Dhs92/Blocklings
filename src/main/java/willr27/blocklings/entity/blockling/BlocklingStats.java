@@ -6,6 +6,7 @@ import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
 
+import java.util.Random;
 import java.util.UUID;
 
 public class BlocklingStats
@@ -16,6 +17,10 @@ public class BlocklingStats
     private static final DataParameter<Float> WOODCUTTING_RANGE_SQ = EntityDataManager.createKey(BlocklingEntity.class, DataSerializers.FLOAT);
     private static final DataParameter<Float> FARMING_RANGE = EntityDataManager.createKey(BlocklingEntity.class, DataSerializers.FLOAT);
     private static final DataParameter<Float> FARMING_RANGE_SQ = EntityDataManager.createKey(BlocklingEntity.class, DataSerializers.FLOAT);
+
+    private static final DataParameter<Integer> MINING_INTERVAL = EntityDataManager.createKey(BlocklingEntity.class, DataSerializers.VARINT);
+    private static final DataParameter<Integer> WOODCUTTING_INTERVAL = EntityDataManager.createKey(BlocklingEntity.class, DataSerializers.VARINT);
+    private static final DataParameter<Integer> FARMING_INTERVAL = EntityDataManager.createKey(BlocklingEntity.class, DataSerializers.VARINT);
 
     private static final DataParameter<Integer> COMBAT_LEVEL = EntityDataManager.createKey(BlocklingEntity.class, DataSerializers.VARINT);
     private static final DataParameter<Integer> MINING_LEVEL = EntityDataManager.createKey(BlocklingEntity.class, DataSerializers.VARINT);
@@ -46,6 +51,11 @@ public class BlocklingStats
 
     public void registerData()
     {
+        blockling.getAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(5.0);
+        blockling.getAttributes().registerAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).setBaseValue(2.0);
+        blockling.getAttribute(SharedMonsterAttributes.ARMOR).setBaseValue(5.0);
+        blockling.getAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(0.3);
+
         dataManager.register(MINING_RANGE, 2.3f);
         dataManager.register(MINING_RANGE_SQ, dataManager.get(MINING_RANGE) * dataManager.get(MINING_RANGE));
         dataManager.register(WOODCUTTING_RANGE, 2.3f);
@@ -53,7 +63,18 @@ public class BlocklingStats
         dataManager.register(FARMING_RANGE, 2.3f);
         dataManager.register(FARMING_RANGE_SQ, dataManager.get(FARMING_RANGE) * dataManager.get(FARMING_RANGE));
 
-        dataManager.register(COMBAT_LEVEL, 1);
+        dataManager.register(MINING_INTERVAL, 20);
+        dataManager.register(WOODCUTTING_INTERVAL, 20);
+        dataManager.register(FARMING_INTERVAL, 20);
+
+        dataManager.register(COMBAT_LEVEL, new Random().nextInt(15) + 1);
+        dataManager.register(MINING_LEVEL, new Random().nextInt(15) + 1);
+        dataManager.register(WOODCUTTING_LEVEL, new Random().nextInt(15) + 1);
+        dataManager.register(FARMING_LEVEL, new Random().nextInt(15) + 1);
+        dataManager.register(COMBAT_XP, new Random().nextInt(getXpUntilNextLevel(getCombatLevel())));
+        dataManager.register(MINING_XP, new Random().nextInt(getXpUntilNextLevel(getMiningLevel())));
+        dataManager.register(WOODCUTTING_XP, new Random().nextInt(getXpUntilNextLevel(getWoodcuttingLevel())));
+        dataManager.register(FARMING_XP, new Random().nextInt(getXpUntilNextLevel(getFarmingLevel())));
     }
 
     public static int getXpUntilNextLevel(int level)
@@ -145,6 +166,11 @@ public class BlocklingStats
     }
 
 
+    public double getAttackDamage() { return blockling.getAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).getValue(); }
+    public double getArmour() { return blockling.getAttribute(SharedMonsterAttributes.ARMOR).getValue(); }
+    public double getMovementSpeed() { return blockling.getAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).getValue(); }
+
+
     public float getMiningRange() { return dataManager.get(MINING_RANGE); }
     public float getMiningRangeSq() { return dataManager.get(MINING_RANGE_SQ); }
     public void setMiningRange(float value) { dataManager.set(MINING_RANGE, value); dataManager.set(MINING_RANGE_SQ, value * value); }
@@ -156,6 +182,17 @@ public class BlocklingStats
     public float getFarmingRange() { return dataManager.get(FARMING_RANGE); }
     public float getFarmingRangeSq() { return dataManager.get(FARMING_RANGE_SQ); }
     public void setFarmingRange(float value) { dataManager.set(FARMING_RANGE, value); dataManager.set(FARMING_RANGE_SQ, value * value); }
+
+
+    public int getMiningInterval() { return dataManager.get(MINING_INTERVAL); }
+    public void setMiningInterval(int value) { dataManager.set(MINING_INTERVAL, value); }
+
+    public int getWoodcuttingInterval() { return dataManager.get(WOODCUTTING_INTERVAL); }
+    public void setWoodcuttingInterval(int value) { dataManager.set(WOODCUTTING_INTERVAL, value); }
+
+    public int getFarmingInterval() { return dataManager.get(FARMING_INTERVAL); }
+    public void setFarmingInterval(int value) { dataManager.set(FARMING_INTERVAL, value); }
+
 
     
     public int getCombatLevel() { return dataManager.get(COMBAT_LEVEL); }

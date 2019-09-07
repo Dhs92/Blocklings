@@ -12,6 +12,7 @@ import willr27.blocklings.block.BlockUtil;
 import willr27.blocklings.entity.ai.AIManager;
 import willr27.blocklings.entity.ai.AiUtil;
 import willr27.blocklings.entity.blockling.BlocklingEntity;
+import willr27.blocklings.item.ToolType;
 
 import java.util.EnumSet;
 import java.util.LinkedHashSet;
@@ -19,6 +20,8 @@ import java.util.Set;
 
 public class BlocklingFarmCropsNearbyGoal extends Goal
 {
+    public static final ToolType TOOL_TYPE = ToolType.HOE;
+
     private int searchRadiusX = 20;
     private int searchRadiusY = 20;
 
@@ -44,6 +47,11 @@ public class BlocklingFarmCropsNearbyGoal extends Goal
     @Override
     public void resetTask()
     {
+        resetTarget();
+    }
+
+    private void resetTarget()
+    {
         targetPos = null;
     }
 
@@ -53,6 +61,7 @@ public class BlocklingFarmCropsNearbyGoal extends Goal
         if (blockling.getThousandTimer() % 80 == 0) failedBlocks.clear();
         if (blockling.getThousandTimer() % 2 != 0) return false;
         if (!blockling.aiManager.isActive(AIManager.FARM_NEARBY_ID)) return false;
+        if (!blockling.hasToolType(TOOL_TYPE)) return false;
 
         if (!findCrop()) return false;
 
@@ -63,6 +72,7 @@ public class BlocklingFarmCropsNearbyGoal extends Goal
     public boolean shouldContinueExecuting()
     {
         if (targetPos == null) return false;
+        if (!blockling.hasToolType(TOOL_TYPE)) return false;
 
         return true;
     }
@@ -82,18 +92,26 @@ public class BlocklingFarmCropsNearbyGoal extends Goal
 
             if (distanceSq < blockling.getStats().getFarmingRangeSq())
             {
-                BlockState targetState = world.getBlockState(targetPos);
-                Block targetBlock = targetState.getBlock();
-                Item seed = BlockUtil.getSeed((CropsBlock) targetBlock);
-                if (blockling.aiManager.getWhitelist(AIManager.FARM_NEARBY_ID, AIManager.FARM_NEARBY_CROPS_SEEDS_WHITELIST_ID).isInWhitelist(seed))
+                if (blockling.hasBrokenBlock())
                 {
-                    world.setBlockState(targetPos, targetBlock.getDefaultState());
+                    BlockState targetState = world.getBlockState(targetPos);
+                    Block targetBlock = targetState.getBlock();
+                    Item seed = BlockUtil.getSeed((CropsBlock) targetBlock);
+                    if (blockling.aiManager.getWhitelist(AIManager.FARM_NEARBY_ID, AIManager.FARM_NEARBY_CROPS_SEEDS_WHITELIST_ID).isInWhitelist(seed))
+                    {
+                        world.setBlockState(targetPos, targetBlock.getDefaultState());
+                    }
+                    else
+                    {
+                        world.destroyBlock(targetPos, false);
+                    }
+                    resetTarget();
                 }
-                else
+
+                if (!blockling.isBreakingBlock())
                 {
-                    world.destroyBlock(targetPos, false);
+                    blockling.startBreakingBlock(targetPos, blockling.getStats().getFarmingInterval());
                 }
-                targetPos = null;
             }
         }
     }
@@ -129,7 +147,7 @@ public class BlocklingFarmCropsNearbyGoal extends Goal
             if (!hasPath)
             {
                 failedBlocks.add(targetPos);
-                targetPos = null;
+                resetTarget();
             }
         }
     }
