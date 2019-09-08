@@ -31,6 +31,7 @@ public class GuiUtil
 
     public static void drawEntityOnScreen(int posX, int posY, int scale, float mouseX, float mouseY, LivingEntity ent)
     {
+        ent.setCustomNameVisible(false);
         GlStateManager.enableColorMaterial();
         GlStateManager.pushMatrix();
         GlStateManager.translatef((float)posX, (float)posY, 50.0F);
@@ -67,5 +68,6 @@ public class GuiUtil
         GlStateManager.activeTexture(GLX.GL_TEXTURE1);
         GlStateManager.disableTexture();
         GlStateManager.activeTexture(GLX.GL_TEXTURE0);
+        ent.setCustomNameVisible(true);
     }
 }

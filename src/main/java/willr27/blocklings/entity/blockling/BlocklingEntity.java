@@ -12,9 +12,11 @@ import net.minecraft.util.DamageSource;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.world.IWorld;
 import net.minecraft.world.World;
 import net.minecraftforge.event.ForgeEventFactory;
+import org.jline.utils.Log;
 import willr27.blocklings.entity.ai.AIManager;
 import willr27.blocklings.gui.container.containers.EquipmentContainer;
 import willr27.blocklings.gui.util.GuiHandler;
@@ -24,14 +26,17 @@ import willr27.blocklings.item.ItemUtil;
 import willr27.blocklings.item.ToolType;
 import willr27.blocklings.item.ToolUtil;
 import willr27.blocklings.network.NetworkHandler;
+import willr27.blocklings.network.messages.CustomNameMessage;
 import willr27.blocklings.network.messages.GuiInfoMessage;
 
 import javax.annotation.Nullable;
-import javax.tools.Tool;
+import java.util.Random;
 import java.util.function.Predicate;
 
 public class BlocklingEntity extends TameableEntity implements INamedContainerProvider
 {
+    public final Random random = new Random();
+
     public final BlocklingInventory inventory;
     public final AIManager aiManager;
 
@@ -77,6 +82,8 @@ public class BlocklingEntity extends TameableEntity implements INamedContainerPr
 
         if (getAttackTarget() != null && !getAttackTarget().isAlive()) setAttackTarget(null);
 
+        if (!world.isRemote) inventory.detectAndSendChanges();
+
         updateHasMoved();
         updateBlockBreakTimer();
         updateThousandTimer();
@@ -120,6 +127,7 @@ public class BlocklingEntity extends TameableEntity implements INamedContainerPr
                             setAttackTarget((LivingEntity)null);
                             playTameEffect(true);
                             world.setEntityState(this, (byte)7);
+                            if (getCustomName() == null) setName("Blockling");
                         }
                         else
                         {
@@ -264,15 +272,19 @@ public class BlocklingEntity extends TameableEntity implements INamedContainerPr
     public void setGuiInfo(BlocklingGuiInfo value) { setGuiInfo(value, true); }
     public void setGuiInfo(BlocklingGuiInfo value, boolean sync) { guiInfo = value; if (sync) NetworkHandler.sync(world, new GuiInfoMessage(guiInfo, getEntityId())); }
 
+    public void setName(String name) { setName(name, true); }
+    public void setName(String name, boolean sync) { setCustomName(new StringTextComponent(name)); if (sync) NetworkHandler.sync(world, new CustomNameMessage(name, getEntityId())); }
+
     public BlocklingStats getStats() { return stats; }
 
     public int getBlockBreakInterval() { return blockBreakInterval; }
     public int getBlockBreakTimer() { return blockBreakTimer; }
     public boolean isBreakingBlock() { return blockBreakTimer != -1; }
     public boolean hasBrokenBlock() { return blockBroken; }
-    public void startBreakingBlock(BlockPos blockPos, int interval) { setBlockBreaking(blockPos); blockBreakInterval = interval; blockBreakTimer = 0; blockBroken = false; }
+    public void setBrokenBlock(boolean value) { blockBroken = value; }
+    public void startBreakingBlock(BlockPos blockPos, int interval) { setBlockBreaking(blockPos); blockBreakInterval = interval; blockBreakTimer = 0; setBrokenBlock(false); }
     public void stopBreakingBlock() { setBlockBreaking(null); blockBreakTimer = -1; }
-    private void updateBlockBreakTimer() { if (blockBreakTimer >= blockBreakInterval) { blockBroken = true; stopBreakingBlock(); } else if (blockBreakTimer < blockBreakInterval && blockBreakTimer != -1) blockBreakTimer++; }
+    private void updateBlockBreakTimer() { if (blockBreakTimer >= blockBreakInterval) { setBrokenBlock(true); stopBreakingBlock(); } else if (blockBreakTimer < blockBreakInterval && blockBreakTimer != -1) blockBreakTimer++; }
 
     public BlockPos getBlockBreaking() { return blockBreaking; }
     public void setBlockBreaking(BlockPos blockPos) { blockBreaking = blockPos; }

@@ -2,8 +2,11 @@ package willr27.blocklings.inventory;
 
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.IInventory;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import willr27.blocklings.entity.blockling.BlocklingEntity;
+import willr27.blocklings.network.NetworkHandler;
+import willr27.blocklings.network.messages.InventoryMessage;
 
 public class BlocklingInventory implements IInventory
 {
@@ -18,6 +21,7 @@ public class BlocklingInventory implements IInventory
     private BlocklingEntity blockling;
 
     private ItemStack[] stacks = new ItemStack[INV_SIZE];
+    private ItemStack[] stacksCopy = new ItemStack[INV_SIZE];
 
     private boolean dirty = false;
 
@@ -25,6 +29,10 @@ public class BlocklingInventory implements IInventory
     {
         this.blockling = blockling;
         clear();
+        for (int i = 0; i < getSizeInventory(); i++)
+        {
+            stacksCopy[i] = ItemStack.EMPTY;
+        }
     }
 
     @Override
@@ -67,7 +75,17 @@ public class BlocklingInventory implements IInventory
     @Override
     public void setInventorySlotContents(int index, ItemStack stack)
     {
+        setInventorySlotContents(index, stack, false);
+    }
+
+    public void setInventorySlotContents(int index, ItemStack stack, boolean sendPacket)
+    {
         stacks[index] = stack;
+
+        if (sendPacket)
+        {
+            NetworkHandler.sync(blockling.world, new InventoryMessage(stack, index, blockling.getEntityId()));
+        }
     }
 
     @Override
@@ -88,6 +106,62 @@ public class BlocklingInventory implements IInventory
         for (int i = 0; i < getSizeInventory(); i++)
         {
             removeStackFromSlot(i);
+        }
+    }
+
+    public int find(Item item)
+    {
+        for (int i = 0; i < this.getSizeInventory(); i++)
+        {
+            if (getStackInSlot(i).getItem() == item)
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    public ItemStack addItem(ItemStack stack)
+    {
+        int maxStackSize = stack.getMaxStackSize();
+
+        for (int i = INVENTORY_START_SLOT; i < INVENTORY_END_SLOT + 1 && !stack.isEmpty(); i++)
+        {
+            ItemStack slotStack = getStackInSlot(i);
+            if (ItemStack.areItemsEqual(stack, slotStack))
+            {
+                int amountToAdd = stack.getCount();
+                amountToAdd = Math.min(amountToAdd, maxStackSize - slotStack.getCount());
+                stack.shrink(amountToAdd);
+                slotStack.grow(amountToAdd);
+                setInventorySlotContents(i, slotStack);
+            }
+        }
+        for (int i = INVENTORY_START_SLOT; i < INVENTORY_END_SLOT + 1 && !stack.isEmpty(); i++)
+        {
+            ItemStack slotStack = getStackInSlot(i);
+            if (slotStack.isEmpty())
+            {
+                setInventorySlotContents(i, stack.copy());
+                stack.setCount(0);
+            }
+        }
+
+        return stack;
+    }
+
+    public void detectAndSendChanges()
+    {
+        for (int i = 0; i < INV_SIZE; i++)
+        {
+            ItemStack oldStack = stacksCopy[i];
+            ItemStack newStack = stacks[i];
+            if (!ItemStack.areItemStacksEqual(oldStack, newStack))
+            {
+                NetworkHandler.sync(blockling.world, new InventoryMessage(newStack, i, blockling.getEntityId()));
+                stacksCopy[i] = newStack.copy();
+            }
         }
     }
 }

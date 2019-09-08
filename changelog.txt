@@ -1,3 +1,89 @@
+Build: 1.14.4-28.0.100 - Sun Sep 08 06:23:38 GMT 2019
+	cpw:
+		Fix problem with network connections timing out frequently. Turns out
+		there's a race condition - and the extra work forge does causes it to
+		happen much more frequently than vanilla (though I'm sure it's a vanilla
+		issue). Closes #6124, #5767 and probably lots more.
+		Signed-off-by: cpw <cpw+github@weeksfamily.ca>
+
+	tterrag:
+		Fix SCommandListPacket underflowing buffer when encountering a missing
+		argument type
+
+	tterrag:
+		Remove StructureArgument to work around vanilla issue, clean up custom
+		arguments
+
+	tterrag:
+		Fix vanilla typo causing errors when client is missing entity attributes
+
+	tterrag:
+		Properly fix missing attribute issue, add vanilla bug ID
+
+=========
+Build: 1.14.4-28.0.95 - Sat Sep 07 05:10:08 GMT 2019
+	tterrag:
+		Make /locate command support modded structures
+
+=========
+Build: 1.14.4-28.0.94 - Sat Sep 07 03:42:47 GMT 2019
+	tterrag:
+		Make STRUCTURE_FEATURE registry a slave map of the FEATURE registry
+		Also convert Feature.STRUCTURES to a slave map
+
+=========
+Build: 1.14.4-28.0.93 - Thu Sep 05 22:38:25 GMT 2019
+	lex:
+		Fix REGISTER packet encode/decode issues. Changed ForgeConfig values to
+		return the default value if the config is not loaded, and exposed the
+		value objects as a internal config.
+
+=========
+Build: 1.14.4-28.0.92 - Thu Sep 05 05:33:28 GMT 2019
+	lex:
+		Fix naming conflicts with official names.
+
+=========
+Build: 1.14.4-28.0.91 - Wed Sep 04 02:59:06 GMT 2019
+	lex:
+		Fix item used stat not triggering properly on last item in the stack.
+
+=========
+Build: 1.14.4-28.0.90 - Wed Sep 04 01:51:34 GMT 2019
+	lex:
+		Add a bunch of tags from the omnibus. Fix test imports. And update
+		patches for line numbers.
+
+	bl4ckscor33:
+		Add spawn reason to spawn events (#6096)
+
+=========
+Build: 1.14.4-28.0.88 - Tue Sep 03 21:50:35 GMT 2019
+	6596492+yrsegal:
+		Add collisionExtendsVertically hook to allow modded blocks that extend
+		collision into the block above similar to fences. (#6092)
+
+=========
+Build: 1.14.4-28.0.87 - Tue Sep 03 21:41:54 GMT 2019
+	danielgoossens:
+		Fixed PlayerInteractEvent.LeftClickBlock useItem/useBlock (#6045)
+
+=========
+Build: 1.14.4-28.0.86 - Tue Sep 03 21:31:04 GMT 2019
+	danielgoossens:
+		Readded IForgeItem#getHighlightTip hook. (#6036)
+
+=========
+Build: 1.14.4-28.0.85 - Tue Sep 03 20:20:52 GMT 2019
+	goto.minecraft:
+		Added gravity as attribute to Entities (#5630)
+
+=========
+Build: 1.14.4-28.0.84 - Tue Sep 03 19:59:53 GMT 2019
+	ichttt:
+		Fix CME on chunk unload in FarmlandTicketManager (#5998)
+
+=========
 Build: 1.14.4-28.0.83 - Sun Sep 01 18:42:33 GMT 2019
 	cpw:
 		Add a modfolderfactory. Fix up login payload exposure.

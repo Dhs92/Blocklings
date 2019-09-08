@@ -24,9 +24,11 @@ public class NetworkHandler
     {
         int id = 0;
 
+        HANDLER.registerMessage(id++, CustomNameMessage.class, CustomNameMessage::encode, CustomNameMessage::decode, CustomNameMessage::handle);
         HANDLER.registerMessage(id++, GoalActiveMessage.class, GoalActiveMessage::encode, GoalActiveMessage::decode, GoalActiveMessage::handle);
         HANDLER.registerMessage(id++, GoalPriorityMessage.class, GoalPriorityMessage::encode, GoalPriorityMessage::decode, GoalPriorityMessage::handle);
         HANDLER.registerMessage(id++, GuiInfoMessage.class, GuiInfoMessage::encode, GuiInfoMessage::decode, GuiInfoMessage::handle);
+        HANDLER.registerMessage(id++, InventoryMessage.class, InventoryMessage::encode, InventoryMessage::decode, InventoryMessage::handle);
         HANDLER.registerMessage(id++, OpenGuiMessage.class, OpenGuiMessage::encode, OpenGuiMessage::decode, OpenGuiMessage::handle);
         HANDLER.registerMessage(id++, WhitelistAllMessage.class, WhitelistAllMessage::encode, WhitelistAllMessage::decode, WhitelistAllMessage::handle);
         HANDLER.registerMessage(id++, WhitelistSingleMessage.class, WhitelistSingleMessage::encode, WhitelistSingleMessage::decode, WhitelistSingleMessage::handle);

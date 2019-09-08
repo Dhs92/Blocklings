@@ -6,6 +6,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.text.StringTextComponent;
 import willr27.blocklings.entity.blockling.BlocklingEntity;
 import willr27.blocklings.entity.blockling.BlocklingStats;
+import willr27.blocklings.gui.CenteredTextFieldWidget;
 import willr27.blocklings.gui.util.GuiUtil;
 import willr27.blocklings.gui.util.Icon;
 
@@ -71,6 +72,8 @@ public class StatsScreen extends Screen
     private XpBar woodcuttingXpBar;
     private XpBar farmingXpBar;
 
+    private CenteredTextFieldWidget nameField;
+
     public StatsScreen(BlocklingEntity blockling, PlayerEntity player)
     {
         super(new StringTextComponent("Stats"));
@@ -110,6 +113,20 @@ public class StatsScreen extends Screen
         woodcuttingXpBar = new XpBar(font, contentLeft + XP_BAR_X, contentTop + WOODCUTTING_XP_BAR_Y, XP_BAR_WIDTH, XP_BAR_HEIGHT, 0, WOODCUTTING_XP_BAR_TEXTURE_Y);
         farmingXpBar = new XpBar(font, contentLeft + XP_BAR_X, contentTop + FARMING_XP_BAR_Y, XP_BAR_WIDTH, XP_BAR_HEIGHT, 0, FARMING_XP_BAR_TEXTURE_Y);
 
+        nameField = new CenteredTextFieldWidget(font, contentLeft + 8, contentTop + 11, 160, 9 + 5, "")
+        {
+            public void setFocused2(boolean value)
+            {
+                if (!value) blockling.setName(getText());
+                super.setFocused2(value);
+            }
+        };
+        nameField.setMaxStringLength(25);
+        nameField.setEnableBackgroundDrawing(true);
+        nameField.setVisible(true);
+        nameField.setTextColor(16777215);
+        nameField.setText(blockling.getCustomName().getString());
+
         super.init();
     }
 
@@ -123,9 +140,25 @@ public class StatsScreen extends Screen
         drawXpBars(mouseX, mouseY);
         GuiUtil.drawEntityOnScreen(centerX, centerY, 40, centerX - mouseX, centerY - mouseY, blockling);
         tabbedScreen.drawTabs();
+        nameField.tick();
+        nameField.render(mouseX, mouseY, partialTicks);
 
         super.render(mouseX, mouseY, partialTicks);
+        drawTooltips(mouseX, mouseY);
         tabbedScreen.drawTooltip(mouseX, mouseY, this);
+    }
+
+    private void drawTooltips(int mouseX, int mouseY)
+    {
+        if (combatXpBar.isMouseOver(mouseX, mouseY)) renderTooltip("XP: " + blockling.getStats().getCombatXp() + "/" + BlocklingStats.getXpUntilNextLevel(blockling.getStats().getCombatLevel()), mouseX, mouseY);
+        else if (miningXpBar.isMouseOver(mouseX, mouseY)) renderTooltip("XP: " + blockling.getStats().getMiningXp() + "/" + BlocklingStats.getXpUntilNextLevel(blockling.getStats().getMiningLevel()), mouseX, mouseY);
+        else if (woodcuttingXpBar.isMouseOver(mouseX, mouseY)) renderTooltip("XP: " + blockling.getStats().getWoodcuttingXp() + "/" + BlocklingStats.getXpUntilNextLevel(blockling.getStats().getWoodcuttingLevel()), mouseX, mouseY);
+        else if (farmingXpBar.isMouseOver(mouseX, mouseY)) renderTooltip("XP: " + blockling.getStats().getFarmingXp() + "/" + BlocklingStats.getXpUntilNextLevel(blockling.getStats().getFarmingLevel()), mouseX, mouseY);
+
+        else if (combatIcon.isMouseOver(mouseX, mouseY)) renderTooltip("Nil", mouseX, mouseY);
+        else if (miningIcon.isMouseOver(mouseX, mouseY)) renderTooltip("BPS: " + (((double)((int)(200.0 / blockling.getStats().getMiningInterval()))) / 10.0), mouseX, mouseY);
+        else if (woodcuttingIcon.isMouseOver(mouseX, mouseY)) renderTooltip("BPS: " + (((double)((int)(200.0 / blockling.getStats().getMiningInterval()))) / 10.0), mouseX, mouseY);
+        else if (farmingIcon.isMouseOver(mouseX, mouseY)) renderTooltip("BPS: " + (((double)((int)(200.0 / blockling.getStats().getMiningInterval()))) / 10.0), mouseX, mouseY);
     }
 
     private void drawStatIcons(int mouseX, int mouseY)
@@ -166,14 +199,31 @@ public class StatsScreen extends Screen
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int state)
     {
+        nameField.mouseClicked(mouseX, mouseY, state);
         return super.mouseClicked(mouseX, mouseY, state);
     }
 
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int state)
     {
+        nameField.mouseReleased(mouseX, mouseY, state);
         tabbedScreen.mouseReleased((int)mouseX, (int)mouseY, state);
         return super.mouseReleased(mouseX, mouseY, state);
+    }
+
+    @Override
+    public boolean keyPressed(int key, int key2, int key3)
+    {
+        if (key2 == 28) nameField.setFocused2(false);
+        else nameField.keyPressed(key, key2, key3);
+        return super.keyPressed(key, key2, key2); // TODO: TIDY
+    }
+
+    @Override
+    public boolean charTyped(char cah, int code)
+    {
+        nameField.charTyped(cah, code);
+        return super.charTyped(cah, code); // TODO: TIDY
     }
 
     @Override

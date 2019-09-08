@@ -54,7 +54,7 @@ public class BlocklingStats
         blockling.getAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(5.0);
         blockling.getAttributes().registerAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).setBaseValue(2.0);
         blockling.getAttribute(SharedMonsterAttributes.ARMOR).setBaseValue(5.0);
-        blockling.getAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(0.3);
+        blockling.getAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(0.2);
 
         dataManager.register(MINING_RANGE, 2.3f);
         dataManager.register(MINING_RANGE_SQ, dataManager.get(MINING_RANGE) * dataManager.get(MINING_RANGE));
@@ -63,9 +63,9 @@ public class BlocklingStats
         dataManager.register(FARMING_RANGE, 2.3f);
         dataManager.register(FARMING_RANGE_SQ, dataManager.get(FARMING_RANGE) * dataManager.get(FARMING_RANGE));
 
-        dataManager.register(MINING_INTERVAL, 20);
-        dataManager.register(WOODCUTTING_INTERVAL, 20);
-        dataManager.register(FARMING_INTERVAL, 20);
+        dataManager.register(MINING_INTERVAL, 50);
+        dataManager.register(WOODCUTTING_INTERVAL, 50);
+        dataManager.register(FARMING_INTERVAL, 50);
 
         dataManager.register(COMBAT_LEVEL, new Random().nextInt(15) + 1);
         dataManager.register(MINING_LEVEL, new Random().nextInt(15) + 1);
@@ -75,6 +75,9 @@ public class BlocklingStats
         dataManager.register(MINING_XP, new Random().nextInt(getXpUntilNextLevel(getMiningLevel())));
         dataManager.register(WOODCUTTING_XP, new Random().nextInt(getXpUntilNextLevel(getWoodcuttingLevel())));
         dataManager.register(FARMING_XP, new Random().nextInt(getXpUntilNextLevel(getFarmingLevel())));
+
+        checkForLevelUp();
+        updateLevelStats();
     }
 
     public static int getXpUntilNextLevel(int level)
@@ -138,7 +141,16 @@ public class BlocklingStats
             blockling.getAttribute(SharedMonsterAttributes.ARMOR).applyModifier(levelBonusArmor);
         }
 
+        setMiningInterval(calcBreakSpeedFromLevel(getMiningLevel()));
+        setWoodcuttingInterval(calcBreakSpeedFromLevel(getWoodcuttingLevel()));
+        setFarmingInterval(calcBreakSpeedFromLevel(getFarmingLevel()));
+
         updateHealth();
+    }
+
+    private int calcBreakSpeedFromLevel(int level)
+    {
+        return 50 -((int) (10 * Math.log(level)));
     }
 
     private double calcBonusHealthFromLevel()
