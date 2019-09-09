@@ -51,7 +51,7 @@ public class BlocklingMineNearbyGoal extends Goal
         vein.clear();
         veinStartPos = null;
         resetTarget();
-        blockling.stopBreakingBlock();
+        blockling.stopAction();
     }
 
     private void resetTarget()
@@ -86,6 +86,7 @@ public class BlocklingMineNearbyGoal extends Goal
     @Override
     public void tick()
     {
+        blockling.switchToToolType(TOOL_TYPE);
         updateToValidTarget();
         moveToTarget();
         tryMineTarget();
@@ -99,29 +100,38 @@ public class BlocklingMineNearbyGoal extends Goal
 
             if (distanceSq < blockling.getStats().getMiningRangeSq())
             {
-                if (blockling.hasBrokenBlock())
+                if (blockling.hasFinishedAction())
                 {
-                    ItemStack mainStack = blockling.hasToolType(TOOL_TYPE, Hand.MAIN_HAND) ? blockling.getHeldItemMainhand() : ItemStack.EMPTY;
-                    ItemStack offStack = blockling.hasToolType(TOOL_TYPE, Hand.OFF_HAND) ? blockling.getHeldItemOffhand() : ItemStack.EMPTY;
+                    ItemStack mainStack = blockling.isHoldingToolType(TOOL_TYPE, Hand.MAIN_HAND) ? blockling.getHeldItemMainhand() : ItemStack.EMPTY;
+                    ItemStack offStack = blockling.isHoldingToolType(TOOL_TYPE, Hand.OFF_HAND) ? blockling.getHeldItemOffhand() : ItemStack.EMPTY;
                     List<ItemStack> drops = DropUtil.getDrops(blockling, targetPos, mainStack, offStack);
                     addDropsToInventoryOrWorld(drops, targetPos);
+                    mainStack.attemptDamageItem(1, new Random(), null);
+                    offStack.attemptDamageItem(1, new Random(), null);
 
                     world.destroyBlock(targetPos, false);
                     vein.remove(targetPos);
                     resetTarget();
 
                     blockling.getStats().incMiningXp(blockling.random.nextInt(4) + 3);
-                    blockling.setBrokenBlock(false);
+                    blockling.setFinishedAction(false);
                 }
-                else if (!blockling.isBreakingBlock())
+                else if (!blockling.isPerformingAction())
                 {
-                    blockling.startBreakingBlock(targetPos, blockling.getStats().getMiningInterval());
+                    blockling.startAction(blockling.getStats().getMiningInterval());
+                    blockling.setBlockBreaking(targetPos);
                 }
                 else if (targetPos != null)
                 {
-                    float percent = blockling.getBlockBreakTimer() / (float) blockling.getBlockBreakInterval();
+                    float percent = blockling.getActionTimer() / (float) blockling.getActionInvterval();
                     world.sendBlockBreakProgress(blockling.getEntityId(), targetPos, (int)(percent * 8));
                 }
+            }
+            else if (!blockling.hasWorked())
+            {
+                failedBlocks.add(targetPos);
+                vein.remove(targetPos);
+                resetTarget();
             }
         }
     }
@@ -131,7 +141,7 @@ public class BlocklingMineNearbyGoal extends Goal
         for (ItemStack stack : drops)
         {
             ItemStack remainderStack = blockling.inventory.addItem(stack);
-            if (!remainderStack.isEmpty()) InventoryHelper.spawnItemStack(world, blockling.posX, blockling.posY, blockling.posZ, remainderStack);
+            if (!remainderStack.isEmpty()) InventoryHelper.spawnItemStack(world, dropPos.getX() + 0.5, dropPos.getY() + 0.5, dropPos.getZ() + 0.5, remainderStack);
         }
     }
 

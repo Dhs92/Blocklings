@@ -1,22 +1,30 @@
 package willr27.blocklings.entity.blockling;
 
+import jdk.management.resource.internal.ResourceNatives;
+import net.minecraft.enchantment.Enchantment;
+import net.minecraft.enchantment.EnchantmentHelper;
+import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.*;
+import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.passive.TameableEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.INamedContainerProvider;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.SwordItem;
+import net.minecraft.item.ToolItem;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.world.IWorld;
 import net.minecraft.world.World;
 import net.minecraftforge.event.ForgeEventFactory;
-import org.jline.utils.Log;
 import willr27.blocklings.entity.ai.AIManager;
 import willr27.blocklings.gui.container.containers.EquipmentContainer;
 import willr27.blocklings.gui.util.GuiHandler;
@@ -30,6 +38,7 @@ import willr27.blocklings.network.messages.CustomNameMessage;
 import willr27.blocklings.network.messages.GuiInfoMessage;
 
 import javax.annotation.Nullable;
+import java.util.Collection;
 import java.util.Random;
 import java.util.function.Predicate;
 
@@ -44,13 +53,16 @@ public class BlocklingEntity extends TameableEntity implements INamedContainerPr
     private BlocklingGuiInfo guiInfo;
     private BlocklingType blocklingType;
 
-    private int blockBreakTimer = -1;
-    private int blockBreakInterval;
-    private boolean blockBroken;
+    private int actionTimer = -1;
+    private int actionInterval;
+    private boolean actionFinsihed;
     private BlockPos blockBreaking;
+    private Hand previousAttackingHand;
 
     private int thousandTimer;
     private boolean hasMoved;
+    private boolean hasPerformedAction;
+    private boolean hasWorked;
     private Vec3d hasMovedLastPosition = new Vec3d(0, 0, 0);
 
     public BlocklingEntity(EntityType<? extends TameableEntity> type, World worldIn)
@@ -84,8 +96,8 @@ public class BlocklingEntity extends TameableEntity implements INamedContainerPr
 
         if (!world.isRemote) inventory.detectAndSendChanges();
 
-        updateHasMoved();
-        updateBlockBreakTimer();
+        updateHasWorked();
+        updateActionTimer();
         updateThousandTimer();
     }
 
@@ -95,13 +107,16 @@ public class BlocklingEntity extends TameableEntity implements INamedContainerPr
         thousandTimer++;
     }
 
-    private void updateHasMoved()
+    private void updateHasWorked()
     {
         if (thousandTimer % 20 == 0)
         {
-            if (hasMovedLastPosition.distanceTo(getPositionVec()) < 0.05) hasMoved = false;
+            if (hasMovedLastPosition.distanceTo(getPositionVec()) < 0.01) hasMoved = false;
             else hasMoved = true;
+            if (!hasPerformedAction && !hasMoved) hasWorked = false;
+            else hasWorked = true;
             hasMovedLastPosition = getPositionVector();
+            hasPerformedAction = false;
         }
     }
 
@@ -127,6 +142,7 @@ public class BlocklingEntity extends TameableEntity implements INamedContainerPr
                             setAttackTarget((LivingEntity)null);
                             playTameEffect(true);
                             world.setEntityState(this, (byte)7);
+                            aiManager.getGoalFromId(AIManager.FOLLOW_ID).setActive(true, true);
                             if (getCustomName() == null) setName("Blockling");
                         }
                         else
@@ -143,14 +159,14 @@ public class BlocklingEntity extends TameableEntity implements INamedContainerPr
                 {
                     if (ToolUtil.isTool(item))
                     {
-                        setHeldItem(Hand.MAIN_HAND, stack);
+                        setHeldItem(Hand.MAIN_HAND, stack.copy());
                     }
                 }
                 else
                 {
                     if (ToolUtil.isTool(item))
                     {
-                        setHeldItem(Hand.OFF_HAND, stack);
+                        setHeldItem(Hand.OFF_HAND, stack.copy());
                     }
                     else if (!world.isRemote)
                     {
@@ -166,7 +182,63 @@ public class BlocklingEntity extends TameableEntity implements INamedContainerPr
     @Override
     public boolean attackEntityAsMob(Entity entity)
     {
-        return super.attackEntityAsMob(entity);
+        ItemStack mainStack = getHeldItemMainhand();
+        ItemStack offStack = getHeldItemOffhand();
+        Item mainItem = mainStack.getItem();
+        Item offItem = offStack.getItem();
+        ToolType mainType = ToolType.getToolType(mainItem);
+        ToolType offType = ToolType.getToolType(offItem);
+
+        Hand attackingHand = previousAttackingHand;
+        boolean dualWielding = false;
+
+        if (mainType == ToolType.WEAPON && offType == ToolType.WEAPON) { attackingHand = previousAttackingHand == Hand.MAIN_HAND ? Hand.OFF_HAND : Hand.MAIN_HAND; dualWielding = true; }
+        else if (mainType == ToolType.WEAPON) attackingHand = Hand.MAIN_HAND;
+        else if (offType == ToolType.WEAPON) attackingHand = Hand.OFF_HAND;
+        else if (!mainStack.isEmpty() && !offStack.isEmpty()) attackingHand = previousAttackingHand == Hand.MAIN_HAND ? Hand.OFF_HAND : Hand.MAIN_HAND;
+        else if (!mainStack.isEmpty()) attackingHand = Hand.MAIN_HAND;
+        else if (!offStack.isEmpty()) attackingHand = Hand.OFF_HAND;
+        else attackingHand = previousAttackingHand == Hand.MAIN_HAND ? Hand.OFF_HAND : Hand.MAIN_HAND;
+
+        ItemStack weaponStack = getHeldItem(attackingHand);
+
+        float attackDamage = (float)stats.getAttackDamage();
+        float knockbackAmount = (float)getAttribute(SharedMonsterAttributes.ATTACK_KNOCKBACK).getValue();
+
+        if (entity instanceof LivingEntity)
+        {
+            attackDamage += EnchantmentHelper.getModifierForCreature(weaponStack, ((LivingEntity)entity).getCreatureAttribute());
+            knockbackAmount += (float)EnchantmentHelper.getEnchantmentLevel(Enchantments.KNOCKBACK, weaponStack);
+        }
+
+        Collection<AttributeModifier> modifiers =  weaponStack.getAttributeModifiers(EquipmentSlotType.MAINHAND).get(SharedMonsterAttributes.ATTACK_DAMAGE.getName());
+        for (AttributeModifier modifier : modifiers)
+        {
+            if (modifier.getOperation() == AttributeModifier.Operation.ADDITION) attackDamage += dualWielding ? modifier.getAmount() / 2.0 : modifier.getAmount();
+        }
+
+        int fireAspectAmount = EnchantmentHelper.getEnchantmentLevel(Enchantments.FIRE_ASPECT, weaponStack);
+        if (fireAspectAmount > 0)
+        {
+            entity.setFire(fireAspectAmount * 4);
+        }
+
+        boolean flag = entity.attackEntityFrom(DamageSource.causeMobDamage(this), attackDamage);
+        if (flag)
+        {
+            if (knockbackAmount > 0.0F && entity instanceof LivingEntity)
+            {
+                ((LivingEntity)entity).knockBack(this, knockbackAmount * 0.5F, (double) MathHelper.sin(rotationYaw * ((float)Math.PI / 180F)), (double)(-MathHelper.cos(rotationYaw * ((float)Math.PI / 180F))));
+                setMotion(getMotion().mul(0.6D, 1.0D, 0.6D));
+            }
+
+            weaponStack.attemptDamageItem(1, random, null);
+            stats.incCombatXp((int) attackDamage);
+        }
+
+        previousAttackingHand = attackingHand;
+
+        return flag;
     }
 
     @Override
@@ -200,13 +272,49 @@ public class BlocklingEntity extends TameableEntity implements INamedContainerPr
         inventory.setInventorySlotContents(slot, stack);
     }
 
-    public boolean hasToolType(ToolType type, Hand hand)
+    public boolean isHoldingToolType(ToolType type, Hand hand)
     {
         return ToolType.isTooltype(type, getHeldItem(hand).getItem());
     }
+    public boolean isHoldingToolType(ToolType type)
+    {
+        return isHoldingToolType(type, Hand.MAIN_HAND) || isHoldingToolType(type, Hand.OFF_HAND);
+    }
+
     public boolean hasToolType(ToolType type)
     {
-        return hasToolType(type, Hand.MAIN_HAND) || hasToolType(type, Hand.OFF_HAND);
+        return inventory.findToolType(type) != -1;
+    }
+
+    public void switchToToolType(ToolType type)
+    {
+        ItemStack mainStack = getHeldItemMainhand();
+        ItemStack offStack = getHeldItemOffhand();
+        Item mainItem = mainStack.getItem();
+        Item offItem = offStack.getItem();
+        ToolType mainType = ToolType.getToolType(mainItem);
+        ToolType offType = ToolType.getToolType(offItem);
+
+        if (mainType != type)
+        {
+            int slot = inventory.findToolType(type, BlocklingInventory.INVENTORY_START_SLOT, BlocklingInventory.INVENTORY_END_SLOT);
+            if (slot != -1)
+            {
+                ItemStack newTool = inventory.getStackInSlot(slot);
+                setHeldItem(Hand.MAIN_HAND, newTool);
+                inventory.setInventorySlotContents(slot, mainStack);
+            }
+        }
+        if (offType != type)
+        {
+            int slot = inventory.findToolType(type, BlocklingInventory.INVENTORY_START_SLOT, BlocklingInventory.INVENTORY_END_SLOT);
+            if (slot != -1)
+            {
+                ItemStack newTool = inventory.getStackInSlot(slot);
+                setHeldItem(Hand.OFF_HAND, newTool);
+                inventory.setInventorySlotContents(slot, offStack);
+            }
+        }
     }
 
     @Nullable
@@ -277,20 +385,22 @@ public class BlocklingEntity extends TameableEntity implements INamedContainerPr
 
     public BlocklingStats getStats() { return stats; }
 
-    public int getBlockBreakInterval() { return blockBreakInterval; }
-    public int getBlockBreakTimer() { return blockBreakTimer; }
-    public boolean isBreakingBlock() { return blockBreakTimer != -1; }
-    public boolean hasBrokenBlock() { return blockBroken; }
-    public void setBrokenBlock(boolean value) { blockBroken = value; }
-    public void startBreakingBlock(BlockPos blockPos, int interval) { setBlockBreaking(blockPos); blockBreakInterval = interval; blockBreakTimer = 0; setBrokenBlock(false); }
-    public void stopBreakingBlock() { setBlockBreaking(null); blockBreakTimer = -1; }
-    private void updateBlockBreakTimer() { if (blockBreakTimer >= blockBreakInterval) { setBrokenBlock(true); stopBreakingBlock(); } else if (blockBreakTimer < blockBreakInterval && blockBreakTimer != -1) blockBreakTimer++; }
+    public int getActionInvterval() { return actionInterval; }
+    public int getActionTimer() { return actionTimer; }
+    public boolean isPerformingAction() { return actionTimer != -1; }
+    public boolean hasFinishedAction() { return actionFinsihed; }
+    public void setFinishedAction(boolean value) { actionFinsihed = value; }
+    public void startAction(int interval) { actionInterval = interval; actionTimer = 0; setFinishedAction(false); }
+    public void stopAction() { setBlockBreaking(null); actionTimer = -1; }
+    private void updateActionTimer() { if (actionTimer >= actionInterval) { setFinishedAction(true); stopAction(); } else if (actionTimer < actionInterval && actionTimer != -1) { actionTimer++; hasPerformedAction = true; } }
 
     public BlockPos getBlockBreaking() { return blockBreaking; }
     public void setBlockBreaking(BlockPos blockPos) { blockBreaking = blockPos; }
 
     public int getThousandTimer() { return thousandTimer; }
     public boolean hasMoved() { return hasMoved; }
+    public boolean hasPerformedAction() { return hasPerformedAction; }
+    public boolean hasWorked() { return hasWorked; }
 
     public BlocklingType getBlocklingType() { return blocklingType; }
 }

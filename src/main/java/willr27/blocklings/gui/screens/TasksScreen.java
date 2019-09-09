@@ -6,10 +6,14 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.util.InputMappings;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.TextFormatting;
 import willr27.blocklings.entity.ai.goals.GoalInfo;
 import willr27.blocklings.entity.blockling.BlocklingEntity;
 import willr27.blocklings.gui.util.GuiHandler;
 import willr27.blocklings.gui.util.GuiUtil;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class TasksScreen extends Screen
 {
@@ -105,7 +109,7 @@ public class TasksScreen extends Screen
         {
             if (hoveredGoal != null)
             {
-                if (InputMappings.isKeyDown(Minecraft.getInstance().mainWindow.getHandle(), 341) && hoveredGoal.hasWhitelist())
+                if (GuiUtil.isKeyDown(340) && hoveredGoal.hasWhitelist())
                 {
                     blockling.openGui(player, GuiHandler.WHITELIST_ID, hoveredGoal.goalId);
                 }
@@ -197,7 +201,23 @@ public class TasksScreen extends Screen
         GoalInfo hoveredGoal = getHoveredGoal(mouseX, mouseY);
         if (hoveredGoal != null && hoveredGoal != selectedGoal)
         {
-            renderTooltip(hoveredGoal.name, mouseX, mouseY);
+            List<String> text = new ArrayList<>();
+            text.add(TextFormatting.GOLD + hoveredGoal.name);
+            if (InputMappings.isKeyDown(Minecraft.getInstance().mainWindow.getHandle(), 340))
+            {
+                text.add("");
+                text.addAll(GuiUtil.breakUpTooltipText(font, hoveredGoal.description, 150));
+                if (hoveredGoal.hasWhitelist())
+                {
+                    text.add("");
+                    text.add(TextFormatting.WHITE + "" + TextFormatting.UNDERLINE + "Shift+click for whitelist(s)");
+                }
+            }
+            else
+            {
+                text.add(TextFormatting.WHITE + "" + TextFormatting.ITALIC + "" + TextFormatting.UNDERLINE + "Hold shift...");
+            }
+            renderTooltip(text, mouseX, mouseY);
         }
     }
 

@@ -18,10 +18,7 @@ import willr27.blocklings.entity.blockling.BlocklingEntity;
 import willr27.blocklings.item.DropUtil;
 import willr27.blocklings.item.ToolType;
 
-import java.util.EnumSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class BlocklingFarmCropsNearbyGoal extends Goal
 {
@@ -84,6 +81,7 @@ public class BlocklingFarmCropsNearbyGoal extends Goal
     @Override
     public void tick()
     {
+        blockling.switchToToolType(TOOL_TYPE);
         moveToTarget();
         tryHarvestTarget();
     }
@@ -96,16 +94,18 @@ public class BlocklingFarmCropsNearbyGoal extends Goal
 
             if (distanceSq < blockling.getStats().getFarmingRangeSq())
             {
-                if (blockling.hasBrokenBlock())
+                if (blockling.hasFinishedAction())
                 {
                     BlockState targetState = world.getBlockState(targetPos);
                     Block targetBlock = targetState.getBlock();
                     Item seed = BlockUtil.getSeed((CropsBlock) targetBlock);
 
-                    ItemStack mainStack = blockling.hasToolType(TOOL_TYPE, Hand.MAIN_HAND) ? blockling.getHeldItemMainhand() : ItemStack.EMPTY;
-                    ItemStack offStack = blockling.hasToolType(TOOL_TYPE, Hand.OFF_HAND) ? blockling.getHeldItemOffhand() : ItemStack.EMPTY;
+                    ItemStack mainStack = blockling.isHoldingToolType(TOOL_TYPE, Hand.MAIN_HAND) ? blockling.getHeldItemMainhand() : ItemStack.EMPTY;
+                    ItemStack offStack = blockling.isHoldingToolType(TOOL_TYPE, Hand.OFF_HAND) ? blockling.getHeldItemOffhand() : ItemStack.EMPTY;
                     List<ItemStack> drops = DropUtil.getDrops(blockling, targetPos, mainStack, offStack);
                     addDropsToInventoryOrWorld(drops, targetPos);
+                    mainStack.attemptDamageItem(1, new Random(), null);
+                    offStack.attemptDamageItem(1, new Random(), null);
 
                     if (blockling.aiManager.getWhitelist(AIManager.FARM_NEARBY_ID, AIManager.FARM_NEARBY_CROPS_SEEDS_WHITELIST_ID).isInWhitelist(seed))
                     {
@@ -127,12 +127,18 @@ public class BlocklingFarmCropsNearbyGoal extends Goal
                     resetTarget();
 
                     blockling.getStats().incFarmingXp(blockling.random.nextInt(4) + 3);
-                    blockling.setBrokenBlock(false);
+                    blockling.setFinishedAction(false);
                 }
-                else if (!blockling.isBreakingBlock())
+                else if (!blockling.isPerformingAction())
                 {
-                    blockling.startBreakingBlock(targetPos, blockling.getStats().getFarmingInterval());
+                    blockling.startAction(blockling.getStats().getFarmingInterval());
+                    blockling.setBlockBreaking(targetPos);
                 }
+            }
+            else if (!blockling.hasWorked())
+            {
+                failedBlocks.add(targetPos);
+                resetTarget();
             }
         }
     }
@@ -142,7 +148,7 @@ public class BlocklingFarmCropsNearbyGoal extends Goal
         for (ItemStack stack : drops)
         {
             ItemStack remainderStack = blockling.inventory.addItem(stack);
-            if (!remainderStack.isEmpty()) InventoryHelper.spawnItemStack(world, dropPos.getX(), dropPos.getY(), dropPos.getZ(), remainderStack);
+            if (!remainderStack.isEmpty()) InventoryHelper.spawnItemStack(world, dropPos.getX() + 0.5, dropPos.getY() + 0.5, dropPos.getZ() + 0.5, remainderStack);
         }
     }
 

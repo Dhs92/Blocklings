@@ -4,7 +4,6 @@ import net.minecraft.item.Item;
 
 public enum ToolType
 {
-    ANY,
     WEAPON,
     PICKAXE,
     AXE,
@@ -19,7 +18,6 @@ public enum ToolType
     {
         switch (type)
         {
-            case ANY: return ToolUtil.isTool(item);
             case WEAPON: return ToolUtil.isWeapon(item);
             case PICKAXE: return ToolUtil.isPickaxe(item);
             case AXE: return ToolUtil.isAxe(item);
@@ -27,5 +25,14 @@ public enum ToolType
         }
 
         return false;
+    }
+
+    public static ToolType getToolType(Item item)
+    {
+        for (ToolType type : values())
+        {
+            if (isTooltype(type, item)) return type;
+        }
+        return null;
     }
 }

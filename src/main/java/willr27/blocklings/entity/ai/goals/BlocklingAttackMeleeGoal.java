@@ -1,18 +1,21 @@
 package willr27.blocklings.entity.ai.goals;
 
-import net.minecraft.entity.ai.goal.MeleeAttackGoal;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.ai.goal.Goal;
 import willr27.blocklings.entity.ai.AIManager;
 import willr27.blocklings.entity.blockling.BlocklingEntity;
+import willr27.blocklings.item.ToolType;
 
 import java.util.EnumSet;
 
-public class BlocklingAttackMeleeGoal extends MeleeAttackGoal
+public class BlocklingAttackMeleeGoal extends Goal
 {
+    public static final ToolType TOOL_TYPE = ToolType.WEAPON;
+
     private BlocklingEntity blockling;
 
     public BlocklingAttackMeleeGoal(BlocklingEntity blockling)
     {
-        super(blockling, 1.0, true);
         setMutexFlags(EnumSet.of(Flag.MOVE));
         this.blockling = blockling;
     }
@@ -21,6 +24,7 @@ public class BlocklingAttackMeleeGoal extends MeleeAttackGoal
     public void resetTask()
     {
         blockling.setAttackTarget(null);
+        blockling.stopAction();
     }
 
     @Override
@@ -28,7 +32,7 @@ public class BlocklingAttackMeleeGoal extends MeleeAttackGoal
     {
         if (!blockling.aiManager.isActive(AIManager.ATTACK_MELEE_ID)) return false;
 
-        return super.shouldExecute();
+        return blockling.getAttackTarget() != null;
     }
 
     @Override
@@ -40,6 +44,22 @@ public class BlocklingAttackMeleeGoal extends MeleeAttackGoal
     @Override
     public void tick()
     {
-        super.tick();
+        blockling.switchToToolType(TOOL_TYPE);
+
+        LivingEntity target = blockling.getAttackTarget();
+        blockling.getNavigator().tryMoveToEntityLiving(target, 1.0);
+
+        if (blockling.getDistanceSq(target.posX, target.getBoundingBox().minY, target.posZ) < 4.0f)
+        {
+            if (blockling.hasFinishedAction())
+            {
+                blockling.attackEntityAsMob(target);
+            }
+
+            if (!blockling.isPerformingAction())
+            {
+                blockling.startAction(blockling.getStats().getCombatInterval());
+            }
+        }
     }
 }

@@ -20,7 +20,7 @@ public class BlocklingOwnerAttackGoal extends Goal
     @Override
     public void resetTask()
     {
-        blockling.setAttackTarget(null);
+
     }
 
     @Override

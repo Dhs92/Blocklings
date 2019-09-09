@@ -5,6 +5,7 @@ import net.minecraft.inventory.IInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import willr27.blocklings.entity.blockling.BlocklingEntity;
+import willr27.blocklings.item.ToolType;
 import willr27.blocklings.network.NetworkHandler;
 import willr27.blocklings.network.messages.InventoryMessage;
 
@@ -63,29 +64,23 @@ public class BlocklingInventory implements IInventory
         ItemStack stack = getStackInSlot(index);
         ItemStack copy = stack.copy();
         stack.shrink(count);
+        setInventorySlotContents(index, stack);
         return copy;
     }
 
     @Override
     public ItemStack removeStackFromSlot(int index)
     {
-        return stacks[index] = ItemStack.EMPTY;
+        ItemStack stack = getStackInSlot(index);
+        setInventorySlotContents(index, ItemStack.EMPTY);
+        return stack;
     }
 
     @Override
     public void setInventorySlotContents(int index, ItemStack stack)
     {
-        setInventorySlotContents(index, stack, false);
-    }
-
-    public void setInventorySlotContents(int index, ItemStack stack, boolean sendPacket)
-    {
         stacks[index] = stack;
-
-        if (sendPacket)
-        {
-            NetworkHandler.sync(blockling.world, new InventoryMessage(stack, index, blockling.getEntityId()));
-        }
+        if (!blockling.world.isRemote && (index == MAIN_SLOT || index == OFF_SLOT)) blockling.getStats().updateIntervalBonuses();
     }
 
     @Override
@@ -111,14 +106,33 @@ public class BlocklingInventory implements IInventory
 
     public int find(Item item)
     {
-        for (int i = 0; i < this.getSizeInventory(); i++)
+        return find(item, 0, getSizeInventory() - 1);
+    }
+    public int find(Item item, int startIndex, int endIndex)
+    {
+        for (int i = startIndex; i < endIndex + 1; i++)
         {
             if (getStackInSlot(i).getItem() == item)
             {
                 return i;
             }
         }
+        return -1;
+    }
 
+    public int findToolType(ToolType type)
+    {
+        return findToolType(type, 0, getSizeInventory() - 1);
+    }
+    public int findToolType(ToolType type, int startIndex, int endIndex)
+    {
+        for (int i = startIndex; i < endIndex + 1; i++)
+        {
+            if (ToolType.isTooltype(type, getStackInSlot(i).getItem()))
+            {
+                return i;
+            }
+        }
         return -1;
     }
 
@@ -136,6 +150,7 @@ public class BlocklingInventory implements IInventory
                 stack.shrink(amountToAdd);
                 slotStack.grow(amountToAdd);
                 setInventorySlotContents(i, slotStack);
+                markDirty();
             }
         }
         for (int i = INVENTORY_START_SLOT; i < INVENTORY_END_SLOT + 1 && !stack.isEmpty(); i++)

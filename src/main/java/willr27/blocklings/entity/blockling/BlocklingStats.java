@@ -2,9 +2,12 @@ package willr27.blocklings.entity.blockling;
 
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
+import willr27.blocklings.item.ToolType;
 
 import java.util.Random;
 import java.util.UUID;
@@ -18,6 +21,7 @@ public class BlocklingStats
     private static final DataParameter<Float> FARMING_RANGE = EntityDataManager.createKey(BlocklingEntity.class, DataSerializers.FLOAT);
     private static final DataParameter<Float> FARMING_RANGE_SQ = EntityDataManager.createKey(BlocklingEntity.class, DataSerializers.FLOAT);
 
+    private static final DataParameter<Integer> COMBAT_INTERVAL = EntityDataManager.createKey(BlocklingEntity.class, DataSerializers.VARINT);
     private static final DataParameter<Integer> MINING_INTERVAL = EntityDataManager.createKey(BlocklingEntity.class, DataSerializers.VARINT);
     private static final DataParameter<Integer> WOODCUTTING_INTERVAL = EntityDataManager.createKey(BlocklingEntity.class, DataSerializers.VARINT);
     private static final DataParameter<Integer> FARMING_INTERVAL = EntityDataManager.createKey(BlocklingEntity.class, DataSerializers.VARINT);
@@ -53,7 +57,7 @@ public class BlocklingStats
     {
         blockling.getAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(5.0);
         blockling.getAttributes().registerAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).setBaseValue(2.0);
-        blockling.getAttribute(SharedMonsterAttributes.ARMOR).setBaseValue(5.0);
+        blockling.getAttribute(SharedMonsterAttributes.ARMOR).setBaseValue(1.0);
         blockling.getAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(0.2);
 
         dataManager.register(MINING_RANGE, 2.3f);
@@ -63,6 +67,7 @@ public class BlocklingStats
         dataManager.register(FARMING_RANGE, 2.3f);
         dataManager.register(FARMING_RANGE_SQ, dataManager.get(FARMING_RANGE) * dataManager.get(FARMING_RANGE));
 
+        dataManager.register(COMBAT_INTERVAL, 50);
         dataManager.register(MINING_INTERVAL, 50);
         dataManager.register(WOODCUTTING_INTERVAL, 50);
         dataManager.register(FARMING_INTERVAL, 50);
@@ -77,7 +82,7 @@ public class BlocklingStats
         dataManager.register(FARMING_XP, new Random().nextInt(getXpUntilNextLevel(getFarmingLevel())));
 
         checkForLevelUp();
-        updateLevelStats();
+        updateStateBonuses();
     }
 
     public static int getXpUntilNextLevel(int level)
@@ -124,7 +129,7 @@ public class BlocklingStats
         }
     }
 
-    public void updateLevelStats()
+    public void updateStateBonuses()
     {
         AttributeModifier levelBonusHealth = new AttributeModifier(levelBonusHealthUUID, "level_bonus_health", calcBonusHealthFromLevel(), AttributeModifier.Operation.ADDITION);
         AttributeModifier levelBonusAttackDamage = new AttributeModifier(levelBonusAttackDamageUUID, "level_bonus_attack_damage", calcBonusDamageFromLevel(), AttributeModifier.Operation.ADDITION);
@@ -141,11 +146,60 @@ public class BlocklingStats
             blockling.getAttribute(SharedMonsterAttributes.ARMOR).applyModifier(levelBonusArmor);
         }
 
-        setMiningInterval(calcBreakSpeedFromLevel(getMiningLevel()));
-        setWoodcuttingInterval(calcBreakSpeedFromLevel(getWoodcuttingLevel()));
-        setFarmingInterval(calcBreakSpeedFromLevel(getFarmingLevel()));
-
+        updateIntervalBonuses();
         updateHealth();
+    }
+
+    public void updateIntervalBonuses()
+    {
+        if (blockling.inventory == null) return;
+
+        ItemStack mainStack = blockling.getHeldItemMainhand();
+        ItemStack offStack = blockling.getHeldItemOffhand();
+        Item mainItem = mainStack.getItem();
+        Item offItem = offStack.getItem();
+        ToolType mainType = ToolType.getToolType(mainItem);
+        ToolType offType = ToolType.getToolType(offItem);
+
+        boolean matching = mainType == offType;
+        if (matching)
+        {
+            if (mainType == ToolType.WEAPON || offType == ToolType.WEAPON)
+            {
+                setCombatInterval((int)(calcBreakSpeedFromLevel(getCombatLevel()) / 1.5));
+                setMiningInterval(calcBreakSpeedFromLevel(getMiningLevel()));
+                setWoodcuttingInterval(calcBreakSpeedFromLevel(getWoodcuttingLevel()));
+                setFarmingInterval(calcBreakSpeedFromLevel(getFarmingLevel()));
+            }
+            else if (mainType == ToolType.PICKAXE || offType == ToolType.PICKAXE)
+            {
+                setMiningInterval((int)(calcBreakSpeedFromLevel(getMiningLevel()) / 1.5));
+                setCombatInterval(calcBreakSpeedFromLevel(getCombatLevel()));
+                setWoodcuttingInterval(calcBreakSpeedFromLevel(getWoodcuttingLevel()));
+                setFarmingInterval(calcBreakSpeedFromLevel(getFarmingLevel()));
+            }
+            else if (mainType == ToolType.AXE || offType == ToolType.AXE)
+            {
+                setWoodcuttingInterval((int)(calcBreakSpeedFromLevel(getWoodcuttingLevel()) / 1.5));
+                setCombatInterval(calcBreakSpeedFromLevel(getCombatLevel()));
+                setMiningInterval(calcBreakSpeedFromLevel(getMiningLevel()));
+                setFarmingInterval(calcBreakSpeedFromLevel(getFarmingLevel()));
+            }
+            else if (mainType == ToolType.HOE || offType == ToolType.HOE)
+            {
+                setFarmingInterval((int)(calcBreakSpeedFromLevel(getFarmingLevel()) / 1.5));
+                setCombatInterval(calcBreakSpeedFromLevel(getCombatLevel()));
+                setMiningInterval(calcBreakSpeedFromLevel(getMiningLevel()));
+                setWoodcuttingInterval(calcBreakSpeedFromLevel(getWoodcuttingLevel()));
+            }
+        }
+        else
+        {
+            setCombatInterval(calcBreakSpeedFromLevel(getCombatLevel()));
+            setMiningInterval(calcBreakSpeedFromLevel(getMiningLevel()));
+            setWoodcuttingInterval(calcBreakSpeedFromLevel(getWoodcuttingLevel()));
+            setFarmingInterval(calcBreakSpeedFromLevel(getFarmingLevel()));
+        }
     }
 
     private int calcBreakSpeedFromLevel(int level)
@@ -196,6 +250,9 @@ public class BlocklingStats
     public void setFarmingRange(float value) { dataManager.set(FARMING_RANGE, value); dataManager.set(FARMING_RANGE_SQ, value * value); }
 
 
+    public int getCombatInterval() { return dataManager.get(COMBAT_INTERVAL); }
+    public void setCombatInterval(int value) { dataManager.set(COMBAT_INTERVAL, value); }
+
     public int getMiningInterval() { return dataManager.get(MINING_INTERVAL); }
     public void setMiningInterval(int value) { dataManager.set(MINING_INTERVAL, value); }
 
@@ -209,19 +266,19 @@ public class BlocklingStats
     
     public int getCombatLevel() { return dataManager.get(COMBAT_LEVEL); }
     public void incCombatLevel(int value) { setCombatLevel(getCombatLevel() + value); }
-    public void setCombatLevel(int value) { dataManager.set(COMBAT_LEVEL, value); updateLevelStats(); }
+    public void setCombatLevel(int value) { dataManager.set(COMBAT_LEVEL, value); updateStateBonuses(); }
 
     public int getMiningLevel() { return dataManager.get(MINING_LEVEL); }
     public void incMiningLevel(int value) { setMiningLevel(getMiningLevel() + value); }
-    public void setMiningLevel(int value) { dataManager.set(MINING_LEVEL, value); updateLevelStats(); }
+    public void setMiningLevel(int value) { dataManager.set(MINING_LEVEL, value); updateStateBonuses(); }
 
     public int getWoodcuttingLevel() { return dataManager.get(WOODCUTTING_LEVEL); }
     public void incWoodcuttingLevel(int value) { setWoodcuttingLevel(getWoodcuttingLevel() + value); }
-    public void setWoodcuttingLevel(int value) { dataManager.set(WOODCUTTING_LEVEL, value); updateLevelStats(); }
+    public void setWoodcuttingLevel(int value) { dataManager.set(WOODCUTTING_LEVEL, value); updateStateBonuses(); }
 
     public int getFarmingLevel() { return dataManager.get(FARMING_LEVEL); }
     public void incFarmingLevel(int value) { setFarmingLevel(getFarmingLevel() + value); }
-    public void setFarmingLevel(int value) { dataManager.set(FARMING_LEVEL, value); updateLevelStats(); }
+    public void setFarmingLevel(int value) { dataManager.set(FARMING_LEVEL, value); updateStateBonuses(); }
 
 
     public int getCombatXp() { return dataManager.get(COMBAT_XP); }

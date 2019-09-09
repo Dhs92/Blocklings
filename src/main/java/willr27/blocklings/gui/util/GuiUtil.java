@@ -3,11 +3,16 @@ package willr27.blocklings.gui.util;
 import com.mojang.blaze3d.platform.GLX;
 import com.mojang.blaze3d.platform.GlStateManager;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.entity.EntityRendererManager;
+import net.minecraft.client.util.InputMappings;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.util.ResourceLocation;
 import willr27.blocklings.util.BlocklingsResourceLocation;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class GuiUtil
 {
@@ -22,6 +27,32 @@ public class GuiUtil
     public static void bindTexture(ResourceLocation texture)
     {
         Minecraft.getInstance().getTextureManager().bindTexture(texture);
+    }
+
+    public static List<String> breakUpTooltipText(FontRenderer font, String text, int maxWidth)
+    {
+        List<String> outText = new ArrayList<>();
+
+        String tempString = text;
+        while (font.getStringWidth(tempString) > maxWidth)
+        {
+            String trim = font.trimStringToWidth(tempString, maxWidth);
+            if (tempString.substring(trim.length(), trim.length() + 1) != " ")
+            {
+                int i = trim.lastIndexOf(" ");
+                if (i != -1) trim = trim.substring(0, i);
+            }
+            outText.add(trim);
+            tempString = tempString.substring(trim.length() + 1);
+        }
+        outText.add(tempString);
+
+        return outText;
+    }
+
+    public static boolean isKeyDown(int key)
+    {
+        return InputMappings.isKeyDown(Minecraft.getInstance().mainWindow.getHandle(), key);
     }
 
     public static boolean isMouseOver(int mouseX, int mouseY, int left, int top, int width, int height)

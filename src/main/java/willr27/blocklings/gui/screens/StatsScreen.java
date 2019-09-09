@@ -155,10 +155,10 @@ public class StatsScreen extends Screen
         else if (woodcuttingXpBar.isMouseOver(mouseX, mouseY)) renderTooltip("XP: " + blockling.getStats().getWoodcuttingXp() + "/" + BlocklingStats.getXpUntilNextLevel(blockling.getStats().getWoodcuttingLevel()), mouseX, mouseY);
         else if (farmingXpBar.isMouseOver(mouseX, mouseY)) renderTooltip("XP: " + blockling.getStats().getFarmingXp() + "/" + BlocklingStats.getXpUntilNextLevel(blockling.getStats().getFarmingLevel()), mouseX, mouseY);
 
-        else if (combatIcon.isMouseOver(mouseX, mouseY)) renderTooltip("Nil", mouseX, mouseY);
+        else if (combatIcon.isMouseOver(mouseX, mouseY)) renderTooltip("APS: " + (((double)((int)(200.0 / blockling.getStats().getCombatInterval()))) / 10.0), mouseX, mouseY);
         else if (miningIcon.isMouseOver(mouseX, mouseY)) renderTooltip("BPS: " + (((double)((int)(200.0 / blockling.getStats().getMiningInterval()))) / 10.0), mouseX, mouseY);
-        else if (woodcuttingIcon.isMouseOver(mouseX, mouseY)) renderTooltip("BPS: " + (((double)((int)(200.0 / blockling.getStats().getMiningInterval()))) / 10.0), mouseX, mouseY);
-        else if (farmingIcon.isMouseOver(mouseX, mouseY)) renderTooltip("BPS: " + (((double)((int)(200.0 / blockling.getStats().getMiningInterval()))) / 10.0), mouseX, mouseY);
+        else if (woodcuttingIcon.isMouseOver(mouseX, mouseY)) renderTooltip("BPS: " + (((double)((int)(200.0 / blockling.getStats().getWoodcuttingInterval()))) / 10.0), mouseX, mouseY);
+        else if (farmingIcon.isMouseOver(mouseX, mouseY)) renderTooltip("BPS: " + (((double)((int)(200.0 / blockling.getStats().getFarmingInterval()))) / 10.0), mouseX, mouseY);
     }
 
     private void drawStatIcons(int mouseX, int mouseY)
@@ -176,8 +176,8 @@ public class StatsScreen extends Screen
         farmingIcon.render(mouseX, mouseY);
 
         healthIcon.renderText(Integer.toString((int)blockling.getHealth()), 4, 1, false, 0xffe100);
-        armourIcon.renderText(Integer.toString((int)stats.getAttackDamage()), 4, 1, false, 0xffe100);
-        damageIcon.renderText(Integer.toString((int)stats.getArmour()), 4, 1, true, 0xffe100);
+        armourIcon.renderText(Integer.toString((int)stats.getArmour()), 4, 1, false, 0xffe100);
+        damageIcon.renderText(Integer.toString((int)stats.getAttackDamage()), 4, 1, true, 0xffe100);
         speedIcon.renderText(Integer.toString((int)(stats.getMovementSpeed() * 40.0)), 4, 1, true, 0xffe100);
     }
 
