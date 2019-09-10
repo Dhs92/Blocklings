@@ -8,7 +8,7 @@ import willr27.blocklings.entity.blockling.BlocklingEntity;
 import willr27.blocklings.entity.blockling.BlocklingStats;
 import willr27.blocklings.gui.CenteredTextFieldWidget;
 import willr27.blocklings.gui.util.GuiUtil;
-import willr27.blocklings.gui.util.Icon;
+import willr27.blocklings.gui.util.Widget;
 
 public class StatsScreen extends Screen
 {
@@ -57,15 +57,15 @@ public class StatsScreen extends Screen
     private static final int WOODCUTTING_XP_BAR_Y = COMBAT_XP_BAR_Y + LEVEL_XP_GAP * 2;
     private static final int FARMING_XP_BAR_Y = COMBAT_XP_BAR_Y + LEVEL_XP_GAP * 3;
 
-    private Icon healthIcon;
-    private Icon armourIcon;
-    private Icon damageIcon;
-    private Icon speedIcon;
+    private Widget healthIcon;
+    private Widget armourIcon;
+    private Widget damageIcon;
+    private Widget speedIcon;
 
-    private Icon combatIcon;
-    private Icon miningIcon;
-    private Icon woodcuttingIcon;
-    private Icon farmingIcon;
+    private Widget combatIcon;
+    private Widget miningIcon;
+    private Widget woodcuttingIcon;
+    private Widget farmingIcon;
 
     private XpBar combatXpBar;
     private XpBar miningXpBar;
@@ -98,15 +98,15 @@ public class StatsScreen extends Screen
 
         tabbedScreen = new TabbedScreen(blockling, player, centerX, centerY);
 
-        healthIcon = new Icon(font, contentLeft + LEFT_ICON_X, contentTop + TOP_ICON_Y, ICON_SIZE, ICON_SIZE, HEALTH_ICON_TEXTURE_X, STAT_ICON_TEXTURE_Y);
-        armourIcon = new Icon(font, contentLeft + LEFT_ICON_X, contentTop + BOTTOM_ICON_Y, ICON_SIZE, ICON_SIZE, ARMOUR_ICON_TEXTURE_X, STAT_ICON_TEXTURE_Y);
-        damageIcon = new Icon(font, contentRight - LEFT_ICON_X - ICON_SIZE, contentTop + TOP_ICON_Y, ICON_SIZE, ICON_SIZE, DAMAGE_ICON_TEXTURE_X, STAT_ICON_TEXTURE_Y);
-        speedIcon = new Icon(font, contentRight - LEFT_ICON_X - ICON_SIZE, contentTop + BOTTOM_ICON_Y, ICON_SIZE, ICON_SIZE, SPEED_ICON_TEXTURE_X, STAT_ICON_TEXTURE_Y);
+        healthIcon = new Widget(font, contentLeft + LEFT_ICON_X, contentTop + TOP_ICON_Y, ICON_SIZE, ICON_SIZE, HEALTH_ICON_TEXTURE_X, STAT_ICON_TEXTURE_Y);
+        armourIcon = new Widget(font, contentLeft + LEFT_ICON_X, contentTop + BOTTOM_ICON_Y, ICON_SIZE, ICON_SIZE, ARMOUR_ICON_TEXTURE_X, STAT_ICON_TEXTURE_Y);
+        damageIcon = new Widget(font, contentRight - LEFT_ICON_X - ICON_SIZE, contentTop + TOP_ICON_Y, ICON_SIZE, ICON_SIZE, DAMAGE_ICON_TEXTURE_X, STAT_ICON_TEXTURE_Y);
+        speedIcon = new Widget(font, contentRight - LEFT_ICON_X - ICON_SIZE, contentTop + BOTTOM_ICON_Y, ICON_SIZE, ICON_SIZE, SPEED_ICON_TEXTURE_X, STAT_ICON_TEXTURE_Y);
 
-        combatIcon = new Icon(font, contentLeft + LEVEL_ICON_X, contentTop + COMBAT_ICON_Y, ICON_SIZE, ICON_SIZE, COMBAT_ICON_TEXTURE_X, LEVEL_ICON_TEXTURE_Y);
-        miningIcon = new Icon(font, contentLeft + LEVEL_ICON_X, contentTop + MINING_ICON_Y, ICON_SIZE, ICON_SIZE, MINING_ICON_TEXTURE_X, LEVEL_ICON_TEXTURE_Y);
-        woodcuttingIcon = new Icon(font, contentLeft + LEVEL_ICON_X, contentTop + WOODCUTTING_ICON_Y, ICON_SIZE, ICON_SIZE, WOODCUTTING_ICON_TEXTURE_X, LEVEL_ICON_TEXTURE_Y);
-        farmingIcon = new Icon(font, contentLeft + LEVEL_ICON_X, contentTop + FARMING_ICON_Y, ICON_SIZE, ICON_SIZE, FARMING_ICON_TEXTURE_X, LEVEL_ICON_TEXTURE_Y);
+        combatIcon = new Widget(font, contentLeft + LEVEL_ICON_X, contentTop + COMBAT_ICON_Y, ICON_SIZE, ICON_SIZE, COMBAT_ICON_TEXTURE_X, LEVEL_ICON_TEXTURE_Y);
+        miningIcon = new Widget(font, contentLeft + LEVEL_ICON_X, contentTop + MINING_ICON_Y, ICON_SIZE, ICON_SIZE, MINING_ICON_TEXTURE_X, LEVEL_ICON_TEXTURE_Y);
+        woodcuttingIcon = new Widget(font, contentLeft + LEVEL_ICON_X, contentTop + WOODCUTTING_ICON_Y, ICON_SIZE, ICON_SIZE, WOODCUTTING_ICON_TEXTURE_X, LEVEL_ICON_TEXTURE_Y);
+        farmingIcon = new Widget(font, contentLeft + LEVEL_ICON_X, contentTop + FARMING_ICON_Y, ICON_SIZE, ICON_SIZE, FARMING_ICON_TEXTURE_X, LEVEL_ICON_TEXTURE_Y);
 
         combatXpBar = new XpBar(font, contentLeft + XP_BAR_X, contentTop + COMBAT_XP_BAR_Y, XP_BAR_WIDTH, XP_BAR_HEIGHT, 0, COMBAT_XP_BAR_TEXTURE_Y);
         miningXpBar = new XpBar(font, contentLeft + XP_BAR_X, contentTop + MINING_XP_BAR_Y, XP_BAR_WIDTH, XP_BAR_HEIGHT, 0, MINING_XP_BAR_TEXTURE_Y);
@@ -232,7 +232,7 @@ public class StatsScreen extends Screen
         return false;
     }
 
-    private class XpBar extends Icon
+    private class XpBar extends Widget
     {
         public XpBar(FontRenderer font, int x, int y, int width, int height, int textureX, int textureY)
         {

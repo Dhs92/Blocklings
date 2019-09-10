@@ -1,6 +1,5 @@
 package willr27.blocklings.entity.blockling;
 
-import jdk.management.resource.internal.ResourceNatives;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.enchantment.Enchantments;

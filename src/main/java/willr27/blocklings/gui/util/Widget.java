@@ -3,14 +3,14 @@ package willr27.blocklings.gui.util;
 import net.minecraft.client.gui.AbstractGui;
 import net.minecraft.client.gui.FontRenderer;
 
-public class Icon extends AbstractGui
+public class Widget extends AbstractGui
 {
     private FontRenderer font;
     public int x, y;
     public int width, height;
     public int textureX, textureY;
 
-    public Icon(FontRenderer font, int x, int y, int width, int height, int textureX, int textureY)
+    public Widget(FontRenderer font, int x, int y, int width, int height, int textureX, int textureY)
     {
         this.font = font;
         this.x = x;

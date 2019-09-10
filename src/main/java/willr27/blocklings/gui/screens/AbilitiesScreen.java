@@ -8,6 +8,10 @@ import willr27.blocklings.gui.util.GuiUtil;
 
 public class AbilitiesScreen extends Screen
 {
+    private static final int WINDOW_WIDTH = 158;
+    private static final int WINDOW_HEIGHT = 140;
+
+    private AbilitiesGui abilitiesGui;
     private TabbedScreen tabbedScreen;
 
     private BlocklingEntity blockling;
@@ -35,6 +39,7 @@ public class AbilitiesScreen extends Screen
         contentLeft = centerX - TabbedScreen.CONTENT_WIDTH / 2;
         contentTop = top;
 
+        abilitiesGui = new AbilitiesGui(blockling, font, 300, 200, centerX, centerY);
         tabbedScreen = new TabbedScreen(blockling, player, centerX, centerY);
 
         super.init();
@@ -50,18 +55,22 @@ public class AbilitiesScreen extends Screen
 
         super.render(mouseX, mouseY, partialTicks);
         tabbedScreen.drawTooltip(mouseX, mouseY, this);
+
+        abilitiesGui.draw(mouseX, mouseY);
     }
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int state)
     {
+        abilitiesGui.mouseClicked((int) mouseX, (int) mouseY, state);
         return super.mouseClicked(mouseX, mouseY, state);
     }
 
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int state)
     {
-        tabbedScreen.mouseReleased((int)mouseX, (int)mouseY, state);
+        abilitiesGui.mouseReleased((int) mouseX, (int) mouseY, state);
+        tabbedScreen.mouseReleased((int) mouseX, (int) mouseY, state);
         return super.mouseReleased(mouseX, mouseY, state);
     }
 

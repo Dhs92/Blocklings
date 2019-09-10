@@ -42,7 +42,7 @@ public class TabbedScreen extends AbstractGui
     private int centerX, centerY;
     private int left, top, right, bottom;
 
-    TabbedScreen(BlocklingEntity blockling, PlayerEntity player,  int centerX, int centerY)
+    public TabbedScreen(BlocklingEntity blockling, PlayerEntity player, int centerX, int centerY)
     {
         this.blockling = blockling;
         this.player = player;
