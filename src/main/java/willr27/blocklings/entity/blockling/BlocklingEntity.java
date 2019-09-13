@@ -24,6 +24,7 @@ import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.world.IWorld;
 import net.minecraft.world.World;
 import net.minecraftforge.event.ForgeEventFactory;
+import willr27.blocklings.ability.AbilityManager;
 import willr27.blocklings.entity.ai.AIManager;
 import willr27.blocklings.gui.container.containers.EquipmentContainer;
 import willr27.blocklings.gui.util.GuiHandler;
@@ -47,6 +48,7 @@ public class BlocklingEntity extends TameableEntity implements INamedContainerPr
 
     public final BlocklingInventory inventory;
     public final AIManager aiManager;
+    public final AbilityManager abilityManager;
 
     private BlocklingStats stats;
     private BlocklingGuiInfo guiInfo;
@@ -69,7 +71,8 @@ public class BlocklingEntity extends TameableEntity implements INamedContainerPr
         super(type, worldIn);
         inventory = new BlocklingInventory(this);
         aiManager = new AIManager(this);
-        guiInfo = new BlocklingGuiInfo(-1, GuiHandler.STATS_ID, -1);
+        abilityManager = new AbilityManager(this);
+        guiInfo = new BlocklingGuiInfo(-1, GuiHandler.STATS_ID, -1, -1);
         blocklingType = BlocklingType.OAK_LOG;
     }
 
@@ -361,13 +364,13 @@ public class BlocklingEntity extends TameableEntity implements INamedContainerPr
     public void openGui(PlayerEntity player, int guiId)
     {
         // TODO: CLEAN UP EXTRA PACKETS
-        openGui(player, guiId, -1);
+        openGui(player, guiId, -1, -1);
     }
-    public void openGui(PlayerEntity player, int guiId, int selectedGoalId)
+    public void openGui(PlayerEntity player, int guiId, int selectedGoalId, int abilityGroupId)
     {
         // TODO: CLEAN UP EXTRA PACKETS
         int recentTab = Tab.hasTab(guiId) ? guiId : guiInfo.mostRecentTabbedGuiId;
-        setGuiInfo(new BlocklingGuiInfo(guiId, recentTab, selectedGoalId));
+        setGuiInfo(new BlocklingGuiInfo(guiId, recentTab, selectedGoalId, abilityGroupId));
         GuiHandler.openGui(guiId, this, player);
     }
     public void openCurrentGui(PlayerEntity player)

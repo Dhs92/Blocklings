@@ -111,7 +111,7 @@ public class TabbedScreen extends AbstractGui
         Tab hoveredTab = getHoveredTab(mouseX, mouseY);
         if (hoveredTab != null)
         {
-            blockling.openGui(player, hoveredTab.guiId);
+            blockling.openGui(player, hoveredTab.guiId, -1, hoveredTab.textureX); // TODO: REPLACE TEXTUREX
             return true;
         }
 

@@ -60,7 +60,7 @@ public class AIManager
     {
         int i = 1;
         blockling.goalSelector.addGoal(0 , new SwimGoal(blockling));
-        goals.add(new GoalInfo(this, ATTACK_MELEE_ID, "Melee Attack", "Use melee attacks to attack the blockling's target", new BlocklingAttackMeleeGoal(blockling), i++, 4, 0));
+        goals.add(new GoalInfo(this, ATTACK_MELEE_ID, "Melee Attack", "The blockling will use melee attacks to attack its target", new BlocklingAttackMeleeGoal(blockling), i++, 4, 0));
         goals.add(new GoalInfo(this, HURT_BY_ID, "Retaliate", "If something attacks the blockling it will attack back", new BlocklingAttackedGoal(blockling), i++, 3, 0));
         goals.add(new GoalInfo(this, OWNER_HURT_BY_ID, "Attack Owner's Attacker", "If something attacks the blockling's owner the blockling will attack it", new BlocklingOwnerAttackedGoal(blockling), i++, 3, 0));
         goals.add(new GoalInfo(this, OWNER_HURT_ID, "Attack Owner's Target", "If the blockling's owner attacks something the blockling will attack it too", new BlocklingOwnerAttackGoal(blockling), i++, 3, 0));

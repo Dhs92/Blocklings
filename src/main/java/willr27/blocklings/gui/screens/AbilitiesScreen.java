@@ -1,15 +1,17 @@
 package willr27.blocklings.gui.screens;
 
+import com.mojang.blaze3d.platform.GlStateManager;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.text.StringTextComponent;
+import willr27.blocklings.ability.AbilityGroup;
 import willr27.blocklings.entity.blockling.BlocklingEntity;
 import willr27.blocklings.gui.util.GuiUtil;
 
 public class AbilitiesScreen extends Screen
 {
     private static final int WINDOW_WIDTH = 158;
-    private static final int WINDOW_HEIGHT = 140;
+    private static final int WINDOW_HEIGHT = 138;
 
     private AbilitiesGui abilitiesGui;
     private TabbedScreen tabbedScreen;
@@ -20,11 +22,15 @@ public class AbilitiesScreen extends Screen
     private int left, top;
     private int contentLeft, contentTop;
 
+    private AbilityGroup abilityGroup;
+
     public AbilitiesScreen(BlocklingEntity blockling, PlayerEntity player)
     {
         super(new StringTextComponent("Abilities"));
         this.blockling = blockling;
         this.player = player;
+
+        abilityGroup = blockling.abilityManager.getGroup(blockling.getGuiInfo().abilityGroupId);
     }
 
     @Override
@@ -39,7 +45,7 @@ public class AbilitiesScreen extends Screen
         contentLeft = centerX - TabbedScreen.CONTENT_WIDTH / 2;
         contentTop = top;
 
-        abilitiesGui = new AbilitiesGui(blockling, font, 300, 200, centerX, centerY);
+        abilitiesGui = new AbilitiesGui(blockling, abilityGroup, font, WINDOW_WIDTH, WINDOW_HEIGHT, centerX, centerY + 5);
         tabbedScreen = new TabbedScreen(blockling, player, centerX, centerY);
 
         super.init();
@@ -48,6 +54,10 @@ public class AbilitiesScreen extends Screen
     @Override
     public void render(int mouseX, int mouseY, float partialTicks)
     {
+        abilitiesGui.draw(mouseX, mouseY);
+
+        GlStateManager.enableBlend();
+        GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
         GuiUtil.bindTexture(GuiUtil.ABILITIES);
         blit(contentLeft, contentTop, 0, 0, TabbedScreen.CONTENT_WIDTH, TabbedScreen.CONTENT_HEIGHT);
 
@@ -55,8 +65,6 @@ public class AbilitiesScreen extends Screen
 
         super.render(mouseX, mouseY, partialTicks);
         tabbedScreen.drawTooltip(mouseX, mouseY, this);
-
-        abilitiesGui.draw(mouseX, mouseY);
     }
 
     @Override
