@@ -1,6 +1,9 @@
 package willr27.blocklings.ability;
 
+import javafx.util.Pair;
 import willr27.blocklings.entity.blockling.BlocklingEntity;
+import willr27.blocklings.network.NetworkHandler;
+import willr27.blocklings.network.messages.AbilityBoughtMessage;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -18,23 +21,63 @@ public class AbilityManager
 
     public void reset()
     {
-        AbilityGroup general = new AbilityGroup(AbilityGroup.GENERAL, "General");
+        AbilityGroup general = new AbilityGroup(blockling, AbilityGroup.GENERAL, "General");
 
-        AbilityGroup combat = new AbilityGroup(AbilityGroup.COMBAT, "Combat");
+        AbilityGroup combat = new AbilityGroup(blockling, AbilityGroup.COMBAT, "Combat");
 
-        AbilityGroup mining = new AbilityGroup(AbilityGroup.MINING, "Mining");
-        mining.addAbility(Abilities.NEARBY_MINING);
-        mining.addAbility(Abilities.LUCK);
+        AbilityGroup mining = new AbilityGroup(blockling, AbilityGroup.MINING, "Mining");
+        mining.addAllAbilities(Abilities.Mining.ABILITIES);
 
-        AbilityGroup woodcutting = new AbilityGroup(AbilityGroup.WOODCUTTING, "Woodcutting");
+        AbilityGroup woodcutting = new AbilityGroup(blockling, AbilityGroup.WOODCUTTING, "Woodcutting");
 
-        AbilityGroup farming = new AbilityGroup(AbilityGroup.FARMING, "Farming");
+        AbilityGroup farming = new AbilityGroup(blockling, AbilityGroup.FARMING, "Farming");
 
         groups.put(general.id, general);
         groups.put(combat.id, combat);
         groups.put(mining.id, mining);
         groups.put(woodcutting.id, woodcutting);
         groups.put(farming.id, farming);
+    }
+
+    public boolean canBuyAbility(AbilityGroup group, Ability ability)
+    {
+        int pointsNeeded = 1;
+        if (blockling.getStats().getSkillPoints() < pointsNeeded && group.allParentsBought(ability) && !group.hasConflict(ability))
+        {
+            return false;
+        }
+
+        for (Pair<Integer, Integer> levelRequirement : ability.getLevelRequirements())
+        {
+            if (blockling.getStats().getLevel(levelRequirement.getKey()) < levelRequirement.getValue())
+            {
+                return false;
+            }
+        }
+
+        if (group.hasConflict(ability))
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    public void tryBuyAbility(AbilityGroup group, Ability ability)
+    {
+        if (blockling.world.isRemote)
+        {
+            NetworkHandler.sendToServer(new AbilityBoughtMessage(ability, group, blockling.getEntityId()));
+            return;
+        }
+
+        if (!canBuyAbility(group, ability))
+        {
+            return;
+        }
+
+        blockling.getStats().incSkillPoints(-0);
+        group.setState(ability, AbilityState.BOUGHT);
     }
 
     public AbilityGroup getGroup(int id)

@@ -1,8 +1,10 @@
 package willr27.blocklings.gui.screens;
 
 import com.mojang.blaze3d.platform.GlStateManager;
+import javafx.util.Pair;
 import net.minecraft.client.gui.AbstractGui;
 import net.minecraft.client.gui.FontRenderer;
+import net.minecraft.util.text.TextFormatting;
 import willr27.blocklings.ability.Ability;
 import willr27.blocklings.ability.AbilityGroup;
 import willr27.blocklings.ability.AbilityState;
@@ -23,6 +25,7 @@ public class AbilitiesGui extends AbstractGui
     private static final int LINE_INNER_WIDTH = 2;
     private static final int LINE_BORDER_WIDTH = 4;
 
+    public final int backgroundOffsetX, backgroundOffsetY;
     private BlocklingEntity blockling;
     private AbilityGroup abilityGroup;
     private FontRenderer font;
@@ -32,17 +35,37 @@ public class AbilitiesGui extends AbstractGui
     private int tilesX, tilesY;
     private int prevMouseX, prevMouseY;
     private int moveX, moveY;
-    private int backgroundOffsetX, backgroundOffsetY;
-    private boolean moving;
+    private boolean mouseDown;
+    private boolean dragging;
+    private int startX, startY;
     private Widget windowWidget;
+    private AbilitiesConfirmationGui confirmGui;
+    private Ability selectedAbility;
+    private int windowWidth;
+    private int windowHeight;
 
-    public AbilitiesGui(BlocklingEntity blockling, AbilityGroup abilityGroup, FontRenderer font, int width, int height, int centerX, int centerY)
+    public AbilitiesGui(BlocklingEntity blockling, AbilityGroup abilityGroup, FontRenderer font, int width, int height, int centerX, int centerY, int windowWidth, int windowHeight)
     {
         this.blockling = blockling;
         this.abilityGroup = abilityGroup;
         this.font = font;
         this.centerX = centerX;
         this.centerY = centerY;
+        resize(width, height);
+        this.backgroundOffsetX = blockling.random.nextInt(1000);
+        this.backgroundOffsetY = blockling.random.nextInt(1000);
+        this.windowWidth = windowWidth;
+        this.windowHeight = windowHeight;
+
+        moveX = width / 2 - width / 2 + 10;
+        moveY = height / 2 - 12;
+        confirmGui = new AbilitiesConfirmationGui();
+    }
+
+    public void resize(int width, int height)
+    {
+        moveX -= (this.width - width) / 2;
+        moveY -= (this.height - height) / 2;
         this.width = width;
         this.height = height;
         this.left = centerX - width / 2;
@@ -51,24 +74,28 @@ public class AbilitiesGui extends AbstractGui
         this.bottom = top + height;
         this.tilesX = width / TILE_SIZE;
         this.tilesY = height / TILE_SIZE;
-        this.backgroundOffsetX = blockling.random.nextInt(5000);
-        this.backgroundOffsetY = blockling.random.nextInt(5000);
-
-        moveX = width / 2 - 12;
-        moveY = height / 2 - 12;
         windowWidget = new Widget(font, left, top, width, height, 0, 0);
     }
 
     public void draw(int mouseX, int mouseY)
     {
-        if (moving)
+        if (mouseDown)
         {
-            moveX += mouseX - prevMouseX;
-            moveY += mouseY - prevMouseY;
+            int difX = Math.abs(mouseX - startX);
+            int difY = Math.abs(mouseY - startY);
+            boolean drag = difX > 4 || difY > 4;
+            if (drag || dragging)
+            {
+                dragging = true;
+                moveX += mouseX - prevMouseX;
+                moveY += mouseY - prevMouseY;
+            }
         }
 
         drawBackground();
         drawAbilities(mouseX, mouseY);
+
+        confirmGui.draw(mouseX, mouseY);
 
         prevMouseX = mouseX;
         prevMouseY = mouseY;
@@ -83,16 +110,34 @@ public class AbilitiesGui extends AbstractGui
 
         for (Ability ability : abilityGroup.getAbilities())
         {
-            if (ability.parent == null)
+            for (Ability parent : ability.getParents())
             {
-                continue;
+                AbilityWidget abilityWidget = new AbilityWidget(font, ability.x + x, ability.y + y, ABILITY_SIZE, ABILITY_SIZE, ability.type.textureX * ABILITY_SIZE, 0);
+                AbilityWidget parentWidget = new AbilityWidget(font, parent.x + x, parent.y + y, ABILITY_SIZE, ABILITY_SIZE, parent.type.textureX * ABILITY_SIZE, 0);
+
+                abilityWidget.connect(parentWidget, LINE_BORDER_WIDTH, 0xff000000, left, right, top, bottom, ability.connectionType);
             }
+        }
 
-            AbilityWidget abilityWidget = new AbilityWidget(font, ability.x + x, ability.y + y, ABILITY_SIZE, ABILITY_SIZE, ability.type.textureX * ABILITY_SIZE, 0);
-            AbilityWidget parentWidget = new AbilityWidget(font, ability.parent.x + x, ability.parent.y + y, ABILITY_SIZE, ABILITY_SIZE, ability.parent.type.textureX * ABILITY_SIZE, 0);
+        for (Ability ability : abilityGroup.getAbilities())
+        {
+            for (Ability parent : ability.getParents())
+            {
+                AbilityWidget abilityWidget = new AbilityWidget(font, ability.x + x, ability.y + y, ABILITY_SIZE, ABILITY_SIZE, ability.type.textureX * ABILITY_SIZE, 0);
+                AbilityWidget parentWidget = new AbilityWidget(font, parent.x + x, parent.y + y, ABILITY_SIZE, ABILITY_SIZE, parent.type.textureX * ABILITY_SIZE, 0);
 
-            abilityWidget.connect(parentWidget, LINE_BORDER_WIDTH, 0xff000000, left, right, top, bottom);
-            abilityWidget.connect(parentWidget, LINE_INNER_WIDTH, abilityGroup.getState(ability).colour, left, right, top, bottom);
+                AbilityState state = abilityGroup.getState(parent);
+                int colour = new Color(state.colour).darker().darker().getRGB();
+                if (state == AbilityState.BOUGHT) colour = 0xffffff;
+//                if (state != AbilityState.LOCKED && abilityGroup.hasConflict(parent)) colour = 0xcc3333;
+                abilityWidget.connect(parentWidget, LINE_INNER_WIDTH, 0xff000000 + colour, left, right, top, bottom, ability.connectionType);
+
+//                GlStateManager.pushMatrix();
+//                GlStateManager.translatef(0.0f, 0.0f, 100.0f);
+//                GlStateManager.scalef(0.25f, 0.25f, 0.25f);
+//                fill((ability.x + x) * 4, (ability.y + y + 8 + 3) * 4, (ability.x + x) * 4 + 8, (ability.y + y + 8 + 3) * 4 + 8, 0xffff0000);
+//                GlStateManager.popMatrix();
+            }
         }
 
         boolean foundHover = false;
@@ -101,7 +146,7 @@ public class AbilitiesGui extends AbstractGui
             AbilityWidget abilityWidget = new AbilityWidget(font, ability.x + x, ability.y + y, ABILITY_SIZE, ABILITY_SIZE, ability.type.textureX * ABILITY_SIZE, 0);
 
             boolean isHover = false;
-            if (!foundHover && windowWidget.isMouseOver(mouseX, mouseY))
+            if (confirmGui.closed && !foundHover && windowWidget.isMouseOver(mouseX, mouseY))
             {
                 if (abilityWidget.isMouseOver(mouseX, mouseY))
                 {
@@ -114,18 +159,31 @@ public class AbilitiesGui extends AbstractGui
             GlStateManager.pushMatrix();
             if (isHover) GlStateManager.translatef(0.0f, 0.0f, 20.0f);
 
-            Color colour = new Color(abilityGroup.getState(ability).colour);
-            GlStateManager.color3f(colour.getRed() / 255f, colour.getGreen() / 255f, colour.getBlue() / 255f);
+            AbilityState state = abilityGroup.getState(ability);
+            Color colour = new Color(state.colour);
+            if (ability == selectedAbility) GlStateManager.color3f(0.7f, 1.0f, 0.7f);
+            else if (abilityGroup.hasConflict(ability) && state != AbilityState.LOCKED) GlStateManager.color3f(0.8f, 0.2f, 0.2f);
+            else if (state == AbilityState.UNLOCKED && !blockling.abilityManager.canBuyAbility(abilityGroup, ability)) GlStateManager.color3f(0.9f, 0.6f, 0.6f);
+            else
+            {
+                if (abilityGroup.allParentsHaveState(ability, AbilityState.LOCKED) && ability.getParents().length != 0) colour = colour.darker().darker().darker();
+                GlStateManager.color3f(colour.getRed() / 255f, colour.getGreen() / 255f, colour.getBlue() / 255f);
+            }
             if (isHover) abilityWidget.render(mouseX, mouseY);
             else abilityWidget.render(mouseX, mouseY, left, right, top, bottom);
 
-            GlStateManager.color3f(1.0f, 1.0f, 1.0f);
+            if (state == AbilityState.LOCKED) GlStateManager.color3f(0.0f, 0.0f, 0.0f);
+            else if (abilityGroup.hasConflict(ability)) GlStateManager.color3f(0.8f, 0.2f, 0.2f);
+            else if (state == AbilityState.UNLOCKED && !blockling.abilityManager.canBuyAbility(abilityGroup, ability)) GlStateManager.color3f(0.9f, 0.6f, 0.6f);
+            else  GlStateManager.color3f(1.0f, 1.0f, 1.0f);
             abilityWidget = new AbilityWidget(font, ability.x + x, ability.y + y, ABILITY_SIZE, ABILITY_SIZE, ability.textureX * ABILITY_SIZE, (ability.textureY + 1) * ABILITY_SIZE);
             if (isHover) abilityWidget.render(mouseX, mouseY);
             else abilityWidget.render(mouseX, mouseY, left, right, top, bottom);
 
             GlStateManager.popMatrix();
         }
+
+        GlStateManager.color3f(1.0f, 1.0f, 1.0f);
     }
 
     private static final int HOVER_PADDING = 5;
@@ -142,10 +200,43 @@ public class AbilitiesGui extends AbstractGui
         GlStateManager.pushMatrix();
         GlStateManager.translatef(0.0f, 0.0f, 20.0f);
 
+        AbilityState state = abilityGroup.getState(ability);
         String name = ability.name;
-        List<String> description = GuiUtil.breakUpTooltipText(font, ability.description, 100);
-
         int maxWidth = font.getStringWidth(name) + ABILITY_SIZE + HOVER_PADDING - 1;
+        List<String> description = GuiUtil.splitText(font, ability.description, Math.max(maxWidth, 100));
+
+        if (state == AbilityState.LOCKED)
+        {
+            name = "???";
+            description.clear();
+            description.add("...");
+        }
+        else
+        {
+            Pair<Integer, Integer>[] levelRequirements = ability.getLevelRequirements();
+            if (levelRequirements.length > 0)
+            {
+                description.add("");
+                description.add("Requirements:");
+                for (Pair<Integer, Integer> levelRequirement : levelRequirements)
+                {
+                    String colour = blockling.getStats().getLevel(levelRequirement.getKey()) >= levelRequirement.getValue() ? ""+TextFormatting.GREEN : ""+TextFormatting.RED;
+                    description.add(colour + blockling.getStats().getLevelName(levelRequirement.getKey()) + ": " + levelRequirement.getValue());
+                }
+            }
+
+            List<Ability> conflicts = abilityGroup.findConflicts(ability);
+            if (!conflicts.isEmpty())
+            {
+                description.add("");
+                description.add("Conflicts:");
+                for (Ability conflict : conflicts)
+                {
+                    description.add(TextFormatting.RED + conflict.name);
+                }
+            }
+        }
+
         for (String str : description)
         {
             int width = font.getStringWidth(str);
@@ -159,6 +250,7 @@ public class AbilitiesGui extends AbstractGui
         int nameY = abilityWidget.y + 2;
         int descY = nameY + 23;
 
+        GlStateManager.color3f(1.0f, 1.0f, 1.0f);
         new Widget(font, startX, descY - DESCRIPTION_START_OFFSET_Y, maxWidth, DESCRIPTION_START_OFFSET_Y, 0, DESCRIPTION_TEXTURE_Y + OUTER_WIDTH).render(0, 0);
         new Widget(font, endX, descY - DESCRIPTION_START_OFFSET_Y, OUTER_WIDTH, DESCRIPTION_START_OFFSET_Y, HOVER_BOX_WIDTH - OUTER_WIDTH, DESCRIPTION_TEXTURE_Y + OUTER_WIDTH).render(0, 0);
         int gap = 10;
@@ -179,6 +271,8 @@ public class AbilitiesGui extends AbstractGui
         Widget nameWidget = new Widget(font, startX, nameY, maxWidth, HOVER_BOX_HEIGHT, 0, NAME_TEXTURE_Y);
         Widget nameWidgetEnd = new Widget(font, endX, nameY, OUTER_WIDTH, HOVER_BOX_HEIGHT, HOVER_BOX_WIDTH - OUTER_WIDTH, NAME_TEXTURE_Y);
 
+        if (state == AbilityState.LOCKED) GlStateManager.color3f(0.5f, 0.5f, 0.5f);
+        else GlStateManager.color3f(ability.colour.getRed() / 255f, ability.colour.getGreen() / 255f, ability.colour.getBlue() / 255f);
         nameWidget.render(0, 0);
         nameWidgetEnd.render(0, 0);
         nameWidget.renderText(name, -font.getStringWidth(name) - (ABILITY_SIZE + HOVER_PADDING * 2 - 2), 6, true, 0xffffffff);
@@ -250,11 +344,24 @@ public class AbilitiesGui extends AbstractGui
 //        fill(left, bottom + 1, right, bottom + 2, 0xffffffff);
     }
 
+    public boolean keyPressed(int keyCode, int i, int j)
+    {
+        return confirmGui.keyPressed(keyCode, i, j);
+    }
+
     public boolean mouseClicked(double mouseX, double mouseY, int state)
     {
+        if (!confirmGui.closed)
+        {
+            confirmGui.mouseClicked(mouseX, mouseY, state);
+            return true;
+        }
+
         if (windowWidget.isMouseOver((int) mouseX, (int) mouseY))
         {
-            moving = true;
+            startX = (int) mouseX;
+            startY = (int) mouseY;
+            mouseDown = true;
         }
 
         return false;
@@ -265,21 +372,97 @@ public class AbilitiesGui extends AbstractGui
         int x = left + moveX;
         int y = top + moveY;
 
-        if (windowWidget.isMouseOver((int) mouseX, (int) mouseY))
+        if (!confirmGui.closed)
         {
-            for (Ability ability : abilityGroup.getAbilities())
-            {
-                AbilityWidget abilityWidget = new AbilityWidget(font, ability.x + x, ability.y + y, ABILITY_SIZE, ABILITY_SIZE, ability.type.textureX * ABILITY_SIZE, 0);
+            confirmGui.mouseReleased(mouseX, mouseY, state);
+            return true;
+        }
 
-                if (abilityWidget.isMouseOver((int) mouseX, (int) mouseY))
+        boolean doneSomething = false;
+        if (!dragging)
+        {
+            if (windowWidget.isMouseOver((int) mouseX, (int) mouseY))
+            {
+                boolean resetSelectedAbility = true;
+
+                if (selectedAbility != null)
                 {
-                    abilityGroup.setState(ability, AbilityState.UNLOCKED);
+                    for (Ability ability : abilityGroup.getAbilities())
+                    {
+                        if (ability != selectedAbility)
+                        {
+                            if (abilityGroup.getState(ability) == AbilityState.UNLOCKED && blockling.abilityManager.canBuyAbility(abilityGroup, ability))
+                            {
+                                AbilityWidget abilityWidget = new AbilityWidget(font, ability.x + x, ability.y + y, ABILITY_SIZE, ABILITY_SIZE, ability.type.textureX * ABILITY_SIZE, 0);
+                                if (abilityWidget.isMouseOver((int) mouseX, (int) mouseY))
+                                {
+                                    selectedAbility = ability;
+                                    resetSelectedAbility = false;
+                                    doneSomething = true;
+                                    break;
+                                }
+                            }
+                            continue;
+                        }
+
+                        int minState = ability.getParents().length == 100 ? 0 : AbilityState.values().length;
+                        for (Ability parent : ability.getParents())
+                        {
+                            int parentState = abilityGroup.getState(parent).ordinal();
+                            if (parentState < minState) minState = parentState;
+                        }
+
+                        if (abilityGroup.getState(ability).ordinal() < minState)
+                        {
+                            AbilityWidget abilityWidget = new AbilityWidget(font, ability.x + x, ability.y + y, ABILITY_SIZE, ABILITY_SIZE, ability.type.textureX * ABILITY_SIZE, 0);
+
+                            if (abilityWidget.isMouseOver((int) mouseX, (int) mouseY))
+                            {
+//                                blockling.abilityManager.tryBuyAbility(abilityGroup, ability);
+//                                resetSelectedAbility = true;
+                                String name2 = TextFormatting.LIGHT_PURPLE + ability.name + TextFormatting.WHITE;
+                                String name = "";
+                                for (String str : name2.split(" "))
+                                {
+                                    name += TextFormatting.LIGHT_PURPLE + str + " ";
+                                }
+                                name += TextFormatting.WHITE;
+                                confirmGui = new AbilitiesConfirmationGui(font, blockling, ability, abilityGroup, GuiUtil.splitText(font, "Are you sure you want to buy " + name + "for " + TextFormatting.AQUA + "100" + TextFormatting.WHITE + " skill point(s)?", width < 200 ? width - 10 : width - 50), windowWidth, windowHeight, width, height);
+                                resetSelectedAbility = false;
+                                doneSomething = true;
+                            }
+                        }
+                    }
                 }
+                else
+                {
+                    for (Ability ability : abilityGroup.getAbilities())
+                    {
+                        if (abilityGroup.getState(ability) == AbilityState.UNLOCKED && blockling.abilityManager.canBuyAbility(abilityGroup, ability))
+                        {
+                            AbilityWidget abilityWidget = new AbilityWidget(font, ability.x + x, ability.y + y, ABILITY_SIZE, ABILITY_SIZE, ability.type.textureX * ABILITY_SIZE, 0);
+                            if (abilityWidget.isMouseOver((int) mouseX, (int) mouseY))
+                            {
+                                selectedAbility = ability;
+                                resetSelectedAbility = false;
+                                doneSomething = true;
+                            }
+                        }
+                    }
+                }
+
+                if (resetSelectedAbility)  selectedAbility = null;
             }
         }
 
-        moving = false;
+        mouseDown = false;
+        dragging = false;
 
-        return false;
+        return doneSomething;
+    }
+
+    public boolean isDragging()
+    {
+        return dragging;
     }
 }

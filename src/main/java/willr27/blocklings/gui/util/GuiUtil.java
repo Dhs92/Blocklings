@@ -9,6 +9,7 @@ import net.minecraft.client.renderer.entity.EntityRendererManager;
 import net.minecraft.client.util.InputMappings;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.text.StringTextComponent;
 import willr27.blocklings.util.BlocklingsResourceLocation;
 
 import java.util.ArrayList;
@@ -31,7 +32,7 @@ public class GuiUtil
         Minecraft.getInstance().getTextureManager().bindTexture(texture);
     }
 
-    public static List<String> breakUpTooltipText(FontRenderer font, String text, int maxWidth)
+    public static List<String> splitText(FontRenderer font, String text, int maxWidth)
     {
         List<String> outText = new ArrayList<>();
 
@@ -64,7 +65,8 @@ public class GuiUtil
 
     public static void drawEntityOnScreen(int posX, int posY, int scale, float mouseX, float mouseY, LivingEntity ent)
     {
-        ent.setCustomNameVisible(false);
+        String name = ent.getCustomName().getString();
+        ent.setCustomName(null);
         GlStateManager.enableColorMaterial();
         GlStateManager.pushMatrix();
         GlStateManager.translatef((float)posX, (float)posY, 50.0F);
@@ -101,6 +103,6 @@ public class GuiUtil
         GlStateManager.activeTexture(GLX.GL_TEXTURE1);
         GlStateManager.disableTexture();
         GlStateManager.activeTexture(GLX.GL_TEXTURE0);
-        ent.setCustomNameVisible(true);
+        ent.setCustomName(new StringTextComponent(name));
     }
 }

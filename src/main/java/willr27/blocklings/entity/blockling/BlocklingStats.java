@@ -14,6 +14,11 @@ import java.util.UUID;
 
 public class BlocklingStats
 {
+    public static final int COMBAT_LEVEL_ID = 0;
+    public static final int MINING_LEVEL_ID = 1;
+    public static final int WOODCUTTING_LEVEL_ID = 2;
+    public static final int FARMING_LEVEL_ID = 3;
+
     private static final DataParameter<Float> MINING_RANGE = EntityDataManager.createKey(BlocklingEntity.class, DataSerializers.FLOAT);
     private static final DataParameter<Float> MINING_RANGE_SQ = EntityDataManager.createKey(BlocklingEntity.class, DataSerializers.FLOAT);
     private static final DataParameter<Float> WOODCUTTING_RANGE = EntityDataManager.createKey(BlocklingEntity.class, DataSerializers.FLOAT);
@@ -36,12 +41,19 @@ public class BlocklingStats
     private static final DataParameter<Integer> WOODCUTTING_XP = EntityDataManager.createKey(BlocklingEntity.class, DataSerializers.VARINT);
     private static final DataParameter<Integer> FARMING_XP = EntityDataManager.createKey(BlocklingEntity.class, DataSerializers.VARINT);
 
+    private static final DataParameter<Integer> SKILL_POINTS = EntityDataManager.createKey(BlocklingEntity.class, DataSerializers.VARINT);
+
     private BlocklingEntity blockling;
     private EntityDataManager dataManager;
 
     private UUID levelBonusHealthUUID;
     private UUID levelBonusAttackDamageUUID;
     private UUID levelBonusArmourUUID;
+
+    private UUID typeBonusHealthUUID;
+    private UUID typeBonusAttackDamageUUID;
+    private UUID typeBonusArmourUUID;
+    private UUID typeBonusMovementSpeedUUID;
 
     public BlocklingStats(BlocklingEntity blockling)
     {
@@ -51,6 +63,11 @@ public class BlocklingStats
         levelBonusHealthUUID = UUID.randomUUID();
         levelBonusAttackDamageUUID = UUID.randomUUID();
         levelBonusArmourUUID = UUID.randomUUID();
+
+        typeBonusHealthUUID = UUID.randomUUID();
+        typeBonusAttackDamageUUID = UUID.randomUUID();
+        typeBonusArmourUUID = UUID.randomUUID();
+        typeBonusMovementSpeedUUID = UUID.randomUUID();
     }
 
     public void registerData()
@@ -72,14 +89,18 @@ public class BlocklingStats
         dataManager.register(WOODCUTTING_INTERVAL, 50);
         dataManager.register(FARMING_INTERVAL, 50);
 
-        dataManager.register(COMBAT_LEVEL, new Random().nextInt(15) + 1);
-        dataManager.register(MINING_LEVEL, new Random().nextInt(15) + 1);
-        dataManager.register(WOODCUTTING_LEVEL, new Random().nextInt(15) + 1);
-        dataManager.register(FARMING_LEVEL, new Random().nextInt(15) + 1);
+        dataManager.register(COMBAT_LEVEL, new Random().nextInt(80) + 1);
+        dataManager.register(MINING_LEVEL, new Random().nextInt(80) + 1);
+        dataManager.register(WOODCUTTING_LEVEL, new Random().nextInt(80) + 1);
+        dataManager.register(FARMING_LEVEL, new Random().nextInt(80) + 1);
         dataManager.register(COMBAT_XP, new Random().nextInt(getXpUntilNextLevel(getCombatLevel())));
         dataManager.register(MINING_XP, new Random().nextInt(getXpUntilNextLevel(getMiningLevel())));
         dataManager.register(WOODCUTTING_XP, new Random().nextInt(getXpUntilNextLevel(getWoodcuttingLevel())));
         dataManager.register(FARMING_XP, new Random().nextInt(getXpUntilNextLevel(getFarmingLevel())));
+
+        dataManager.register(SKILL_POINTS, 50);
+
+        blockling.setBlocklingType(BlocklingType.DIAMOND, false); // TODO: MOVE?
 
         checkForLevelUp();
         updateStateBonuses();
@@ -127,6 +148,31 @@ public class BlocklingStats
             setFarmingLevel(farmingLevel + 1);
             setFarmingXp(farmingXp - farmingXpReq);
         }
+    }
+
+    public void updateTypeBonuses()
+    {
+        BlocklingType type = blockling.getBlocklingType();
+        AttributeModifier typeBonusHealth = new AttributeModifier(typeBonusHealthUUID, "type_bonus_health", type.getBonusHealth(), AttributeModifier.Operation.ADDITION);
+        AttributeModifier typeBonusAttackDamage = new AttributeModifier(typeBonusAttackDamageUUID, "type_bonus_attack_damage", type.getBonusDamage(), AttributeModifier.Operation.ADDITION);
+        AttributeModifier typeBonusArmor = new AttributeModifier(typeBonusArmourUUID, "type_bonus_armour", type.getBonusArmour(), AttributeModifier.Operation.ADDITION);
+        AttributeModifier typeBonusMovementSpeed = new AttributeModifier(typeBonusMovementSpeedUUID, "type_bonus_movement_speed", type.getBonusSpeed() / 40.0, AttributeModifier.Operation.ADDITION);
+
+
+        if (blockling.getAttribute(SharedMonsterAttributes.ATTACK_DAMAGE) != null)
+        {
+            blockling.getAttribute(SharedMonsterAttributes.MAX_HEALTH).removeModifier(typeBonusHealth);
+            blockling.getAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).removeModifier(typeBonusAttackDamage);
+            blockling.getAttribute(SharedMonsterAttributes.ARMOR).removeModifier(typeBonusArmor);
+            blockling.getAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).removeModifier(typeBonusMovementSpeed);
+
+            blockling.getAttribute(SharedMonsterAttributes.MAX_HEALTH).applyModifier(typeBonusHealth);
+            blockling.getAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).applyModifier(typeBonusAttackDamage);
+            blockling.getAttribute(SharedMonsterAttributes.ARMOR).applyModifier(typeBonusArmor);
+            blockling.getAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).applyModifier(typeBonusMovementSpeed);
+        }
+
+        updateHealth();
     }
 
     public void updateStateBonuses()
@@ -263,6 +309,43 @@ public class BlocklingStats
     public void setFarmingInterval(int value) { dataManager.set(FARMING_INTERVAL, value); }
 
 
+
+    public String getLevelName(int levelId)
+    {
+        switch (levelId)
+        {
+            case COMBAT_LEVEL_ID: return "Combat";
+            case MINING_LEVEL_ID: return "Mining";
+            case WOODCUTTING_LEVEL_ID: return "Woodcutting";
+            case FARMING_LEVEL_ID: return "Farming";
+        }
+
+        return null;
+    }
+
+    public int getLevel(int levelId)
+    {
+        switch (levelId)
+        {
+            case COMBAT_LEVEL_ID: return getCombatLevel();
+            case MINING_LEVEL_ID: return getMiningLevel();
+            case WOODCUTTING_LEVEL_ID: return getWoodcuttingLevel();
+            case FARMING_LEVEL_ID: return getFarmingLevel();
+        }
+
+        return -1;
+    }
+
+    public void setLevel(int levelId, int value)
+    {
+        switch (levelId)
+        {
+            case COMBAT_LEVEL_ID: setCombatLevel(value); break;
+            case MINING_LEVEL_ID: setMiningLevel(value); break;
+            case WOODCUTTING_LEVEL_ID: setWoodcuttingLevel(value); break;
+            case FARMING_LEVEL_ID: setFarmingLevel(value); break;
+        }
+    }
     
     public int getCombatLevel() { return dataManager.get(COMBAT_LEVEL); }
     public void incCombatLevel(int value) { setCombatLevel(getCombatLevel() + value); }
@@ -296,4 +379,8 @@ public class BlocklingStats
     public int getFarmingXp() { return dataManager.get(FARMING_XP); }
     public void incFarmingXp(int value) { setFarmingXp(getFarmingXp() + value); }
     public void setFarmingXp(int value) { dataManager.set(FARMING_XP, value); checkForLevelUp(); }
+
+    public int getSkillPoints() { return dataManager.get(SKILL_POINTS); }
+    public void incSkillPoints(int value) { setSkillPoints(getSkillPoints() + value); }
+    public void setSkillPoints(int value) { dataManager.set(SKILL_POINTS, value); }
 }

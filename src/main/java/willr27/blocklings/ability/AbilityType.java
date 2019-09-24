@@ -4,7 +4,8 @@ public enum AbilityType
 {
     STAT(0),
     AI(1),
-    OTHER(2);
+    UTILITY(2),
+    OTHER(3);
 
     public int textureX;
 

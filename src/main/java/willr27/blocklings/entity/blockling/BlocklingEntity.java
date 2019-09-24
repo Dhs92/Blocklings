@@ -1,6 +1,6 @@
 package willr27.blocklings.entity.blockling;
 
-import net.minecraft.enchantment.Enchantment;
+import jdk.nashorn.internal.ir.Block;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.*;
@@ -13,8 +13,9 @@ import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.INamedContainerProvider;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.SwordItem;
-import net.minecraft.item.ToolItem;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.network.IPacket;
+import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
@@ -24,7 +25,12 @@ import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.world.IWorld;
 import net.minecraft.world.World;
 import net.minecraftforge.event.ForgeEventFactory;
+import net.minecraftforge.fml.common.registry.IEntityAdditionalSpawnData;
+import net.minecraftforge.fml.network.FMLPlayMessages;
+import net.minecraftforge.fml.network.NetworkHooks;
+import org.jline.utils.Log;
 import willr27.blocklings.ability.AbilityManager;
+import willr27.blocklings.entity.EntityTypes;
 import willr27.blocklings.entity.ai.AIManager;
 import willr27.blocklings.gui.container.containers.EquipmentContainer;
 import willr27.blocklings.gui.util.GuiHandler;
@@ -34,15 +40,18 @@ import willr27.blocklings.item.ItemUtil;
 import willr27.blocklings.item.ToolType;
 import willr27.blocklings.item.ToolUtil;
 import willr27.blocklings.network.NetworkHandler;
+import willr27.blocklings.network.messages.BlocklingTypeMessage;
 import willr27.blocklings.network.messages.CustomNameMessage;
 import willr27.blocklings.network.messages.GuiInfoMessage;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Random;
-import java.util.function.Predicate;
+import java.util.function.BiPredicate;
 
-public class BlocklingEntity extends TameableEntity implements INamedContainerProvider
+public class BlocklingEntity extends TameableEntity implements INamedContainerProvider, IEntityAdditionalSpawnData
 {
     public final Random random = new Random();
 
@@ -66,14 +75,55 @@ public class BlocklingEntity extends TameableEntity implements INamedContainerPr
     private boolean hasWorked;
     private Vec3d hasMovedLastPosition = new Vec3d(0, 0, 0);
 
-    public BlocklingEntity(EntityType<? extends TameableEntity> type, World worldIn)
+    private boolean firstTick = true;
+
+    public BlocklingEntity(EntityType<? extends TameableEntity> type, World world)
     {
-        super(type, worldIn);
+        super(type, world);
         inventory = new BlocklingInventory(this);
         aiManager = new AIManager(this);
         abilityManager = new AbilityManager(this);
         guiInfo = new BlocklingGuiInfo(-1, GuiHandler.STATS_ID, -1, -1);
-        blocklingType = BlocklingType.OAK_LOG;
+    }
+
+    public static <T extends Entity> T create(FMLPlayMessages.SpawnEntity packet, World world)
+    {
+        BlocklingEntity blockling = new BlocklingEntity(EntityTypes.BLOCKLING, world);
+        return (T)blockling;
+    }
+
+    @Override
+    public IPacket<?> createSpawnPacket()
+    {
+        return NetworkHooks.getEntitySpawningPacket(this);
+    }
+
+    @Override
+    public void writeAdditional(CompoundNBT c)
+    {
+        super.writeAdditional(c);
+
+        c.putInt("blockling_type", BlocklingType.TYPES.indexOf(blocklingType));
+    }
+
+    @Override
+    public void readAdditional(CompoundNBT c)
+    {
+        super.writeAdditional(c);
+
+        blocklingType = BlocklingType.TYPES.get(c.getInt("blockling_type"));
+    }
+
+    @Override
+    public void writeSpawnData(PacketBuffer buf)
+    {
+        buf.writeInt(BlocklingType.TYPES.indexOf(blocklingType));
+    }
+
+    @Override
+    public void readSpawnData(PacketBuffer buf)
+    {
+        blocklingType = BlocklingType.TYPES.get(buf.readInt());
     }
 
     protected void registerAttributes()
@@ -94,9 +144,18 @@ public class BlocklingEntity extends TameableEntity implements INamedContainerPr
     {
         super.livingTick();
 
+        if (firstTick && !world.isRemote) // TODO: REMOVE, IENTITYADDITIONALSPAWNDATA
+        {
+            NetworkHandler.sync(world, new BlocklingTypeMessage(blocklingType, getEntityId()));
+            firstTick = false;
+        }
+
         if (getAttackTarget() != null && !getAttackTarget().isAlive()) setAttackTarget(null);
 
-        if (!world.isRemote) inventory.detectAndSendChanges();
+        if (!world.isRemote)
+        {
+            inventory.detectAndSendChanges();
+        }
 
         updateHasWorked();
         updateActionTimer();
@@ -145,6 +204,7 @@ public class BlocklingEntity extends TameableEntity implements INamedContainerPr
                             playTameEffect(true);
                             world.setEntityState(this, (byte)7);
                             aiManager.getGoalFromId(AIManager.FOLLOW_ID).setActive(true, true);
+                            //setCustomNameVisible(true);
                             if (getCustomName() == null) setName("Blockling");
                         }
                         else
@@ -345,20 +405,73 @@ public class BlocklingEntity extends TameableEntity implements INamedContainerPr
     }
 
     @Override
-    public boolean canSpawn(IWorld worldIn, SpawnReason spawnReasonIn)
+    public boolean canSpawn(IWorld world, SpawnReason spawnReasonIn)
     {
-        if (spawnReasonIn == SpawnReason.NATURAL)
+        if (spawnReasonIn == SpawnReason.CHUNK_GENERATION || spawnReasonIn == SpawnReason.NATURAL)
         {
-            for (Predicate<BlocklingEntity> predicate : blocklingType.predicates)
+            if (!world.isAirBlock(getPosition()))
             {
-                if (!predicate.test(this))
+                return false;
+            }
+
+            List<LivingEntity> entities = world.getEntitiesWithinAABB(LivingEntity.class, getBoundingBox().grow(10.0));
+            for (LivingEntity entity : entities)
+            {
+                if (entity instanceof BlocklingEntity)
+                {
+                    return false;
+                }
+            }
+
+            List<BlocklingType> potentialTypes = new ArrayList<>();
+
+            typeLoop: for (BlocklingType type : BlocklingType.TYPES)
+            {
+                if (type.predicates.isEmpty())
+                {
+                    continue;
+                }
+
+                for (BiPredicate<BlocklingEntity, IWorld> predicate : type.predicates)
+                {
+                    if (!predicate.test(this, world))
+                    {
+                        continue typeLoop;
+                    }
+                }
+
+                potentialTypes.add(type);
+            }
+
+            if (potentialTypes.isEmpty())
+            {
+                return false;
+            }
+            else
+            {
+                BlocklingType type = potentialTypes.get(random.nextInt(potentialTypes.size()));
+                if (rand.nextInt(type.spawnRateReduction) == 0)
+                {
+                    if (type == BlocklingType.IRON || type == BlocklingType.LAPIS || type == BlocklingType.GOLD || type == BlocklingType.EMERALD || type == BlocklingType.DIAMOND || type == BlocklingType.OBSIDIAN)
+                    {
+                        Log.info(type.entityTexture);
+                        Log.info(getPosition());
+                    }
+                    if (type == BlocklingType.QUARTZ)
+                    {
+                        Log.info(type.entityTexture);
+                        Log.info(getPosition());
+                    }
+                    setBlocklingType(type);
+                }
+                else
                 {
                     return false;
                 }
             }
         }
 
-        return super.canSpawn(worldIn, spawnReasonIn);
+        return true;
     }
 
     public void openGui(PlayerEntity player, int guiId)
@@ -405,4 +518,6 @@ public class BlocklingEntity extends TameableEntity implements INamedContainerPr
     public boolean hasWorked() { return hasWorked; }
 
     public BlocklingType getBlocklingType() { return blocklingType; }
+    public void setBlocklingType(BlocklingType type) { setBlocklingType(type, true); }
+    public void setBlocklingType(BlocklingType type, boolean sync) { blocklingType = type; stats.updateTypeBonuses(); if (sync) NetworkHandler.sync(world, new BlocklingTypeMessage(blocklingType, getEntityId())); }
 }

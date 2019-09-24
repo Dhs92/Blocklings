@@ -4,14 +4,22 @@ import net.minecraft.client.gui.FontRenderer;
 
 public class AbilityWidget extends BoundWidget
 {
+    public enum ConnectionType
+    {
+        SINGLE_LONGEST_FIRST,
+        SINGLE_SHORTEST_FIRST,
+        DOUBLE_LONGEST_SPLIT,
+        DOUBLE_SHORTEST_SPLIT;
+    }
+
     public AbilityWidget(FontRenderer font, int x, int y, int width, int height, int textureX, int textureY)
     {
         super(font, x, y, width, height, textureX, textureY);
     }
 
-    public void connect(AbilityWidget ability, int width, int colour, int boundLeft, int boundRight, int boundTop, int boundBottom)
+    public void connect(AbilityWidget ability, int width, int colour, int boundLeft, int boundRight, int boundTop, int boundBottom, ConnectionType connectionType)
     {
-        drawPath(findPath(ability), width, colour, boundLeft, boundRight, boundTop, boundBottom);
+        drawPath(findPath(ability, connectionType), width, colour, boundLeft, boundRight, boundTop, boundBottom);
     }
 
     private void drawPath(Vec2i[] path, int width, int colour, int boundLeft, int boundRight, int boundTop, int boundBottom)
@@ -83,7 +91,7 @@ public class AbilityWidget extends BoundWidget
         }
     }
 
-    private Vec2i[] findPath(AbilityWidget ability)
+    private Vec2i[] findPath(AbilityWidget ability, ConnectionType connectionType)
     {
         Vec2i[] path = new Vec2i[3];
 
@@ -91,20 +99,60 @@ public class AbilityWidget extends BoundWidget
         int y1 = y + height / 2;
         int x2 = ability.x + ability.width / 2;
         int y2 = ability.y + ability.height / 2;
+
+        if (connectionType == ConnectionType.SINGLE_LONGEST_FIRST || connectionType == ConnectionType.SINGLE_SHORTEST_FIRST)
+        {
+            int dx = x2 - x1;
+            int dy = y2 - y1;
+
+            int cx = dx;
+            int cy = dy;
+
+            if (connectionType == ConnectionType.SINGLE_LONGEST_FIRST)
+            {
+                cx = dy;
+                cy = dx;
+            }
+
+            if (Math.abs(cx) > Math.abs(cy))
+            {
+                path[1] = new Vec2i(x1 + dx, y1);
+            }
+            else
+            {
+                path[1] = new Vec2i(x1, y1 + dy);
+            }
+        }
+        else if (connectionType == ConnectionType.DOUBLE_SHORTEST_SPLIT || connectionType == ConnectionType.DOUBLE_LONGEST_SPLIT)
+        {
+            path = new Vec2i[4];
+
+            int dx = x2 - x1;
+            int dy = y2 - y1;
+
+            int cx = dx;
+            int cy = dy;
+
+            if (connectionType == ConnectionType.DOUBLE_SHORTEST_SPLIT)
+            {
+                cx = dy;
+                cy = dx;
+            }
+
+            if (Math.abs(cx) > Math.abs(cy))
+            {
+                path[1] = new Vec2i(x1 + dx / 2, y1);
+                path[2] = new Vec2i(x1 + dx / 2, y1 + dy);
+            }
+            else
+            {
+                path[1] = new Vec2i(x1, y1 + dy / 2);
+                path[2] = new Vec2i(x1 + dx, y1 + dy / 2);
+            }
+        }
+
         path[0] = new Vec2i(x1, y1);
-        path[2] = new Vec2i(x2, y2);
-
-        int dx = x2 - x1;
-        int dy = y2 - y1;
-
-        if (Math.abs(dx) > Math.abs(dy))
-        {
-            path[1] = new Vec2i(x1 + dx, y1);
-        }
-        else
-        {
-            path[1] = new Vec2i(x1, y1 + dy);
-        }
+        path[path.length - 1] = new Vec2i(x2, y2);
 
         return path;
     }

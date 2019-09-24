@@ -33,6 +33,6 @@ public class BlocklingRenderer extends MobRenderer<BlocklingEntity, BlocklingMod
     @Override
     protected void renderLivingLabel(BlocklingEntity blockling, String label, double x, double y, double z, int something) // TODO: SOMETHING
     {
-        if (blockling.isCustomNameVisible()) super.renderLivingLabel(blockling, label, x, y, z, something);
+        super.renderLivingLabel(blockling, label, x, y, z, something);
     }
 }

@@ -3,41 +3,160 @@ package willr27.blocklings.entity.blockling;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.IWorld;
+import net.minecraft.world.biome.Biome;
+import net.minecraft.world.biome.Biomes;
+import net.minecraft.world.dimension.DimensionType;
 import willr27.blocklings.util.BlocklingsResourceLocation;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Predicate;
+import java.util.function.BiPredicate;
 
 public class BlocklingType
 {
-    public static final BlocklingType GRASS = new BlocklingType("grass");
-    public static final BlocklingType OAK_LOG = new BlocklingType("oak_log");
+    public static final List<BlocklingType> TYPES = new ArrayList<>();
+
+    public static final BlocklingType GRASS = create("grass", 8).addBonusStats(2.0, 1.0, 1.0, 2.0);
+    public static final BlocklingType OAK_LOG = create("oak_log", 7).addBonusStats(3.0, 1.0, 2.0, 2.0);
+    public static final BlocklingType STONE = create("stone", 2).addBonusStats(5.0, 1.0, 3.0, 1.0);
+    public static final BlocklingType IRON = create("iron", 2).addBonusStats(6.0, 2.0, 4.0, 1.0);
+    public static final BlocklingType QUARTZ = create("quartz", 5).addBonusStats(3.0, 4.0, 1.0, 2.0);
+    public static final BlocklingType LAPIS = create("lapis", 0).addBonusStats(5.0, 3.0, 1.0, 3.0);
+    public static final BlocklingType GOLD = create("gold", 0).addBonusStats(1.0, 4.0, 1.0, 5.0);
+    public static final BlocklingType EMERALD = create("emerald", 0).addBonusStats(5.0, 3.0, 3.0, 1.0);
+    public static final BlocklingType DIAMOND = create("diamond", 0).addBonusStats(8.0, 6.0, 4.0, 1.0);
+    public static final BlocklingType OBSIDIAN = create("obsidian", 0).addBonusStats(25.0, 5.0, 8.0, 0.0);
 
     static
     {
-        GRASS.predicates.add(blockling -> blockBelowIs(blockling, Blocks.GRASS_BLOCK));
+        GRASS.predicates.add((blockling, world) -> isInDimension(blockling, world, DimensionType.OVERWORLD));
+        GRASS.predicates.add((blockling, world) -> blockBelowIs(blockling, world, Blocks.GRASS_BLOCK));
+        GRASS.predicates.add((blockling, world) -> canSeeSky(blockling, world));
 
-        OAK_LOG.predicates.add(blockling -> blockBelowIs(blockling, Blocks.STONE));
+        OAK_LOG.predicates.add((blockling, world) -> isInDimension(blockling, world, DimensionType.OVERWORLD));
+        OAK_LOG.predicates.add((blockling, world) -> blockBelowIs(blockling, world, Blocks.GRASS_BLOCK));
+        OAK_LOG.predicates.add((blockling, world) -> blockNearbyIs(blockling, world, 3, Blocks.OAK_LOG));
+
+        STONE.predicates.add((blockling, world) -> isInDimension(blockling, world, DimensionType.OVERWORLD));
+        STONE.predicates.add((blockling, world) -> blockBelowIs(blockling, world, Blocks.STONE));
+
+        IRON.predicates.add((blockling, world) -> isInDimension(blockling, world, DimensionType.OVERWORLD));
+        IRON.predicates.add((blockling, world) -> blockBelowIs(blockling, world, Blocks.STONE, Blocks.IRON_ORE));
+        IRON.predicates.add((blockling, world) -> blockNearbyIs(blockling, world, 2, Blocks.IRON_ORE));
+
+        QUARTZ.predicates.add((blockling, world) -> isInDimension(blockling, world, DimensionType.THE_NETHER));
+        QUARTZ.predicates.add((blockling, world) -> blockBelowIs(blockling, world, Blocks.NETHERRACK, Blocks.NETHER_QUARTZ_ORE));
+        QUARTZ.predicates.add((blockling, world) -> blockNearbyIs(blockling, world, 1, Blocks.NETHER_QUARTZ_ORE));
+
+        LAPIS.predicates.add((blockling, world) -> isInDimension(blockling, world, DimensionType.OVERWORLD));
+        LAPIS.predicates.add((blockling, world) -> blockBelowIs(blockling, world, Blocks.STONE, Blocks.LAPIS_ORE));
+        LAPIS.predicates.add((blockling, world) -> blockNearbyIs(blockling, world, 3, Blocks.LAPIS_ORE));
+
+        GOLD.predicates.add((blockling, world) -> isInDimension(blockling, world, DimensionType.OVERWORLD));
+        GOLD.predicates.add((blockling, world) -> blockBelowIs(blockling, world, Blocks.STONE, Blocks.GOLD_ORE));
+        GOLD.predicates.add((blockling, world) -> blockNearbyIs(blockling, world, 3, Blocks.GOLD_ORE));
+
+        EMERALD.predicates.add((blockling, world) -> isInDimension(blockling, world, DimensionType.OVERWORLD));
+        EMERALD.predicates.add((blockling, world) -> isInBiome(blockling, world, Biomes.MOUNTAINS, Biomes.MOUNTAIN_EDGE, Biomes.GRAVELLY_MOUNTAINS, Biomes.MODIFIED_GRAVELLY_MOUNTAINS, Biomes.SNOWY_MOUNTAINS, Biomes.SNOWY_TAIGA_MOUNTAINS, Biomes.TAIGA_MOUNTAINS, Biomes.WOODED_MOUNTAINS));
+        EMERALD.predicates.add((blockling, world) -> blockBelowIs(blockling, world, Blocks.STONE, Blocks.EMERALD_ORE));
+        EMERALD.predicates.add((blockling, world) -> blockNearbyIs(blockling, world, 5, Blocks.EMERALD_ORE));
+
+        DIAMOND.predicates.add((blockling, world) -> isInDimension(blockling, world, DimensionType.OVERWORLD));
+        DIAMOND.predicates.add((blockling, world) -> blockBelowIs(blockling, world, Blocks.STONE, Blocks.DIAMOND_ORE));
+        DIAMOND.predicates.add((blockling, world) -> blockNearbyIs(blockling, world, 3, Blocks.DIAMOND_ORE));
+
+        OBSIDIAN.predicates.add((blockling, world) -> isInDimension(blockling, world, DimensionType.OVERWORLD));
+        OBSIDIAN.predicates.add((blockling, world) -> blockBelowIs(blockling, world, Blocks.OBSIDIAN));
     }
+
+
 
     public final ResourceLocation entityTexture;
-    public List<Predicate<BlocklingEntity>> predicates = new ArrayList<>();
+    public final int spawnRateReduction;
+    private double bonusHealth;
+    private double bonusDamage;
+    private double bonusArmour;
+    private double bonusSpeed;
+    public List<BiPredicate<BlocklingEntity, IWorld>> predicates = new ArrayList<>();
 
-    public BlocklingType(String texture)
+    public BlocklingType(String texture, int spawnRateReduction)
     {
         this.entityTexture = new BlocklingsResourceLocation("textures/entities/blockling/blockling_" + texture + ".png");
+        this.spawnRateReduction = spawnRateReduction + 1;
+    }
+
+    private static BlocklingType create(String texture, int spawnRateReduction)
+    {
+        BlocklingType type = new BlocklingType(texture, spawnRateReduction);
+        TYPES.add(type);
+        return type;
+    }
+
+    private BlocklingType addBonusStats(double health, double damage, double armour, double speed)
+    {
+        this.bonusHealth = health;
+        this.bonusDamage = damage;
+        this.bonusArmour = armour;
+        this.bonusSpeed = speed;
+        return this;
+    }
+
+    public double getBonusHealth()
+    {
+        return bonusHealth;
+    }
+
+    public double getBonusDamage()
+    {
+        return bonusDamage;
+    }
+
+    public double getBonusArmour()
+    {
+        return bonusArmour;
+    }
+
+    public double getBonusSpeed()
+    {
+        return bonusSpeed;
     }
 
 
-    private static boolean blockBelowIs(BlocklingEntity blockling, Block block)
+
+    private static boolean isInDimension(BlocklingEntity blockling, IWorld world, DimensionType... dimensionTypes)
     {
-        return blockBelowIs(blockling, new Block[] {block});
+        for (DimensionType dimensionType : dimensionTypes)
+        {
+            if (world.getDimension().getType() == dimensionType)
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
-    private static boolean blockBelowIs(BlocklingEntity blockling, Block[] blocks)
+    private static boolean isInBiome(BlocklingEntity blockling, IWorld world, Biome... biomes)
     {
-        Block testBlock = blockling.world.getBlockState(blockling.getPosition().down()).getBlock();
+        for (Biome biome : biomes)
+        {
+            if (world.getBiome(blockling.getPosition()) == biome)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean canSeeSky(BlocklingEntity blockling, IWorld world)
+    {
+        return world.canBlockSeeSky(blockling.getPosition());
+    }
+
+    private static boolean blockBelowIs(BlocklingEntity blockling, IWorld world, Block... blocks)
+    {
+        Block testBlock = world.getBlockState(blockling.getPosition().down()).getBlock();
         for (Block block : blocks)
         {
             if (testBlock == block)
@@ -48,8 +167,42 @@ public class BlocklingType
         return false;
     }
 
-    private static boolean blockNearbyIs(BlocklingEntity blockling, Block[] blocks, int radius)
+    private static boolean blockNearbyIs(BlocklingEntity blockling, IWorld world, int radius, Block... blocks)
     {
-        return true;
+        int startX = (int) blockling.posX - radius;
+        int startY = (int) blockling.posY - radius;
+        int startZ = (int) blockling.posZ - radius;
+
+        int endX = (int) blockling.posX + radius;
+        int endY = (int) blockling.posY + radius;
+        int endZ = (int) blockling.posZ + radius;
+
+        BlockPos.MutableBlockPos blockPos = new BlockPos.MutableBlockPos();
+        for (int x = startX; x <= endX; x++)
+        {
+            for (int y = startY; y <= endY; y++)
+            {
+                for (int z = startZ; z <= endZ; z++)
+                {
+                    blockPos.setPos(x, y, z);
+                    if (!world.isBlockLoaded(blockPos))
+                    {
+                        continue;
+                    }
+
+                    Block block = world.getBlockState(blockPos).getBlock();
+
+                    for (Block block2 : blocks)
+                    {
+                        if (block == block2)
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 }

@@ -24,6 +24,9 @@ public class NetworkHandler
     {
         int id = 0;
 
+        HANDLER.registerMessage(id++, AbilityBoughtMessage.class, AbilityBoughtMessage::encode, AbilityBoughtMessage::decode, AbilityBoughtMessage::handle);
+        HANDLER.registerMessage(id++, AbilityMessage.class, AbilityMessage::encode, AbilityMessage::decode, AbilityMessage::handle);
+        HANDLER.registerMessage(id++, BlocklingTypeMessage.class, BlocklingTypeMessage::encode, BlocklingTypeMessage::decode, BlocklingTypeMessage::handle);
         HANDLER.registerMessage(id++, CustomNameMessage.class, CustomNameMessage::encode, CustomNameMessage::decode, CustomNameMessage::handle);
         HANDLER.registerMessage(id++, GoalActiveMessage.class, GoalActiveMessage::encode, GoalActiveMessage::decode, GoalActiveMessage::handle);
         HANDLER.registerMessage(id++, GoalPriorityMessage.class, GoalPriorityMessage::encode, GoalPriorityMessage::decode, GoalPriorityMessage::handle);

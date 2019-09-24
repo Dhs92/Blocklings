@@ -206,7 +206,7 @@ public class TasksScreen extends Screen
             if (InputMappings.isKeyDown(Minecraft.getInstance().mainWindow.getHandle(), 340))
             {
                 text.add("");
-                text.addAll(GuiUtil.breakUpTooltipText(font, hoveredGoal.description, 150));
+                text.addAll(GuiUtil.splitText(font, hoveredGoal.description, 150));
                 if (hoveredGoal.hasWhitelist())
                 {
                     text.add("");

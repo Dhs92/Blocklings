@@ -7,20 +7,30 @@ import net.minecraft.util.text.StringTextComponent;
 import willr27.blocklings.ability.AbilityGroup;
 import willr27.blocklings.entity.blockling.BlocklingEntity;
 import willr27.blocklings.gui.util.GuiUtil;
+import willr27.blocklings.gui.util.Widget;
 
 public class AbilitiesScreen extends Screen
 {
     private static final int WINDOW_WIDTH = 158;
     private static final int WINDOW_HEIGHT = 138;
 
+    private static final int MAXIMISE_WIDTH = 300;
+    private static final int MAXIMISE_HEIGHT = 190;
+    private static final int MAXIMISE_X = 180;
+    private static final int MAXIMISE_Y = 142;
+    private static final int MAXIMISE_TEXTURE_Y = 206;
+    private static final int MAXIMISE_SIZE = 11;
+
     private AbilitiesGui abilitiesGui;
     private TabbedScreen tabbedScreen;
+    private Widget maximiseWidget;
 
     private BlocklingEntity blockling;
     private PlayerEntity player;
     private int centerX, centerY;
     private int left, top;
     private int contentLeft, contentTop;
+    private boolean maximised;
 
     private AbilityGroup abilityGroup;
 
@@ -45,8 +55,10 @@ public class AbilitiesScreen extends Screen
         contentLeft = centerX - TabbedScreen.CONTENT_WIDTH / 2;
         contentTop = top;
 
-        abilitiesGui = new AbilitiesGui(blockling, abilityGroup, font, WINDOW_WIDTH, WINDOW_HEIGHT, centerX, centerY + 5);
+        abilitiesGui = new AbilitiesGui(blockling, abilityGroup, font, WINDOW_WIDTH, WINDOW_HEIGHT, centerX, centerY + 5, width, height);
+        if (maximised) abilitiesGui.resize(MAXIMISE_WIDTH, MAXIMISE_HEIGHT);
         tabbedScreen = new TabbedScreen(blockling, player, centerX, centerY);
+        maximiseWidget = new Widget(font, left + MAXIMISE_X, top + MAXIMISE_Y, MAXIMISE_SIZE, MAXIMISE_SIZE, 0, MAXIMISE_TEXTURE_Y);
 
         super.init();
     }
@@ -59,12 +71,31 @@ public class AbilitiesScreen extends Screen
         GlStateManager.enableBlend();
         GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
         GuiUtil.bindTexture(GuiUtil.ABILITIES);
-        blit(contentLeft, contentTop, 0, 0, TabbedScreen.CONTENT_WIDTH, TabbedScreen.CONTENT_HEIGHT);
+        if (!maximised) blit(contentLeft, contentTop, 0, 0, TabbedScreen.CONTENT_WIDTH, TabbedScreen.CONTENT_HEIGHT);
+        else
+        { // TODO: MAKE DYNAMIC
+            int left = centerX - MAXIMISE_WIDTH / 2;
+            int top = centerY - MAXIMISE_HEIGHT / 2;
+            int right = left + MAXIMISE_WIDTH;
+            int bottom = top + MAXIMISE_HEIGHT;
+            blit(left - 9, top - 13, 0, 0, 120, 108);
+            blit(right - 120 + 9, top - 13, 176 - 120, 0, 120, 108);
+            blit(left - 9, bottom - 108 + 13, 0, 166 - 108, 120, 108);
+            blit(right - 120 + 9, bottom - 108 + 13, 176 - 120, 166 - 108, 120, 108);
+            blit(left + 111, top - 13, 30, 0, 78, 30);
+            blit(left + 111, bottom - 30 + 13, 30, 166 - 30, 78, 30);
+        }
 
-        tabbedScreen.drawTabs();
+        GlStateManager.pushMatrix();
+        GlStateManager.translatef(0.0f, 0.0f, 10.0f);
+        maximiseWidget.textureX = maximiseWidget.isMouseOver(mouseX, mouseY) && !abilitiesGui.isDragging() ? 0 : MAXIMISE_SIZE;
+        if (!maximised) maximiseWidget.render(mouseX, mouseY);
+        GlStateManager.popMatrix();
+
+        if (!maximised) tabbedScreen.drawTabs();
 
         super.render(mouseX, mouseY, partialTicks);
-        tabbedScreen.drawTooltip(mouseX, mouseY, this);
+        if (!maximised) tabbedScreen.drawTooltip(mouseX, mouseY, this);
     }
 
     @Override
@@ -77,9 +108,38 @@ public class AbilitiesScreen extends Screen
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int state)
     {
-        abilitiesGui.mouseReleased((int) mouseX, (int) mouseY, state);
-        tabbedScreen.mouseReleased((int) mouseX, (int) mouseY, state);
+        if (abilitiesGui.mouseReleased((int) mouseX, (int) mouseY, state))
+        {
+            return true;
+        }
+
+        if (!maximised && !abilitiesGui.isDragging() && maximiseWidget.isMouseOver((int) mouseX, (int) mouseY))
+        {
+            abilitiesGui.resize(MAXIMISE_WIDTH, MAXIMISE_HEIGHT);
+            maximised = true;
+            return true;
+        }
+
+        if (!maximised) tabbedScreen.mouseReleased((int) mouseX, (int) mouseY, state);
         return super.mouseReleased(mouseX, mouseY, state);
+    }
+
+    @Override
+    public boolean keyPressed(int keyCode, int i, int j)
+    {
+        if (abilitiesGui.keyPressed(keyCode, i, j))
+        {
+            return true;
+        }
+
+        if (keyCode == 256 && maximised)
+        {
+            maximised = false;
+            abilitiesGui.resize(WINDOW_WIDTH, WINDOW_HEIGHT);
+            return true;
+        }
+
+        return super.keyPressed(keyCode, i, j);
     }
 
     @Override

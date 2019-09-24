@@ -2,9 +2,9 @@ package willr27.blocklings.ability;
 
 public enum AbilityState
 {
-    LOCKED(0xffff0000),
-    UNLOCKED(0xff00ff00),
-    BOUGHT(0xff0000ff);
+    LOCKED(0x343434),
+    UNLOCKED(0xf4f4f4),
+    BOUGHT(0xffc409);
 
     public int colour;
 
