@@ -1,7 +1,7 @@
-package willr27.blocklings.ability;
+package willr27.blocklings.abilities;
 
 import javafx.util.Pair;
-import willr27.blocklings.gui.util.AbilityWidget;
+import willr27.blocklings.gui.util.widgets.AbilityWidget;
 
 import java.awt.*;
 import java.util.Arrays;
@@ -18,6 +18,7 @@ public class Ability
     public int textureY;
     public Color colour;
     public AbilityWidget.ConnectionType connectionType;
+    private int skillPointsRequired;
     private Pair<Integer, Integer>[] levelRequirements = new Pair[0];
     private Ability[] parents = new Ability[0];
     private Ability[] conflicts = new Ability[0];
@@ -46,6 +47,15 @@ public class Ability
     public void setConnectionType(AbilityWidget.ConnectionType connectionType)
     {
         this.connectionType = connectionType;
+    }
+
+    public int getSkillPointsRequired()
+    {
+        return skillPointsRequired;
+    }
+    public void setSkillPointsRequired(int value)
+    {
+        skillPointsRequired = value;
     }
 
     public Pair<Integer, Integer>[] getLevelRequirements()

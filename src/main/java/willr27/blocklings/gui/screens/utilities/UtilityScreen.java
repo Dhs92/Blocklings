@@ -1,23 +1,25 @@
-package willr27.blocklings.gui.screens;
+package willr27.blocklings.gui.screens.utilities;
 
 import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.inventory.container.Container;
 import net.minecraft.util.text.StringTextComponent;
 import willr27.blocklings.entity.blockling.BlocklingEntity;
-import willr27.blocklings.gui.container.containers.InventoryContainer;
-import willr27.blocklings.gui.util.GuiUtil;
+import willr27.blocklings.gui.screens.TabbedScreen;
 
-public class InventoryScreen extends ContainerScreen<InventoryContainer>
+public class UtilityScreen extends ContainerScreen<Container>
 {
     private TabbedScreen tabbedScreen;
 
-    private BlocklingEntity blockling;
-    private PlayerEntity player;
+    private final BlocklingEntity blockling;
+    private final PlayerEntity player;
     private int centerX, centerY;
     private int left, top;
     private int contentLeft, contentTop;
 
-    public InventoryScreen(InventoryContainer screenContainer, BlocklingEntity blockling, PlayerEntity player)
+    private UtilityGui utilityGui;
+
+    public UtilityScreen(Container screenContainer, BlocklingEntity blockling, PlayerEntity player)
     {
         super(screenContainer, null, new StringTextComponent("Inventory"));
         this.blockling = blockling;
@@ -27,8 +29,8 @@ public class InventoryScreen extends ContainerScreen<InventoryContainer>
     @Override
     protected void init()
     {
-        xSize = TabbedScreen.UI_WIDTH;
-        ySize = TabbedScreen.UI_HEIGHT;
+        xSize = TabbedScreen.CONTENT_WIDTH;
+        ySize = TabbedScreen.CONTENT_HEIGHT;
 
         centerX = width / 2;
         centerY = height / 2 + TabbedScreen.OFFSET_Y;
@@ -40,6 +42,15 @@ public class InventoryScreen extends ContainerScreen<InventoryContainer>
         contentTop = top;
 
         tabbedScreen = new TabbedScreen(blockling, player, centerX, centerY);
+
+        switch (blockling.getUtilityManager().getUtility(blockling.getGuiInfo().utility))
+        {
+            case CHEST: utilityGui = new ChestGui(blockling, player); break;
+            case CRAFTING_TABLE: utilityGui = new CraftingTableGui(blockling, player); break;
+            case FURNACE: utilityGui = new FurnaceGui(blockling, player); break;
+        }
+
+        utilityGui.init(font, width, height);
 
         super.init();
     }
@@ -53,8 +64,7 @@ public class InventoryScreen extends ContainerScreen<InventoryContainer>
     @Override
     public void render(int mouseX, int mouseY, float partialTicks)
     {
-        GuiUtil.bindTexture(GuiUtil.INVENTORY);
-        blit(contentLeft, contentTop, 0, 0, TabbedScreen.CONTENT_WIDTH, TabbedScreen.CONTENT_HEIGHT);
+        utilityGui.render(mouseX, mouseY, partialTicks);
 
         tabbedScreen.drawTabs();
 
@@ -72,13 +82,14 @@ public class InventoryScreen extends ContainerScreen<InventoryContainer>
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int state)
     {
-        return super.mouseClicked(mouseX, mouseY, state);
+        super.mouseClicked(mouseX, mouseY, state);
+        return utilityGui.mouseClicked(mouseX, mouseY, state);
     }
 
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int state)
     {
-        tabbedScreen.mouseReleased((int)mouseX, (int)mouseY, state);
-        return super.mouseReleased(mouseX, mouseY, state);
+        super.mouseReleased(mouseX, mouseY, state);
+        return tabbedScreen.mouseReleased((int)mouseX, (int)mouseY, state) || utilityGui.mouseReleased(mouseX, mouseY, state);
     }
 }

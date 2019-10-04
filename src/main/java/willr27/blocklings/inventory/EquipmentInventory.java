@@ -8,25 +8,26 @@ import willr27.blocklings.entity.blockling.BlocklingEntity;
 import willr27.blocklings.item.ToolType;
 import willr27.blocklings.network.NetworkHandler;
 import willr27.blocklings.network.messages.InventoryMessage;
+import willr27.blocklings.utilities.Utility;
 
-public class BlocklingInventory implements IInventory
+public class EquipmentInventory implements IInventory
 {
     public static final int MAIN_SLOT = 0;
     public static final int OFF_SLOT = 1;
-    public static final int MATERIAL_SLOT = 2;
-    public static final int INVENTORY_START_SLOT = 3;
-    public static final int INVENTORY_END_SLOT = 38;
+    public static final int UTILITY_SLOT_1 = 2;
+    public static final int UTILITY_SLOT_2 = 3;
+    public static final int INVENTORY_START_SLOT = 4;
 
-    private static final int INV_SIZE = 39;
+    public static final int invSize = 22;
 
     private BlocklingEntity blockling;
 
-    private ItemStack[] stacks = new ItemStack[INV_SIZE];
-    private ItemStack[] stacksCopy = new ItemStack[INV_SIZE];
+    private ItemStack[] stacks = new ItemStack[invSize];
+    private ItemStack[] stacksCopy = new ItemStack[invSize];
 
     private boolean dirty = false;
 
-    public BlocklingInventory(BlocklingEntity blockling)
+    public EquipmentInventory(BlocklingEntity blockling)
     {
         this.blockling = blockling;
         clear();
@@ -36,10 +37,15 @@ public class BlocklingInventory implements IInventory
         }
     }
 
+    public int getSize()
+    {
+        return invSize;
+    }
+
     @Override
     public int getSizeInventory()
     {
-        return INV_SIZE;
+        return invSize;
     }
 
     @Override
@@ -80,7 +86,26 @@ public class BlocklingInventory implements IInventory
     public void setInventorySlotContents(int index, ItemStack stack)
     {
         stacks[index] = stack;
-        if (!blockling.world.isRemote && (index == MAIN_SLOT || index == OFF_SLOT)) blockling.getStats().updateIntervalBonuses();
+
+        if (!blockling.world.isRemote && (index == MAIN_SLOT || index == OFF_SLOT))
+        {
+            blockling.getStats().updateIntervalBonuses();
+        }
+
+        if (!blockling.world.isRemote)
+        {
+            if (index == UTILITY_SLOT_1)
+            {
+                Utility utility = Utility.getUtility(stack);
+                blockling.getUtilityManager().setUtility1(utility);
+
+            }
+            else if (index == UTILITY_SLOT_2)
+            {
+                Utility utility = Utility.getUtility(stack);
+                blockling.getUtilityManager().setUtility2(utility);
+            }
+        }
     }
 
     @Override
@@ -140,7 +165,7 @@ public class BlocklingInventory implements IInventory
     {
         int maxStackSize = stack.getMaxStackSize();
 
-        for (int i = INVENTORY_START_SLOT; i < INVENTORY_END_SLOT + 1 && !stack.isEmpty(); i++)
+        for (int i = INVENTORY_START_SLOT; i < invSize && !stack.isEmpty(); i++)
         {
             ItemStack slotStack = getStackInSlot(i);
             if (ItemStack.areItemsEqual(stack, slotStack))
@@ -153,7 +178,7 @@ public class BlocklingInventory implements IInventory
                 markDirty();
             }
         }
-        for (int i = INVENTORY_START_SLOT; i < INVENTORY_END_SLOT + 1 && !stack.isEmpty(); i++)
+        for (int i = INVENTORY_START_SLOT; i < invSize && !stack.isEmpty(); i++)
         {
             ItemStack slotStack = getStackInSlot(i);
             if (slotStack.isEmpty())
@@ -168,13 +193,13 @@ public class BlocklingInventory implements IInventory
 
     public void detectAndSendChanges()
     {
-        for (int i = 0; i < INV_SIZE; i++)
+        for (int i = 0; i < invSize; i++)
         {
             ItemStack oldStack = stacksCopy[i];
             ItemStack newStack = stacks[i];
             if (!ItemStack.areItemStacksEqual(oldStack, newStack))
             {
-                NetworkHandler.sync(blockling.world, new InventoryMessage(newStack, i, blockling.getEntityId()));
+                NetworkHandler.sync(blockling.world, new InventoryMessage(null, -1, newStack, i, blockling.getEntityId()));
                 stacksCopy[i] = newStack.copy();
             }
         }

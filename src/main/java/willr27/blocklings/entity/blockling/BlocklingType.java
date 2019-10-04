@@ -61,7 +61,7 @@ public class BlocklingType
         EMERALD.predicates.add((blockling, world) -> isInDimension(blockling, world, DimensionType.OVERWORLD));
         EMERALD.predicates.add((blockling, world) -> isInBiome(blockling, world, Biomes.MOUNTAINS, Biomes.MOUNTAIN_EDGE, Biomes.GRAVELLY_MOUNTAINS, Biomes.MODIFIED_GRAVELLY_MOUNTAINS, Biomes.SNOWY_MOUNTAINS, Biomes.SNOWY_TAIGA_MOUNTAINS, Biomes.TAIGA_MOUNTAINS, Biomes.WOODED_MOUNTAINS));
         EMERALD.predicates.add((blockling, world) -> blockBelowIs(blockling, world, Blocks.STONE, Blocks.EMERALD_ORE));
-        EMERALD.predicates.add((blockling, world) -> blockNearbyIs(blockling, world, 5, Blocks.EMERALD_ORE));
+        EMERALD.predicates.add((blockling, world) -> blockNearbyIs(blockling, world, 3, Blocks.EMERALD_ORE));
 
         DIAMOND.predicates.add((blockling, world) -> isInDimension(blockling, world, DimensionType.OVERWORLD));
         DIAMOND.predicates.add((blockling, world) -> blockBelowIs(blockling, world, Blocks.STONE, Blocks.DIAMOND_ORE));

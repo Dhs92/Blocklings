@@ -1,8 +1,8 @@
-package willr27.blocklings.ability;
+package willr27.blocklings.abilities;
 
 import javafx.util.Pair;
 import willr27.blocklings.entity.blockling.BlocklingStats;
-import willr27.blocklings.gui.util.AbilityWidget;
+import willr27.blocklings.gui.util.widgets.AbilityWidget;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -68,6 +68,19 @@ public class Abilities
             AUTOSMELT_XP.setConnectionType(AbilityWidget.ConnectionType.DOUBLE_LONGEST_SPLIT);
             TORCH_PLACER.setConnectionType(AbilityWidget.ConnectionType.SINGLE_LONGEST_FIRST);
             TORCH_CRAFTER.setConnectionType(AbilityWidget.ConnectionType.DOUBLE_SHORTEST_SPLIT);
+
+            NOVICE_MINER.setSkillPointsRequired(1);
+            FASTER_MINING.setSkillPointsRequired(1);
+            FASTER_MINING_FOR_HEALTH.setSkillPointsRequired(3);
+            FASTER_MINING_FOR_ORES.setSkillPointsRequired(3);
+            FASTER_MINING_FOR_DURABILITY.setSkillPointsRequired(3);
+            FASTER_MINING_IN_DARK.setSkillPointsRequired(3);
+            AUTOSMELT_1.setSkillPointsRequired(2);
+            AUTOSMELT_2.setSkillPointsRequired(2);
+            LAVA_SOURCE.setSkillPointsRequired(1);
+            AUTOSMELT_XP.setSkillPointsRequired(1);
+            TORCH_PLACER.setSkillPointsRequired(2);
+            TORCH_CRAFTER.setSkillPointsRequired(3);
 
             FASTER_MINING.setLevelRequirements(new Pair<>(BlocklingStats.MINING_LEVEL_ID, 5));
             FASTER_MINING_FOR_HEALTH.setLevelRequirements(new Pair<>(BlocklingStats.MINING_LEVEL_ID, 25));

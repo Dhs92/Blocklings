@@ -1,4 +1,4 @@
-package willr27.blocklings.gui.util;
+package willr27.blocklings.gui.util.widgets;
 
 import net.minecraft.client.gui.FontRenderer;
 

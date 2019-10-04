@@ -1,11 +1,16 @@
 package willr27.blocklings.gui.screens;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.AbstractGui;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.entity.player.PlayerEntity;
 import willr27.blocklings.entity.blockling.BlocklingEntity;
+import willr27.blocklings.entity.blockling.BlocklingGuiInfo;
 import willr27.blocklings.gui.util.GuiUtil;
 import willr27.blocklings.gui.util.Tab;
+import willr27.blocklings.inventory.EquipmentInventory;
+import willr27.blocklings.utilities.Utility;
 
 public class TabbedScreen extends AbstractGui
 {
@@ -17,22 +22,22 @@ public class TabbedScreen extends AbstractGui
     public static final int CONTENT_WIDTH = 176;
     public static final int CONTENT_HEIGHT = 166;
 
-    public static final int TAB_GAP = 6;
+    public static final int TAB_GAP = 4;
     public static final int TAB_HEIGHT = 28;
 
-    public static final int LEFT_TAB_OFF_WIDTH = 26;
-    public static final int RIGHT_TAB_OFF_WIDTH = 28;
-    public static final int LEFT_TAB_ON_WIDTH = 33;
-    public static final int RIGHT_TAB_ON_WIDTH = 34;
+    public static final int LEFT_TAB_OFF_WIDTH = 25;
+    public static final int RIGHT_TAB_OFF_WIDTH = 25;
+    public static final int LEFT_TAB_ON_WIDTH = 32;
+    public static final int RIGHT_TAB_ON_WIDTH = 32;
 
     public static final int TAB_OFF_OFFSET_X = 3;
 
     public static final int LEFT_TAB_OFF_TEXTURE_X = 0;
     public static final int RIGHT_TAB_OFF_TEXTURE_X = 26;
-    public static final int LEFT_TAB_ON_TEXTURE_X = 54;
-    public static final int RIGHT_TAB_ON_TEXTURE_X = 87;
+    public static final int LEFT_TAB_ON_TEXTURE_X = 52;
+    public static final int RIGHT_TAB_ON_TEXTURE_X = 85;
 
-    public static final int ICON_TEXTURE_Y = 140;
+    public static final int ICON_TEXTURE_Y = 28;
     public static final int ICON_SIZE = 22;
     public static final int ICON_OFFSET_X = 3;
     public static final int ICON_OFFSET_Y = 3;
@@ -54,25 +59,68 @@ public class TabbedScreen extends AbstractGui
         this.bottom = top + UI_HEIGHT;
     }
 
-    void drawTabs()
+    public void drawTabs()
     {
         GuiUtil.bindTexture(GuiUtil.TABS);
 
         int i = 0;
         for (Tab tab : Tab.leftTabs)
         {
-            int tabTexLocationY = TAB_HEIGHT * i;
+            if (tab == Tab.UTILITY_1 && blockling.getUtilityManager().getUtility1() == null)
+            {
+                i++;
+                continue;
+            }
+            else if (tab == Tab.UTILITY_2 && blockling.getUtilityManager().getUtility2() == null)
+            {
+                i++;
+                continue;
+            }
+
+            int tabTexLocationY = 0;
             int iconTexLocationX = ICON_SIZE * tab.textureX;
             int iconTexLocationY = ICON_SIZE * tab.textureY + ICON_TEXTURE_Y;
             if (isActiveTab(tab))
             {
                 blit(getLeftTabOnX(i), getLeftTabOnY(i), LEFT_TAB_ON_TEXTURE_X, tabTexLocationY, LEFT_TAB_ON_WIDTH, TAB_HEIGHT);
-                blit(getLeftIconOnX(i), getLeftIconOnY(i), iconTexLocationX, iconTexLocationY, ICON_SIZE, ICON_SIZE);
+
+                if (tab == Tab.UTILITY_1)
+                {
+                    RenderHelper.enableGUIStandardItemLighting();
+                    Minecraft.getInstance().getItemRenderer().renderItemIntoGUI(blockling.inventory.getStackInSlot(EquipmentInventory.UTILITY_SLOT_1), getLeftIconOnX(i) + 3, getLeftIconOnY(i) + 3);
+                    GuiUtil.bindTexture(GuiUtil.TABS);
+                }
+                else if (tab == Tab.UTILITY_2)
+                {
+                    RenderHelper.enableGUIStandardItemLighting();
+                    Minecraft.getInstance().getItemRenderer().renderItemIntoGUI(blockling.inventory.getStackInSlot(EquipmentInventory.UTILITY_SLOT_2), getLeftIconOnX(i) + 3, getLeftIconOnY(i) + 3);
+                    GuiUtil.bindTexture(GuiUtil.TABS);
+                }
+                else
+                {
+                    blit(getLeftIconOnX(i), getLeftIconOnY(i), iconTexLocationX, iconTexLocationY, ICON_SIZE, ICON_SIZE);
+                }
             }
             else
             {
                 blit(getLeftTabOffX(i), getLeftTabOffY(i), LEFT_TAB_OFF_TEXTURE_X, tabTexLocationY, LEFT_TAB_OFF_WIDTH, TAB_HEIGHT);
-                blit(getLeftIconOffX(i), getLeftIconOffY(i), iconTexLocationX, iconTexLocationY, ICON_SIZE, ICON_SIZE);
+
+                if (tab == Tab.UTILITY_1)
+                {
+                    RenderHelper.enableGUIStandardItemLighting();
+                    Minecraft.getInstance().getItemRenderer().renderItemIntoGUI(blockling.inventory.getStackInSlot(EquipmentInventory.UTILITY_SLOT_1), getLeftIconOffX(i) + 3, getLeftIconOffY(i) + 3);
+                    GuiUtil.bindTexture(GuiUtil.TABS);
+                }
+                else if (tab == Tab.UTILITY_2)
+                {
+                    RenderHelper.enableGUIStandardItemLighting();
+                    Minecraft.getInstance().getItemRenderer().renderItemIntoGUI(blockling.inventory.getStackInSlot(EquipmentInventory.UTILITY_SLOT_2), getLeftIconOffX(i) + 3, getLeftIconOffY(i) + 3);
+                    GuiUtil.bindTexture(GuiUtil.TABS);
+                }
+                else
+                {
+                    blit(getLeftIconOffX(i), getLeftIconOffY(i), iconTexLocationX, iconTexLocationY, ICON_SIZE, ICON_SIZE);
+                }
             }
             i++;
         }
@@ -80,7 +128,7 @@ public class TabbedScreen extends AbstractGui
         i = 0;
         for (Tab tab : Tab.rightTabs)
         {
-            int tabTexLocationY = TAB_HEIGHT * i;
+            int tabTexLocationY = 0;
             int iconTexLocationX = ICON_SIZE * tab.textureX;
             int iconTexLocationY = ICON_SIZE * tab.textureY + ICON_TEXTURE_Y;
             if (isActiveTab(tab))
@@ -102,6 +150,15 @@ public class TabbedScreen extends AbstractGui
         Tab hoveredTab = getHoveredTab(mouseX, mouseY);
         if (hoveredTab != null)
         {
+            if (hoveredTab == Tab.UTILITY_1 && blockling.getUtilityManager().getUtility1() == null)
+            {
+                return;
+            }
+            else if (hoveredTab == Tab.UTILITY_2 && blockling.getUtilityManager().getUtility2() == null)
+            {
+                return;
+            }
+
             screen.renderTooltip(hoveredTab.name, mouseX, mouseY);
         }
     }
@@ -111,7 +168,29 @@ public class TabbedScreen extends AbstractGui
         Tab hoveredTab = getHoveredTab(mouseX, mouseY);
         if (hoveredTab != null)
         {
-            blockling.openGui(player, hoveredTab.guiId, -1, hoveredTab.textureX); // TODO: REPLACE TEXTUREX
+            int guiId = hoveredTab.guiId;
+            int utility = -1;
+
+            if (hoveredTab == Tab.UTILITY_1)
+            {
+                Utility util = blockling.getUtilityManager().getUtility1();
+                if (util == null)
+                {
+                    return false;
+                }
+                utility = 1;
+            }
+            else if (hoveredTab == Tab.UTILITY_2)
+            {
+                Utility util = blockling.getUtilityManager().getUtility2();
+                if (util == null)
+                {
+                    return false;
+                }
+                utility = 2;
+            }
+
+            blockling.openGui(player, guiId, -1, hoveredTab.textureX, utility); // TODO: REPLACE TEXTUREX
             return true;
         }
 
@@ -146,13 +225,23 @@ public class TabbedScreen extends AbstractGui
 
     private Tab getActiveTab()
     {
-        for (Tab tab : Tab.values())
+        BlocklingGuiInfo guiInfo = blockling.getGuiInfo();
+
+        if (guiInfo.utility == -1)
         {
-            if (tab.guiId == blockling.getGuiInfo().mostRecentTabbedGuiId)
+            for (Tab tab : Tab.values())
             {
-                return tab;
+                if (tab.guiId == guiInfo.mostRecentTabbedGuiId)
+                {
+                    return tab;
+                }
             }
         }
+        else
+        {
+            return guiInfo.utility == 1 ? Tab.UTILITY_1 : Tab.UTILITY_2;
+        }
+
         return null;
     }
 
@@ -185,7 +274,7 @@ public class TabbedScreen extends AbstractGui
     }
     private int getLeftTabOffY(int i)
     {
-        return top + 1 + ((TAB_HEIGHT + TAB_GAP) * i);
+        return top + 5 + ((TAB_HEIGHT + TAB_GAP) * i);
     }
 
     private int getRightTabOffX(int i)
@@ -194,7 +283,7 @@ public class TabbedScreen extends AbstractGui
     }
     private int getRightTabOffY(int i)
     {
-        return top + 1 + ((TAB_HEIGHT + TAB_GAP) * i);
+        return top + 5 + ((TAB_HEIGHT + TAB_GAP) * i);
     }
 
 
@@ -210,7 +299,7 @@ public class TabbedScreen extends AbstractGui
 
     private int getRightIconOnX(int i)
     {
-        return getRightTabOnX(i) + RIGHT_TAB_ON_WIDTH - ICON_SIZE - ICON_OFFSET_X - TAB_OFF_OFFSET_X - 1;
+        return getRightTabOnX(i) + RIGHT_TAB_ON_WIDTH - ICON_SIZE - ICON_OFFSET_X - TAB_OFF_OFFSET_X;
     }
     private int getRightIconOnY(int i)
     {
@@ -223,15 +312,15 @@ public class TabbedScreen extends AbstractGui
     }
     private int getLeftTabOnY(int i)
     {
-        return top + 1 + ((TAB_HEIGHT + TAB_GAP) * i);
+        return top + 5 + ((TAB_HEIGHT + TAB_GAP) * i);
     }
 
     private int getRightTabOnX(int i)
     {
-        return right + 2 - RIGHT_TAB_ON_WIDTH;
+        return right + 1 - RIGHT_TAB_ON_WIDTH;
     }
     private int getRightTabOnY(int i)
     {
-        return top + 1 + ((TAB_HEIGHT + TAB_GAP) * i);
+        return top + 5 + ((TAB_HEIGHT + TAB_GAP) * i);
     }
 }

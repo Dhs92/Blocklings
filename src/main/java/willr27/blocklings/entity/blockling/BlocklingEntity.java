@@ -1,6 +1,5 @@
 package willr27.blocklings.entity.blockling;
 
-import jdk.nashorn.internal.ir.Block;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.*;
@@ -29,13 +28,14 @@ import net.minecraftforge.fml.common.registry.IEntityAdditionalSpawnData;
 import net.minecraftforge.fml.network.FMLPlayMessages;
 import net.minecraftforge.fml.network.NetworkHooks;
 import org.jline.utils.Log;
-import willr27.blocklings.ability.AbilityManager;
+import willr27.blocklings.abilities.AbilityManager;
 import willr27.blocklings.entity.EntityTypes;
 import willr27.blocklings.entity.ai.AIManager;
 import willr27.blocklings.gui.container.containers.EquipmentContainer;
 import willr27.blocklings.gui.util.GuiHandler;
 import willr27.blocklings.gui.util.Tab;
-import willr27.blocklings.inventory.BlocklingInventory;
+import willr27.blocklings.inventory.AbstractInventory;
+import willr27.blocklings.inventory.EquipmentInventory;
 import willr27.blocklings.item.ItemUtil;
 import willr27.blocklings.item.ToolType;
 import willr27.blocklings.item.ToolUtil;
@@ -43,6 +43,8 @@ import willr27.blocklings.network.NetworkHandler;
 import willr27.blocklings.network.messages.BlocklingTypeMessage;
 import willr27.blocklings.network.messages.CustomNameMessage;
 import willr27.blocklings.network.messages.GuiInfoMessage;
+import willr27.blocklings.utilities.Utility;
+import willr27.blocklings.utilities.UtilityManager;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -55,10 +57,11 @@ public class BlocklingEntity extends TameableEntity implements INamedContainerPr
 {
     public final Random random = new Random();
 
-    public final BlocklingInventory inventory;
+    public final EquipmentInventory inventory;
     public final AIManager aiManager;
     public final AbilityManager abilityManager;
 
+    private UtilityManager utilityManager;
     private BlocklingStats stats;
     private BlocklingGuiInfo guiInfo;
     private BlocklingType blocklingType;
@@ -80,10 +83,10 @@ public class BlocklingEntity extends TameableEntity implements INamedContainerPr
     public BlocklingEntity(EntityType<? extends TameableEntity> type, World world)
     {
         super(type, world);
-        inventory = new BlocklingInventory(this);
+        inventory = new EquipmentInventory(this);
         aiManager = new AIManager(this);
         abilityManager = new AbilityManager(this);
-        guiInfo = new BlocklingGuiInfo(-1, GuiHandler.STATS_ID, -1, -1);
+        guiInfo = new BlocklingGuiInfo(-1, GuiHandler.STATS_ID, -1, -1, -1);
     }
 
     public static <T extends Entity> T create(FMLPlayMessages.SpawnEntity packet, World world)
@@ -137,6 +140,8 @@ public class BlocklingEntity extends TameableEntity implements INamedContainerPr
         super.registerAttributes();
         stats = new BlocklingStats(this);
         stats.registerData();
+        utilityManager = new UtilityManager(this);
+        utilityManager.registerUtilities();
     }
 
     @Override
@@ -150,11 +155,18 @@ public class BlocklingEntity extends TameableEntity implements INamedContainerPr
             firstTick = false;
         }
 
-        if (getAttackTarget() != null && !getAttackTarget().isAlive()) setAttackTarget(null);
-
-        if (!world.isRemote)
+        if (getAttackTarget() != null && !getAttackTarget().isAlive())
         {
-            inventory.detectAndSendChanges();
+            setAttackTarget(null);
+        }
+
+        utilityManager.update();
+
+        inventory.detectAndSendChanges();
+        for (Utility utility : Utility.values()) // TODO:: CHANGE
+        {
+            utilityManager.getInventory1(utility).detectAndSendChanges();
+            utilityManager.getInventory2(utility).detectAndSendChanges();
         }
 
         updateHasWorked();
@@ -312,13 +324,13 @@ public class BlocklingEntity extends TameableEntity implements INamedContainerPr
     @Override
     public ItemStack getHeldItemMainhand()
     {
-        return inventory.getStackInSlot(BlocklingInventory.MAIN_SLOT);
+        return inventory.getStackInSlot(EquipmentInventory.MAIN_SLOT);
     }
 
     @Override
     public ItemStack getHeldItemOffhand()
     {
-        return inventory.getStackInSlot(BlocklingInventory.OFF_SLOT);
+        return inventory.getStackInSlot(EquipmentInventory.OFF_SLOT);
     }
 
     @Override
@@ -330,7 +342,7 @@ public class BlocklingEntity extends TameableEntity implements INamedContainerPr
     @Override
     public void setHeldItem(Hand hand, ItemStack stack)
     {
-        int slot = hand == Hand.MAIN_HAND ? BlocklingInventory.MAIN_SLOT : BlocklingInventory.OFF_SLOT;
+        int slot = hand == Hand.MAIN_HAND ? EquipmentInventory.MAIN_SLOT : EquipmentInventory.OFF_SLOT;
         inventory.setInventorySlotContents(slot, stack);
     }
 
@@ -359,7 +371,7 @@ public class BlocklingEntity extends TameableEntity implements INamedContainerPr
 
         if (mainType != type)
         {
-            int slot = inventory.findToolType(type, BlocklingInventory.INVENTORY_START_SLOT, BlocklingInventory.INVENTORY_END_SLOT);
+            int slot = inventory.findToolType(type, EquipmentInventory.INVENTORY_START_SLOT, EquipmentInventory.invSize - 1);
             if (slot != -1)
             {
                 ItemStack newTool = inventory.getStackInSlot(slot);
@@ -369,7 +381,7 @@ public class BlocklingEntity extends TameableEntity implements INamedContainerPr
         }
         if (offType != type)
         {
-            int slot = inventory.findToolType(type, BlocklingInventory.INVENTORY_START_SLOT, BlocklingInventory.INVENTORY_END_SLOT);
+            int slot = inventory.findToolType(type, EquipmentInventory.INVENTORY_START_SLOT, EquipmentInventory.invSize - 1);
             if (slot != -1)
             {
                 ItemStack newTool = inventory.getStackInSlot(slot);
@@ -477,13 +489,13 @@ public class BlocklingEntity extends TameableEntity implements INamedContainerPr
     public void openGui(PlayerEntity player, int guiId)
     {
         // TODO: CLEAN UP EXTRA PACKETS
-        openGui(player, guiId, -1, -1);
+        openGui(player, guiId, -1, -1, guiInfo.utility);
     }
-    public void openGui(PlayerEntity player, int guiId, int selectedGoalId, int abilityGroupId)
+    public void openGui(PlayerEntity player, int guiId, int selectedGoalId, int abilityGroupId, int utility)
     {
         // TODO: CLEAN UP EXTRA PACKETS
         int recentTab = Tab.hasTab(guiId) ? guiId : guiInfo.mostRecentTabbedGuiId;
-        setGuiInfo(new BlocklingGuiInfo(guiId, recentTab, selectedGoalId, abilityGroupId));
+        setGuiInfo(new BlocklingGuiInfo(guiId, recentTab, selectedGoalId, abilityGroupId, utility));
         GuiHandler.openGui(guiId, this, player);
     }
     public void openCurrentGui(PlayerEntity player)
@@ -498,6 +510,7 @@ public class BlocklingEntity extends TameableEntity implements INamedContainerPr
     public void setName(String name) { setName(name, true); }
     public void setName(String name, boolean sync) { setCustomName(new StringTextComponent(name)); if (sync) NetworkHandler.sync(world, new CustomNameMessage(name, getEntityId())); }
 
+    public UtilityManager getUtilityManager() { return utilityManager; }
     public BlocklingStats getStats() { return stats; }
 
     public int getActionInvterval() { return actionInterval; }

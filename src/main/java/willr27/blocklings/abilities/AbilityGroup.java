@@ -1,4 +1,4 @@
-package willr27.blocklings.ability;
+package willr27.blocklings.abilities;
 
 import willr27.blocklings.entity.blockling.BlocklingEntity;
 import willr27.blocklings.network.NetworkHandler;

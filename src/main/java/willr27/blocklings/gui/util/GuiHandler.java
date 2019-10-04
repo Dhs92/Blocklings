@@ -8,8 +8,9 @@ import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.inventory.container.Container;
 import willr27.blocklings.entity.blockling.BlocklingEntity;
 import willr27.blocklings.gui.container.containers.EquipmentContainer;
-import willr27.blocklings.gui.container.containers.InventoryContainer;
+import willr27.blocklings.gui.container.containers.utilities.UtilityContainer;
 import willr27.blocklings.gui.screens.*;
+import willr27.blocklings.gui.screens.utilities.UtilityScreen;
 import willr27.blocklings.network.NetworkHandler;
 import willr27.blocklings.network.messages.OpenGuiMessage;
 
@@ -18,13 +19,15 @@ public class GuiHandler
     public static final int STATS_ID = 0;
     public static final int TASKS_ID = 1;
     public static final int EQUIPMENT_ID = 2;
-    public static final int INVENTORY_ID = 3;
+    public static final int UTILITY_ID = 3;
     public static final int GENERAL_ID = 4;
     public static final int COMBAT_ID = 5;
     public static final int MINING_ID = 6;
     public static final int WOODCUTTING_ID = 7;
     public static final int FARMING_ID = 8;
-    public static final int WHITELIST_ID = 32;
+
+    public static final int WHITELIST_ID = 9;
+
 
     public static void openGui(int guiId, BlocklingEntity blockling, PlayerEntity player)
     {
@@ -74,7 +77,7 @@ public class GuiHandler
         switch (guiId)
         {
             case EQUIPMENT_ID:
-            case INVENTORY_ID:
+            case UTILITY_ID:
                 return false;
 
             case STATS_ID:
@@ -96,7 +99,7 @@ public class GuiHandler
         switch (guiId)
         {
             case EQUIPMENT_ID: return new EquipmentContainer(windowId, player.inventory, blockling.inventory);
-            case INVENTORY_ID: return new InventoryContainer(windowId, player.inventory, blockling.inventory);
+            case UTILITY_ID: return new UtilityContainer(windowId, player.inventory, blockling);
         }
 
         return null;
@@ -109,7 +112,7 @@ public class GuiHandler
             case STATS_ID: return new StatsScreen(blockling, player);
             case TASKS_ID: return new TasksScreen(blockling, player);
             case EQUIPMENT_ID: return new EquipmentScreen((EquipmentContainer) container, blockling, player);
-            case INVENTORY_ID: return new InventoryScreen((InventoryContainer) container, blockling, player);
+            case UTILITY_ID: return new UtilityScreen(container, blockling, player);
             case GENERAL_ID: return new AbilitiesScreen(blockling, player);
             case COMBAT_ID: return new AbilitiesScreen(blockling, player);
             case MINING_ID: return new AbilitiesScreen(blockling, player);

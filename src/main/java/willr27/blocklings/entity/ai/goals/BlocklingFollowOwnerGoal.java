@@ -1,10 +1,8 @@
 package willr27.blocklings.entity.ai.goals;
 
 import net.minecraft.entity.ai.goal.FollowOwnerGoal;
-import willr27.blocklings.entity.blockling.BlocklingEntity;
 import willr27.blocklings.entity.ai.AIManager;
-
-import java.util.EnumSet;
+import willr27.blocklings.entity.blockling.BlocklingEntity;
 
 public class BlocklingFollowOwnerGoal extends FollowOwnerGoal
 {
@@ -12,9 +10,13 @@ public class BlocklingFollowOwnerGoal extends FollowOwnerGoal
 
     public BlocklingFollowOwnerGoal(BlocklingEntity blockling)
     {
-        super(blockling, 1.0, 2, 5);
-        setMutexFlags(EnumSet.of(Flag.MOVE));
+        super(blockling, 1.0, 2.5f, 6.0f);
         this.blockling = blockling;
+    }
+
+    @Override
+    public void resetTask()
+    {
     }
 
     @Override

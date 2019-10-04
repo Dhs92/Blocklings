@@ -21,7 +21,9 @@ public class GuiUtil
     public static final ResourceLocation STATS = new BlocklingsResourceLocation("textures/gui/stats.png");
     public static final ResourceLocation TASKS = new BlocklingsResourceLocation("textures/gui/tasks.png");
     public static final ResourceLocation EQUIPMENT = new BlocklingsResourceLocation("textures/gui/equipment.png");
-    public static final ResourceLocation INVENTORY = new BlocklingsResourceLocation("textures/gui/inventory.png");
+    public static final ResourceLocation CHEST = new BlocklingsResourceLocation("textures/gui/utilities/chest.png");
+    public static final ResourceLocation CRAFTING_TABLE = new BlocklingsResourceLocation("textures/gui/utilities/crafting_table.png");
+    public static final ResourceLocation FURNACE = new BlocklingsResourceLocation("textures/gui/utilities/furnace.png");
     public static final ResourceLocation ABILITIES = new BlocklingsResourceLocation("textures/gui/abilities.png");
     public static final ResourceLocation ABILITIES_WIDGETS = new BlocklingsResourceLocation("textures/gui/abilities_widgets.png");
     public static final ResourceLocation MINING_BACKGROUND = new BlocklingsResourceLocation("textures/gui/abilities_backgrounds/mining.png");
@@ -65,7 +67,7 @@ public class GuiUtil
 
     public static void drawEntityOnScreen(int posX, int posY, int scale, float mouseX, float mouseY, LivingEntity ent)
     {
-        String name = ent.getCustomName().getString();
+        String name = ent.getCustomName() != null ?ent.getCustomName().getString() : null;
         ent.setCustomName(null);
         GlStateManager.enableColorMaterial();
         GlStateManager.pushMatrix();
@@ -90,6 +92,7 @@ public class GuiUtil
         EntityRendererManager entityrenderermanager = Minecraft.getInstance().getRenderManager();
         entityrenderermanager.setPlayerViewY(180.0F);
         entityrenderermanager.setRenderShadow(false);
+        RenderHelper.enableStandardItemLighting();
         entityrenderermanager.renderEntity(ent, 0.0D, 0.0D, 0.0D, 0.0F, 1.0F, false);
         entityrenderermanager.setRenderShadow(true);
         ent.renderYawOffset = f;

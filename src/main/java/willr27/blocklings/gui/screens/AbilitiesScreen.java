@@ -4,10 +4,10 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.text.StringTextComponent;
-import willr27.blocklings.ability.AbilityGroup;
+import willr27.blocklings.abilities.AbilityGroup;
 import willr27.blocklings.entity.blockling.BlocklingEntity;
 import willr27.blocklings.gui.util.GuiUtil;
-import willr27.blocklings.gui.util.Widget;
+import willr27.blocklings.gui.util.widgets.Widget;
 
 public class AbilitiesScreen extends Screen
 {
@@ -71,7 +71,13 @@ public class AbilitiesScreen extends Screen
         GlStateManager.enableBlend();
         GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
         GuiUtil.bindTexture(GuiUtil.ABILITIES);
-        if (!maximised) blit(contentLeft, contentTop, 0, 0, TabbedScreen.CONTENT_WIDTH, TabbedScreen.CONTENT_HEIGHT);
+        String points = "" + blockling.getStats().getSkillPoints();
+        if (!maximised)
+        {
+            blit(contentLeft, contentTop, 0, 0, TabbedScreen.CONTENT_WIDTH, TabbedScreen.CONTENT_HEIGHT);
+            font.drawStringWithShadow(points, left + 184 - font.getStringWidth(points), top + 7, 0xffffff);
+            font.drawStringWithShadow("Abilities", left + 36, top + 7, 0xffffff);
+        }
         else
         { // TODO: MAKE DYNAMIC
             int left = centerX - MAXIMISE_WIDTH / 2;
@@ -84,7 +90,11 @@ public class AbilitiesScreen extends Screen
             blit(right - 120 + 9, bottom - 108 + 13, 176 - 120, 166 - 108, 120, 108);
             blit(left + 111, top - 13, 30, 0, 78, 30);
             blit(left + 111, bottom - 30 + 13, 30, 166 - 30, 78, 30);
+            font.drawStringWithShadow(points, right - 11 - font.getStringWidth(points), top - 6, 0xffffff);
+            font.drawStringWithShadow("Abilities", left, top - 6, 0xffffff);
         }
+
+        GuiUtil.bindTexture(GuiUtil.ABILITIES);
 
         GlStateManager.pushMatrix();
         GlStateManager.translatef(0.0f, 0.0f, 10.0f);

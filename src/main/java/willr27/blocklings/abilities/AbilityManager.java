@@ -1,4 +1,4 @@
-package willr27.blocklings.ability;
+package willr27.blocklings.abilities;
 
 import javafx.util.Pair;
 import willr27.blocklings.entity.blockling.BlocklingEntity;
@@ -41,7 +41,7 @@ public class AbilityManager
 
     public boolean canBuyAbility(AbilityGroup group, Ability ability)
     {
-        int pointsNeeded = 1;
+        int pointsNeeded = ability.getSkillPointsRequired();
         if (blockling.getStats().getSkillPoints() < pointsNeeded && group.allParentsBought(ability) && !group.hasConflict(ability))
         {
             return false;
@@ -76,7 +76,7 @@ public class AbilityManager
             return;
         }
 
-        blockling.getStats().incSkillPoints(-0);
+        blockling.getStats().incSkillPoints(-ability.getSkillPointsRequired());
         group.setState(ability, AbilityState.BOUGHT);
     }
 

@@ -1,7 +1,8 @@
-package willr27.blocklings.gui.util;
+package willr27.blocklings.gui.util.widgets;
 
 import net.minecraft.client.gui.AbstractGui;
 import net.minecraft.client.gui.FontRenderer;
+import willr27.blocklings.gui.util.GuiUtil;
 
 public class Widget extends AbstractGui
 {

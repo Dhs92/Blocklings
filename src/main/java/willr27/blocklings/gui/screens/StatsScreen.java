@@ -8,7 +8,7 @@ import willr27.blocklings.entity.blockling.BlocklingEntity;
 import willr27.blocklings.entity.blockling.BlocklingStats;
 import willr27.blocklings.gui.CenteredTextFieldWidget;
 import willr27.blocklings.gui.util.GuiUtil;
-import willr27.blocklings.gui.util.Widget;
+import willr27.blocklings.gui.util.widgets.Widget;
 
 public class StatsScreen extends Screen
 {

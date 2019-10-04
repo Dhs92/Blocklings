@@ -3,8 +3,8 @@ package willr27.blocklings.gui.screens;
 import net.minecraft.client.gui.AbstractGui;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.widget.button.Button;
-import willr27.blocklings.ability.Ability;
-import willr27.blocklings.ability.AbilityGroup;
+import willr27.blocklings.abilities.Ability;
+import willr27.blocklings.abilities.AbilityGroup;
 import willr27.blocklings.entity.blockling.BlocklingEntity;
 
 import java.util.List;
@@ -80,14 +80,14 @@ public class AbilitiesConfirmationGui extends AbstractGui
 
     public boolean mouseClicked(double mouseX, double mouseY, int state)
     {
-        if (yesButton.isMouseOver(mouseX, mouseY))
-        {
-            yesButton.mouseClicked(mouseX, mouseY, state);
-        }
-        else if (noButton.isMouseOver(mouseX, mouseY))
-        {
-            noButton.mouseClicked(mouseX, mouseY, state);
-        }
+//        if (yesButton.isMouseOver(mouseX, mouseY))
+//        {
+//            yesButton.mouseClicked(mouseX, mouseY, state);
+//        }
+//        else if (noButton.isMouseOver(mouseX, mouseY))
+//        {
+//            noButton.mouseClicked(mouseX, mouseY, state);
+//        }
 
         return false;
     }
@@ -98,11 +98,13 @@ public class AbilitiesConfirmationGui extends AbstractGui
         {
             yesButton.mouseReleased(mouseX, mouseY, state);
             yesButton.onPress();
+            return true;
         }
         else if (noButton.isMouseOver(mouseX, mouseY))
         {
             noButton.mouseReleased(mouseX, mouseY, state);
             noButton.onPress();
+            return true;
         }
 
         return false;

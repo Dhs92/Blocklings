@@ -27,8 +27,8 @@ public class EquipmentScreen extends ContainerScreen<EquipmentContainer>
     @Override
     protected void init()
     {
-        xSize = TabbedScreen.UI_WIDTH;
-        ySize = TabbedScreen.UI_HEIGHT;
+        xSize = TabbedScreen.CONTENT_WIDTH;
+        ySize = TabbedScreen.CONTENT_HEIGHT;
 
         centerX = width / 2;
         centerY = height / 2 + TabbedScreen.OFFSET_Y;
@@ -55,6 +55,8 @@ public class EquipmentScreen extends ContainerScreen<EquipmentContainer>
     {
         GuiUtil.bindTexture(GuiUtil.EQUIPMENT);
         blit(contentLeft, contentTop, 0, 0, TabbedScreen.CONTENT_WIDTH, TabbedScreen.CONTENT_HEIGHT);
+
+        GuiUtil.drawEntityOnScreen(centerX - 58, centerY - 30, 20, centerX - 58 - mouseX, centerY - 30 - mouseY, blockling);
 
         tabbedScreen.drawTabs();
 

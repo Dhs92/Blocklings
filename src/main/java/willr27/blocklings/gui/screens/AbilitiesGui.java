@@ -5,13 +5,13 @@ import javafx.util.Pair;
 import net.minecraft.client.gui.AbstractGui;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.util.text.TextFormatting;
-import willr27.blocklings.ability.Ability;
-import willr27.blocklings.ability.AbilityGroup;
-import willr27.blocklings.ability.AbilityState;
+import willr27.blocklings.abilities.Ability;
+import willr27.blocklings.abilities.AbilityGroup;
+import willr27.blocklings.abilities.AbilityState;
 import willr27.blocklings.entity.blockling.BlocklingEntity;
-import willr27.blocklings.gui.util.AbilityWidget;
+import willr27.blocklings.gui.util.widgets.AbilityWidget;
 import willr27.blocklings.gui.util.GuiUtil;
-import willr27.blocklings.gui.util.Widget;
+import willr27.blocklings.gui.util.widgets.Widget;
 
 import java.awt.*;
 import java.util.List;
@@ -57,7 +57,7 @@ public class AbilitiesGui extends AbstractGui
         this.windowWidth = windowWidth;
         this.windowHeight = windowHeight;
 
-        moveX = width / 2 - width / 2 + 10;
+        moveX = width / 2 - 12;
         moveY = height / 2 - 12;
         confirmGui = new AbilitiesConfirmationGui();
     }
@@ -135,7 +135,7 @@ public class AbilitiesGui extends AbstractGui
 //                GlStateManager.pushMatrix();
 //                GlStateManager.translatef(0.0f, 0.0f, 100.0f);
 //                GlStateManager.scalef(0.25f, 0.25f, 0.25f);
-//                fill((ability.x + x) * 4, (ability.y + y + 8 + 3) * 4, (ability.x + x) * 4 + 8, (ability.y + y + 8 + 3) * 4 + 8, 0xffff0000);
+//                fill((abilities.x + x) * 4, (abilities.y + y + 8 + 3) * 4, (abilities.x + x) * 4 + 8, (abilities.y + y + 8 + 3) * 4 + 8, 0xffff0000);
 //                GlStateManager.popMatrix();
             }
         }
@@ -162,7 +162,7 @@ public class AbilitiesGui extends AbstractGui
             AbilityState state = abilityGroup.getState(ability);
             Color colour = new Color(state.colour);
             if (ability == selectedAbility) GlStateManager.color3f(0.7f, 1.0f, 0.7f);
-            else if (abilityGroup.hasConflict(ability) && state != AbilityState.LOCKED) GlStateManager.color3f(0.8f, 0.2f, 0.2f);
+            else if (abilityGroup.hasConflict(ability) && state != AbilityState.LOCKED) GlStateManager.color3f(0.9f, 0.6f, 0.6f);
             else if (state == AbilityState.UNLOCKED && !blockling.abilityManager.canBuyAbility(abilityGroup, ability)) GlStateManager.color3f(0.9f, 0.6f, 0.6f);
             else
             {
@@ -173,7 +173,7 @@ public class AbilitiesGui extends AbstractGui
             else abilityWidget.render(mouseX, mouseY, left, right, top, bottom);
 
             if (state == AbilityState.LOCKED) GlStateManager.color3f(0.0f, 0.0f, 0.0f);
-            else if (abilityGroup.hasConflict(ability)) GlStateManager.color3f(0.8f, 0.2f, 0.2f);
+            else if (abilityGroup.hasConflict(ability)) GlStateManager.color3f(0.9f, 0.6f, 0.6f);
             else if (state == AbilityState.UNLOCKED && !blockling.abilityManager.canBuyAbility(abilityGroup, ability)) GlStateManager.color3f(0.9f, 0.6f, 0.6f);
             else  GlStateManager.color3f(1.0f, 1.0f, 1.0f);
             abilityWidget = new AbilityWidget(font, ability.x + x, ability.y + y, ABILITY_SIZE, ABILITY_SIZE, ability.textureX * ABILITY_SIZE, (ability.textureY + 1) * ABILITY_SIZE);
@@ -203,7 +203,7 @@ public class AbilitiesGui extends AbstractGui
         AbilityState state = abilityGroup.getState(ability);
         String name = ability.name;
         int maxWidth = font.getStringWidth(name) + ABILITY_SIZE + HOVER_PADDING - 1;
-        List<String> description = GuiUtil.splitText(font, ability.description, Math.max(maxWidth, 100));
+        List<String> description = GuiUtil.splitText(font, ability.description, Math.max(maxWidth, 130));
 
         if (state == AbilityState.LOCKED)
         {
@@ -214,14 +214,24 @@ public class AbilitiesGui extends AbstractGui
         else
         {
             Pair<Integer, Integer>[] levelRequirements = ability.getLevelRequirements();
-            if (levelRequirements.length > 0)
+            if (ability.getSkillPointsRequired() > 0 || levelRequirements.length > 0)
             {
                 description.add("");
                 description.add("Requirements:");
-                for (Pair<Integer, Integer> levelRequirement : levelRequirements)
+
+                if (ability.getSkillPointsRequired() > 0)
                 {
-                    String colour = blockling.getStats().getLevel(levelRequirement.getKey()) >= levelRequirement.getValue() ? ""+TextFormatting.GREEN : ""+TextFormatting.RED;
-                    description.add(colour + blockling.getStats().getLevelName(levelRequirement.getKey()) + ": " + levelRequirement.getValue());
+                    String colour = blockling.getStats().getSkillPoints() >= ability.getSkillPointsRequired() ? "" + TextFormatting.GREEN : "" + TextFormatting.RED;
+                    description.add(colour + "Skill Points: " + ability.getSkillPointsRequired());
+                }
+
+                if (levelRequirements.length > 0)
+                {
+                    for (Pair<Integer, Integer> levelRequirement : levelRequirements)
+                    {
+                        String colour = blockling.getStats().getLevel(levelRequirement.getKey()) >= levelRequirement.getValue() ? "" + TextFormatting.GREEN : "" + TextFormatting.RED;
+                        description.add(colour + blockling.getStats().getLevelName(levelRequirement.getKey()) + ": " + levelRequirement.getValue());
+                    }
                 }
             }
 
@@ -374,7 +384,10 @@ public class AbilitiesGui extends AbstractGui
 
         if (!confirmGui.closed)
         {
-            confirmGui.mouseReleased(mouseX, mouseY, state);
+            if (confirmGui.mouseReleased(mouseX, mouseY, state))
+            {
+                selectedAbility = null;
+            }
             return true;
         }
 
@@ -418,7 +431,7 @@ public class AbilitiesGui extends AbstractGui
 
                             if (abilityWidget.isMouseOver((int) mouseX, (int) mouseY))
                             {
-//                                blockling.abilityManager.tryBuyAbility(abilityGroup, ability);
+//                                blockling.abilityManager.tryBuyAbility(abilityGroup, abilities);
 //                                resetSelectedAbility = true;
                                 String name2 = TextFormatting.LIGHT_PURPLE + ability.name + TextFormatting.WHITE;
                                 String name = "";
@@ -427,7 +440,7 @@ public class AbilitiesGui extends AbstractGui
                                     name += TextFormatting.LIGHT_PURPLE + str + " ";
                                 }
                                 name += TextFormatting.WHITE;
-                                confirmGui = new AbilitiesConfirmationGui(font, blockling, ability, abilityGroup, GuiUtil.splitText(font, "Are you sure you want to buy " + name + "for " + TextFormatting.AQUA + "100" + TextFormatting.WHITE + " skill point(s)?", width < 200 ? width - 10 : width - 50), windowWidth, windowHeight, width, height);
+                                confirmGui = new AbilitiesConfirmationGui(font, blockling, ability, abilityGroup, GuiUtil.splitText(font, "Are you sure you want to buy " + name + "for " + TextFormatting.AQUA + ability.getSkillPointsRequired() + TextFormatting.WHITE + " skill point(s)?", width < 200 ? width - 10 : width - 50), windowWidth, windowHeight, width, height);
                                 resetSelectedAbility = false;
                                 doneSomething = true;
                             }

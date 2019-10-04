@@ -1,4 +1,4 @@
-package willr27.blocklings.ability;
+package willr27.blocklings.abilities;
 
 public enum AbilityType
 {
