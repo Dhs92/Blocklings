@@ -32,6 +32,8 @@ public class AbilitiesScreen extends Screen
     private int contentLeft, contentTop;
     private boolean maximised;
 
+    private int firstOpenDelay = 20;
+
     private AbilityGroup abilityGroup;
 
     public AbilitiesScreen(BlocklingEntity blockling, PlayerEntity player)
@@ -66,12 +68,14 @@ public class AbilitiesScreen extends Screen
     @Override
     public void render(int mouseX, int mouseY, float partialTicks)
     {
+        if (firstOpenDelay > 0) firstOpenDelay--;
+
         abilitiesGui.draw(mouseX, mouseY);
 
         GlStateManager.enableBlend();
         GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
         GuiUtil.bindTexture(GuiUtil.ABILITIES);
-        String points = "" + blockling.getStats().getSkillPoints();
+        String points = blockling.getStats().skillPoints.getDisplayString();
         if (!maximised)
         {
             blit(contentLeft, contentTop, 0, 0, TabbedScreen.CONTENT_WIDTH, TabbedScreen.CONTENT_HEIGHT);
@@ -111,6 +115,11 @@ public class AbilitiesScreen extends Screen
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int state)
     {
+        if (firstOpenDelay > 0)
+        {
+            return true;
+        }
+
         abilitiesGui.mouseClicked((int) mouseX, (int) mouseY, state);
         return super.mouseClicked(mouseX, mouseY, state);
     }
@@ -118,6 +127,11 @@ public class AbilitiesScreen extends Screen
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int state)
     {
+        if (firstOpenDelay > 0)
+        {
+            return true;
+        }
+
         if (abilitiesGui.mouseReleased((int) mouseX, (int) mouseY, state))
         {
             return true;

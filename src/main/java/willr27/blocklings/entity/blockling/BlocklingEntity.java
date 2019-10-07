@@ -28,13 +28,12 @@ import net.minecraftforge.fml.common.registry.IEntityAdditionalSpawnData;
 import net.minecraftforge.fml.network.FMLPlayMessages;
 import net.minecraftforge.fml.network.NetworkHooks;
 import org.jline.utils.Log;
-import willr27.blocklings.abilities.AbilityManager;
+import willr27.blocklings.abilities.*;
 import willr27.blocklings.entity.EntityTypes;
 import willr27.blocklings.entity.ai.AIManager;
 import willr27.blocklings.gui.container.containers.EquipmentContainer;
 import willr27.blocklings.gui.util.GuiHandler;
 import willr27.blocklings.gui.util.Tab;
-import willr27.blocklings.inventory.AbstractInventory;
 import willr27.blocklings.inventory.EquipmentInventory;
 import willr27.blocklings.item.ItemUtil;
 import willr27.blocklings.item.ToolType;
@@ -129,6 +128,7 @@ public class BlocklingEntity extends TameableEntity implements INamedContainerPr
         blocklingType = BlocklingType.TYPES.get(buf.readInt());
     }
 
+    @Override
     protected void registerAttributes()
     {
     }
@@ -139,7 +139,7 @@ public class BlocklingEntity extends TameableEntity implements INamedContainerPr
         super.registerData();
         super.registerAttributes();
         stats = new BlocklingStats(this);
-        stats.registerData();
+        stats.initAttributes();
         utilityManager = new UtilityManager(this);
         utilityManager.registerUtilities();
     }
@@ -307,7 +307,7 @@ public class BlocklingEntity extends TameableEntity implements INamedContainerPr
             }
 
             weaponStack.attemptDamageItem(1, random, null);
-            stats.incCombatXp((int) attackDamage);
+            stats.combatXp.incBaseValue(attackDamage);
         }
 
         previousAttackingHand = attackingHand;
@@ -319,6 +319,25 @@ public class BlocklingEntity extends TameableEntity implements INamedContainerPr
     public boolean attackEntityFrom(DamageSource source, float amount)
     {
         return super.attackEntityFrom(source, amount);
+    }
+
+    @Override
+    public void setHealth(float health)
+    {
+        super.setHealth(health);
+
+        if (abilityManager == null)
+        {
+            return;
+        }
+
+        if (!world.isRemote)
+        {
+            if (abilityManager.getGroup(AbilityGroup.MINING).getState(Abilities.Mining.FASTER_MINING_FOR_HEALTH) == AbilityState.BOUGHT)
+            {
+                stats.miningIntervalFasterMiningEnhancedAbilityModifier.setValue(((health / getMaxHealth()) / 2.0f) + 0.5f);
+            }
+        }
     }
 
     @Override

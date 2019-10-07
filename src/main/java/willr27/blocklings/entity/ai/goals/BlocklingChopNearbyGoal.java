@@ -98,7 +98,7 @@ public class BlocklingChopNearbyGoal extends Goal
         {
             double distanceSq = blockling.getPosition().distanceSq(movePos);
 
-            if (distanceSq < blockling.getStats().getMiningRangeSq())
+            if (distanceSq < blockling.getStats().woodcuttingRangeSq.getFloat())
             {
                 if (blockling.hasFinishedAction())
                 {
@@ -115,13 +115,13 @@ public class BlocklingChopNearbyGoal extends Goal
                     world.destroyBlock(logPos, false);
                     tree.remove(logPos);
 
-                    blockling.getStats().incWoodcuttingXp(blockling.random.nextInt(4) + 3);
+                    blockling.getStats().woodcuttingXp.incBaseValue(blockling.random.nextInt(4) + 3);
                     blockling.setFinishedAction(false);
                 }
                 else if (!blockling.isPerformingAction() && !tree.isEmpty())
                 {
                     BlockPos logPos = (BlockPos) tree.toArray()[tree.size() - 1];
-                    blockling.startAction(blockling.getStats().getWoodcuttingInterval());
+                    blockling.startAction((int) blockling.getStats().woodcuttingInterval.getFloat());
                     blockling.setBlockBreaking(logPos);
                 }
                 else if (blockling.getBlockBreaking() != null)
@@ -175,20 +175,20 @@ public class BlocklingChopNearbyGoal extends Goal
                 {
                     double distanceSq = blockling.getPosition().distanceSq(blockPos);
 
-                    if (distanceSq < blockling.getStats().getWoodcuttingRangeSq())
+                    if (distanceSq < blockling.getStats().woodcuttingRangeSq.getFloat())
                     {
                         movePos = blockPos;
                         foundTarget = true;
                         break;
                     }
 
-                    Path path = AiUtil.getPathTo(blockling, blockPos, blockling.getStats().getWoodcuttingRangeSq());
+                    Path path = AiUtil.getPathTo(blockling, blockPos, blockling.getStats().woodcuttingRangeSq.getFloat());
 
                     if (path != null)
                     {
                         distanceSq = AiUtil.distanceSqFromTarget(path, blockPos);
 
-                        if (distanceSq < blockling.getStats().getWoodcuttingRangeSq())
+                        if (distanceSq < blockling.getStats().woodcuttingRangeSq.getFloat())
                         {
                             movePos = blockPos;
                             blockling.getNavigator().setPath(path, 1.0);
@@ -242,19 +242,19 @@ public class BlocklingChopNearbyGoal extends Goal
                         {
                             double distanceSq = blockling.getPosition().distanceSq(testPos);
 
-                            if (distanceSq < blockling.getStats().getWoodcuttingRangeSq())
+                            if (distanceSq < blockling.getStats().woodcuttingRangeSq.getFloat())
                             {
                                 treeStartPos = testPos;
                                 return true;
                             }
 
-                            Path testPath = AiUtil.getPathTo(blockling, testPos, blockling.getStats().getWoodcuttingRangeSq());
+                            Path testPath = AiUtil.getPathTo(blockling, testPos, blockling.getStats().woodcuttingRangeSq.getFloat());
 
                             if (testPath != null)
                             {
                                 distanceSq = AiUtil.distanceSqFromTarget(testPath, testPos);
 
-                                if (distanceSq < blockling.getStats().getWoodcuttingRangeSq())
+                                if (distanceSq < blockling.getStats().woodcuttingRangeSq.getFloat())
                                 {
                                     treeStartPos = testPos;
                                     return true;

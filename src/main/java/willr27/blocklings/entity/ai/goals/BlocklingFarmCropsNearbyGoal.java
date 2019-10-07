@@ -92,7 +92,7 @@ public class BlocklingFarmCropsNearbyGoal extends Goal
         {
             double distanceSq = blockling.getPosition().distanceSq(targetPos);
 
-            if (distanceSq < blockling.getStats().getFarmingRangeSq())
+            if (distanceSq < blockling.getStats().farmingRangeSq.getFloat())
             {
                 if (blockling.hasFinishedAction())
                 {
@@ -126,12 +126,12 @@ public class BlocklingFarmCropsNearbyGoal extends Goal
                     }
                     resetTarget();
 
-                    blockling.getStats().incFarmingXp(blockling.random.nextInt(4) + 3);
+                    blockling.getStats().farmingXp.incBaseValue(blockling.random.nextInt(4) + 3);
                     blockling.setFinishedAction(false);
                 }
                 else if (!blockling.isPerformingAction())
                 {
-                    blockling.startAction(blockling.getStats().getFarmingInterval());
+                    blockling.startAction((int) blockling.getStats().farmingInterval.getFloat());
                     blockling.setBlockBreaking(targetPos);
                 }
             }
@@ -160,19 +160,19 @@ public class BlocklingFarmCropsNearbyGoal extends Goal
 
             double distanceSq = blockling.getPosition().distanceSq(targetPos);
 
-            if (distanceSq < blockling.getStats().getFarmingRangeSq())
+            if (distanceSq < blockling.getStats().farmingRangeSq.getFloat())
             {
                 hasPath = true;
             }
             else
             {
-                Path path = AiUtil.getPathTo(blockling, targetPos, blockling.getStats().getFarmingRangeSq());
+                Path path = AiUtil.getPathTo(blockling, targetPos, blockling.getStats().farmingRangeSq.getFloat());
 
                 if (path != null)
                 {
                     distanceSq = AiUtil.distanceSqFromTarget(path, targetPos);
 
-                    if (distanceSq < blockling.getStats().getFarmingRangeSq())
+                    if (distanceSq < blockling.getStats().farmingRangeSq.getFloat())
                     {
                         blockling.getNavigator().setPath(path, 1.0);
                         hasPath = true;
@@ -226,19 +226,19 @@ public class BlocklingFarmCropsNearbyGoal extends Goal
 
                         double distanceSq = blockling.getPosition().distanceSq(testPos);
 
-                        if (distanceSq < blockling.getStats().getFarmingRangeSq())
+                        if (distanceSq < blockling.getStats().farmingRangeSq.getFloat())
                         {
                             targetPos = testPos;
                             return true;
                         }
 
-                        Path testPath = AiUtil.getPathTo(blockling, testPos, blockling.getStats().getFarmingRangeSq());
+                        Path testPath = AiUtil.getPathTo(blockling, testPos, blockling.getStats().farmingRangeSq.getFloat());
 
                         if (testPath != null)
                         {
                             distanceSq = AiUtil.distanceSqFromTarget(testPath, testPos);
 
-                            if (distanceSq < blockling.getStats().getFarmingRangeSq())
+                            if (distanceSq < blockling.getStats().farmingRangeSq.getFloat())
                             {
                                 targetPos = testPos;
                                 return true;

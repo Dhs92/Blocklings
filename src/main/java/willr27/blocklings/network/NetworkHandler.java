@@ -8,6 +8,7 @@ import net.minecraftforge.fml.network.NetworkDirection;
 import net.minecraftforge.fml.network.NetworkRegistry;
 import net.minecraftforge.fml.network.simple.SimpleChannel;
 import willr27.blocklings.Blocklings;
+import willr27.blocklings.entity.blockling.BlocklingAttribute;
 import willr27.blocklings.network.messages.*;
 
 public class NetworkHandler
@@ -26,6 +27,7 @@ public class NetworkHandler
 
         HANDLER.registerMessage(id++, AbilityBoughtMessage.class, AbilityBoughtMessage::encode, AbilityBoughtMessage::decode, AbilityBoughtMessage::handle);
         HANDLER.registerMessage(id++, AbilityMessage.class, AbilityMessage::encode, AbilityMessage::decode, AbilityMessage::handle);
+        HANDLER.registerMessage(id++, BlocklingAttribute.BlocklingAttributeMessage.class, BlocklingAttribute.BlocklingAttributeMessage::encode, BlocklingAttribute.BlocklingAttributeMessage::decode, BlocklingAttribute.BlocklingAttributeMessage::handle);
         HANDLER.registerMessage(id++, BlocklingTypeMessage.class, BlocklingTypeMessage::encode, BlocklingTypeMessage::decode, BlocklingTypeMessage::handle);
         HANDLER.registerMessage(id++, CustomNameMessage.class, CustomNameMessage::encode, CustomNameMessage::decode, CustomNameMessage::handle);
         HANDLER.registerMessage(id++, GoalActiveMessage.class, GoalActiveMessage::encode, GoalActiveMessage::decode, GoalActiveMessage::handle);

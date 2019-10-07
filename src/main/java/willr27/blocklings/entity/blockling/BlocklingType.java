@@ -18,16 +18,16 @@ public class BlocklingType
 {
     public static final List<BlocklingType> TYPES = new ArrayList<>();
 
-    public static final BlocklingType GRASS = create("grass", 8).addBonusStats(2.0, 1.0, 1.0, 2.0);
-    public static final BlocklingType OAK_LOG = create("oak_log", 7).addBonusStats(3.0, 1.0, 2.0, 2.0);
-    public static final BlocklingType STONE = create("stone", 2).addBonusStats(5.0, 1.0, 3.0, 1.0);
-    public static final BlocklingType IRON = create("iron", 2).addBonusStats(6.0, 2.0, 4.0, 1.0);
-    public static final BlocklingType QUARTZ = create("quartz", 5).addBonusStats(3.0, 4.0, 1.0, 2.0);
-    public static final BlocklingType LAPIS = create("lapis", 0).addBonusStats(5.0, 3.0, 1.0, 3.0);
-    public static final BlocklingType GOLD = create("gold", 0).addBonusStats(1.0, 4.0, 1.0, 5.0);
-    public static final BlocklingType EMERALD = create("emerald", 0).addBonusStats(5.0, 3.0, 3.0, 1.0);
-    public static final BlocklingType DIAMOND = create("diamond", 0).addBonusStats(8.0, 6.0, 4.0, 1.0);
-    public static final BlocklingType OBSIDIAN = create("obsidian", 0).addBonusStats(25.0, 5.0, 8.0, 0.0);
+    public static final BlocklingType GRASS = create("grass", 8).addBonusStats(2.0f, 1.0f, 1.0f, 2.0f);
+    public static final BlocklingType OAK_LOG = create("oak_log", 7).addBonusStats(3.0f, 1.0f, 2.0f, 2.0f);
+    public static final BlocklingType STONE = create("stone", 2).addBonusStats(5.0f, 1.0f, 3.0f, 1.0f);
+    public static final BlocklingType IRON = create("iron", 2).addBonusStats(6.0f, 2.0f, 4.0f, 1.0f);
+    public static final BlocklingType QUARTZ = create("quartz", 5).addBonusStats(3.0f, 4.0f, 1.0f, 2.0f);
+    public static final BlocklingType LAPIS = create("lapis", 0).addBonusStats(5.0f, 3.0f, 1.0f, 3.0f);
+    public static final BlocklingType GOLD = create("gold", 0).addBonusStats(1.0f, 4.0f, 1.0f, 5.0f);
+    public static final BlocklingType EMERALD = create("emerald", 0).addBonusStats(5.0f, 3.0f, 3.0f, 1.0f);
+    public static final BlocklingType DIAMOND = create("diamond", 0).addBonusStats(8.0f, 6.0f, 4.0f, 1.0f);
+    public static final BlocklingType OBSIDIAN = create("obsidian", 0).addBonusStats(25.0f, 5.0f, 8.0f, 0.0f);
 
     static
     {
@@ -75,10 +75,10 @@ public class BlocklingType
 
     public final ResourceLocation entityTexture;
     public final int spawnRateReduction;
-    private double bonusHealth;
-    private double bonusDamage;
-    private double bonusArmour;
-    private double bonusSpeed;
+    private float bonusHealth;
+    private float bonusDamage;
+    private float bonusArmour;
+    private float bonusSpeed;
     public List<BiPredicate<BlocklingEntity, IWorld>> predicates = new ArrayList<>();
 
     public BlocklingType(String texture, int spawnRateReduction)
@@ -94,7 +94,7 @@ public class BlocklingType
         return type;
     }
 
-    private BlocklingType addBonusStats(double health, double damage, double armour, double speed)
+    private BlocklingType addBonusStats(float health, float damage, float armour, float speed)
     {
         this.bonusHealth = health;
         this.bonusDamage = damage;
@@ -103,22 +103,22 @@ public class BlocklingType
         return this;
     }
 
-    public double getBonusHealth()
+    public float getBonusHealth()
     {
         return bonusHealth;
     }
 
-    public double getBonusDamage()
+    public float getBonusDamage()
     {
         return bonusDamage;
     }
 
-    public double getBonusArmour()
+    public float getBonusArmour()
     {
         return bonusArmour;
     }
 
-    public double getBonusSpeed()
+    public float getBonusSpeed()
     {
         return bonusSpeed;
     }

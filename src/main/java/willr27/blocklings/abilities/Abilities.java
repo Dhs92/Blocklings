@@ -1,7 +1,6 @@
 package willr27.blocklings.abilities;
 
 import javafx.util.Pair;
-import willr27.blocklings.entity.blockling.BlocklingStats;
 import willr27.blocklings.gui.util.widgets.AbilityWidget;
 
 import java.util.ArrayList;
@@ -32,9 +31,9 @@ public class Abilities
         static
         {
             NOVICE_MINER.setGeneralInfo(id++, AbilityType.AI, "Novice Miner", "Unlocks the \"Mine Nearby Ores\" task.");
-            FASTER_MINING.setGeneralInfo(id++, AbilityType.STAT, "FASTER MINING TODO", "FASTER MINING TODO");
-            FASTER_MINING_FOR_HEALTH.setGeneralInfo(id++, AbilityType.STAT, "FASTER MINING TODO", "Your blockling uses its health for bonus mining speed - won't damage below 1 health.");
-            FASTER_MINING_FOR_ORES.setGeneralInfo(id++, AbilityType.STAT, "FASTER MINING TODO", "Your blockling mines faster for each consecutive ore mined.");
+            FASTER_MINING.setGeneralInfo(id++, AbilityType.STAT, "Efficiency", "Bonus 10% mining speed.");
+            FASTER_MINING_FOR_HEALTH.setGeneralInfo(id++, AbilityType.STAT, "Adrenaline", "The lower your blockling's health, the faster they will mine.");
+            FASTER_MINING_FOR_ORES.setGeneralInfo(id++, AbilityType.STAT, "Momentum", "Your blockling mines faster for each consecutive ore mined.");
             FASTER_MINING_FOR_DURABILITY.setGeneralInfo(id++, AbilityType.STAT, "FASTER MINING TODO", "Your blockling mines 25% faster but their pickaxes use 2x the durability.");
             FASTER_MINING_IN_DARK.setGeneralInfo(id++, AbilityType.STAT, "FASTER MINING TODO", "Your blockling mines faster the lower the light level.");
             AUTOSMELT_1.setGeneralInfo(id++, AbilityType.UTILITY, "Autosmelt 1", "Your blockling can attempt to smelt ores they mine with a 50% chance of success. Requires furnace utility.");
@@ -82,17 +81,17 @@ public class Abilities
             TORCH_PLACER.setSkillPointsRequired(2);
             TORCH_CRAFTER.setSkillPointsRequired(3);
 
-            FASTER_MINING.setLevelRequirements(new Pair<>(BlocklingStats.MINING_LEVEL_ID, 5));
-            FASTER_MINING_FOR_HEALTH.setLevelRequirements(new Pair<>(BlocklingStats.MINING_LEVEL_ID, 25));
-            FASTER_MINING_FOR_ORES.setLevelRequirements(new Pair<>(BlocklingStats.MINING_LEVEL_ID, 25));
-            FASTER_MINING_FOR_DURABILITY.setLevelRequirements(new Pair<>(BlocklingStats.MINING_LEVEL_ID, 25));
-            FASTER_MINING_IN_DARK.setLevelRequirements(new Pair<>(BlocklingStats.MINING_LEVEL_ID, 25));
-            AUTOSMELT_1.setLevelRequirements(new Pair<>(BlocklingStats.MINING_LEVEL_ID, 15));
-            AUTOSMELT_2.setLevelRequirements(new Pair<>(BlocklingStats.MINING_LEVEL_ID, 30));
-            LAVA_SOURCE.setLevelRequirements(new Pair<>(BlocklingStats.MINING_LEVEL_ID, 45));
-            AUTOSMELT_XP.setLevelRequirements(new Pair<>(BlocklingStats.MINING_LEVEL_ID, 45));
-            TORCH_PLACER.setLevelRequirements(new Pair<>(BlocklingStats.MINING_LEVEL_ID, 20));
-            TORCH_CRAFTER.setLevelRequirements(new Pair<>(BlocklingStats.MINING_LEVEL_ID, 40));
+            FASTER_MINING.setLevelRequirements(new Pair<>("miningLevel", 5.0f));
+            FASTER_MINING_FOR_HEALTH.setLevelRequirements(new Pair<>("miningLevel", 25.0f));
+            FASTER_MINING_FOR_ORES.setLevelRequirements(new Pair<>("miningLevel", 25.0f));
+            FASTER_MINING_FOR_DURABILITY.setLevelRequirements(new Pair<>("miningLevel", 25.0f));
+            FASTER_MINING_IN_DARK.setLevelRequirements(new Pair<>("miningLevel", 25.0f));
+            AUTOSMELT_1.setLevelRequirements(new Pair<>("miningLevel", 15.0f));
+            AUTOSMELT_2.setLevelRequirements(new Pair<>("miningLevel", 30.0f));
+            LAVA_SOURCE.setLevelRequirements(new Pair<>("miningLevel", 45.0f));
+            AUTOSMELT_XP.setLevelRequirements(new Pair<>("miningLevel", 45.0f));
+            TORCH_PLACER.setLevelRequirements(new Pair<>("miningLevel", 20.0f));
+            TORCH_CRAFTER.setLevelRequirements(new Pair<>("miningLevel", 40.0f));
 
             FASTER_MINING.setParents(NOVICE_MINER);
             FASTER_MINING_FOR_HEALTH.setParents(FASTER_MINING);

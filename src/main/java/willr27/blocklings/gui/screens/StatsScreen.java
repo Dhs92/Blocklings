@@ -150,15 +150,15 @@ public class StatsScreen extends Screen
 
     private void drawTooltips(int mouseX, int mouseY)
     {
-        if (combatXpBar.isMouseOver(mouseX, mouseY)) renderTooltip("XP: " + blockling.getStats().getCombatXp() + "/" + BlocklingStats.getXpUntilNextLevel(blockling.getStats().getCombatLevel()), mouseX, mouseY);
-        else if (miningXpBar.isMouseOver(mouseX, mouseY)) renderTooltip("XP: " + blockling.getStats().getMiningXp() + "/" + BlocklingStats.getXpUntilNextLevel(blockling.getStats().getMiningLevel()), mouseX, mouseY);
-        else if (woodcuttingXpBar.isMouseOver(mouseX, mouseY)) renderTooltip("XP: " + blockling.getStats().getWoodcuttingXp() + "/" + BlocklingStats.getXpUntilNextLevel(blockling.getStats().getWoodcuttingLevel()), mouseX, mouseY);
-        else if (farmingXpBar.isMouseOver(mouseX, mouseY)) renderTooltip("XP: " + blockling.getStats().getFarmingXp() + "/" + BlocklingStats.getXpUntilNextLevel(blockling.getStats().getFarmingLevel()), mouseX, mouseY);
+        if (combatXpBar.isMouseOver(mouseX, mouseY)) renderTooltip("XP: " + blockling.getStats().combatXp.getDisplayString() + "/" + BlocklingStats.getXpUntilNextLevel(blockling.getStats().combatLevel.getInt()), mouseX, mouseY);
+        else if (miningXpBar.isMouseOver(mouseX, mouseY)) renderTooltip("XP: " + blockling.getStats().miningXp.getDisplayString() + "/" + BlocklingStats.getXpUntilNextLevel(blockling.getStats().miningLevel.getInt()), mouseX, mouseY);
+        else if (woodcuttingXpBar.isMouseOver(mouseX, mouseY)) renderTooltip("XP: " + blockling.getStats().woodcuttingXp.getDisplayString() + "/" + BlocklingStats.getXpUntilNextLevel(blockling.getStats().woodcuttingLevel.getInt()), mouseX, mouseY);
+        else if (farmingXpBar.isMouseOver(mouseX, mouseY)) renderTooltip("XP: " + blockling.getStats().farmingXp.getDisplayString() + "/" + BlocklingStats.getXpUntilNextLevel(blockling.getStats().farmingLevel.getInt()), mouseX, mouseY);
 
-        else if (combatIcon.isMouseOver(mouseX, mouseY)) renderTooltip("APS: " + (((double)((int)(200.0 / blockling.getStats().getCombatInterval()))) / 10.0), mouseX, mouseY);
-        else if (miningIcon.isMouseOver(mouseX, mouseY)) renderTooltip("BPS: " + (((double)((int)(200.0 / blockling.getStats().getMiningInterval()))) / 10.0), mouseX, mouseY);
-        else if (woodcuttingIcon.isMouseOver(mouseX, mouseY)) renderTooltip("BPS: " + (((double)((int)(200.0 / blockling.getStats().getWoodcuttingInterval()))) / 10.0), mouseX, mouseY);
-        else if (farmingIcon.isMouseOver(mouseX, mouseY)) renderTooltip("BPS: " + (((double)((int)(200.0 / blockling.getStats().getFarmingInterval()))) / 10.0), mouseX, mouseY);
+        else if (combatIcon.isMouseOver(mouseX, mouseY)) renderTooltip("APS: " + (((double)((int)(200.0 / blockling.getStats().combatInterval.getFloat()))) / 10.0), mouseX, mouseY);
+        else if (miningIcon.isMouseOver(mouseX, mouseY)) renderTooltip("BPS: " + (((double)((int)(200.0 / blockling.getStats().miningInterval.getFloat()))) / 10.0), mouseX, mouseY);
+        else if (woodcuttingIcon.isMouseOver(mouseX, mouseY)) renderTooltip("BPS: " + (((double)((int)(200.0 / blockling.getStats().woodcuttingInterval.getFloat()))) / 10.0), mouseX, mouseY);
+        else if (farmingIcon.isMouseOver(mouseX, mouseY)) renderTooltip("BPS: " + (((double)((int)(200.0 / blockling.getStats().farmingInterval.getFloat()))) / 10.0), mouseX, mouseY);
     }
 
     private void drawStatIcons(int mouseX, int mouseY)
@@ -185,15 +185,15 @@ public class StatsScreen extends Screen
     {
         GuiUtil.bindTexture(GuiUtil.STATS);
 
-        combatXpBar.render(mouseX, mouseY, stats.getCombatXp(), stats.getCombatLevel());
-        miningXpBar.render(mouseX, mouseY, stats.getMiningXp(), stats.getMiningLevel());
-        woodcuttingXpBar.render(mouseX, mouseY, stats.getWoodcuttingXp(), stats.getWoodcuttingLevel());
-        farmingXpBar.render(mouseX, mouseY, stats.getFarmingXp(), stats.getFarmingLevel());
+        combatXpBar.render(mouseX, mouseY, stats.combatXp.getInt(), stats.combatLevel.getInt());
+        miningXpBar.render(mouseX, mouseY, stats.miningXp.getInt(), stats.miningLevel.getInt());
+        woodcuttingXpBar.render(mouseX, mouseY, stats.woodcuttingXp.getInt(), stats.woodcuttingLevel.getInt());
+        farmingXpBar.render(mouseX, mouseY, stats.farmingXp.getInt(), stats.farmingLevel.getInt());
 
-        combatXpBar.renderText(Integer.toString(stats.getCombatLevel()), 6, -1, false, 0xff4d4d);
-        miningXpBar.renderText(Integer.toString(stats.getMiningLevel()), 6, -1, false, 0x7094db);
-        woodcuttingXpBar.renderText(Integer.toString(stats.getWoodcuttingLevel()), 6, -1, false, 0x57a65b);
-        farmingXpBar.renderText(Integer.toString(stats.getFarmingLevel()), 6, -1, false, 0x9d6d4a);
+        combatXpBar.renderText(stats.combatLevel.getDisplayString(), 6, -1, false, 0xff4d4d);
+        miningXpBar.renderText(stats.miningLevel.getDisplayString(), 6, -1, false, 0x7094db);
+        woodcuttingXpBar.renderText(stats.woodcuttingLevel.getDisplayString(), 6, -1, false, 0x57a65b);
+        farmingXpBar.renderText(stats.farmingLevel.getDisplayString(), 6, -1, false, 0x9d6d4a);
     }
 
     @Override

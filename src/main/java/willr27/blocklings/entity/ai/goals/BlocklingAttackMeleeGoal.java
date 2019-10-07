@@ -58,7 +58,7 @@ public class BlocklingAttackMeleeGoal extends Goal
 
             if (!blockling.isPerformingAction())
             {
-                blockling.startAction(blockling.getStats().getCombatInterval());
+                blockling.startAction((int) blockling.getStats().combatInterval.getFloat());
             }
         }
     }

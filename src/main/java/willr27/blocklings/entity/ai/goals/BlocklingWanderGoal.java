@@ -2,7 +2,6 @@ package willr27.blocklings.entity.ai.goals;
 
 import net.minecraft.entity.ai.goal.WaterAvoidingRandomWalkingGoal;
 import willr27.blocklings.entity.blockling.BlocklingEntity;
-import willr27.blocklings.entity.ai.AIManager;
 
 import java.util.EnumSet;
 
@@ -20,8 +19,6 @@ public class BlocklingWanderGoal extends WaterAvoidingRandomWalkingGoal
     @Override
     public boolean shouldExecute()
     {
-        if (blockling.aiManager.isActive(AIManager.SIT_ID)) return false;
-
         return super.shouldExecute();
     }
 }

@@ -9,6 +9,9 @@ import net.minecraft.pathfinding.Path;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import willr27.blocklings.abilities.Abilities;
+import willr27.blocklings.abilities.AbilityGroup;
+import willr27.blocklings.abilities.AbilityState;
 import willr27.blocklings.entity.ai.AIManager;
 import willr27.blocklings.entity.ai.AiUtil;
 import willr27.blocklings.entity.blockling.BlocklingEntity;
@@ -32,6 +35,8 @@ public class BlocklingMineNearbyGoal extends Goal
     private BlockPos veinStartPos;
     private BlockPos targetPos;
 
+    private float oresMined = 0;
+
     public BlocklingMineNearbyGoal(BlocklingEntity blockling)
     {
         setMutexFlags(EnumSet.of(Flag.MOVE));
@@ -52,6 +57,12 @@ public class BlocklingMineNearbyGoal extends Goal
         veinStartPos = null;
         resetTarget();
         blockling.stopAction();
+        oresMined = 0;
+
+        if (blockling.abilityManager.getGroup(AbilityGroup.MINING).getState(Abilities.Mining.FASTER_MINING_FOR_ORES) == AbilityState.BOUGHT)
+        {
+            blockling.getStats().miningIntervalFasterMiningEnhancedAbilityModifier.setValue(1.0f);
+        }
     }
 
     private void resetTarget()
@@ -98,7 +109,7 @@ public class BlocklingMineNearbyGoal extends Goal
         {
             double distanceSq = blockling.getPosition().distanceSq(targetPos);
 
-            if (distanceSq < blockling.getStats().getMiningRangeSq())
+            if (distanceSq < blockling.getStats().miningRangeSq.getFloat())
             {
                 if (blockling.hasFinishedAction())
                 {
@@ -113,12 +124,18 @@ public class BlocklingMineNearbyGoal extends Goal
                     vein.remove(targetPos);
                     resetTarget();
 
-                    blockling.getStats().incMiningXp(blockling.random.nextInt(4) + 3);
+                    oresMined++;
+                    if (blockling.abilityManager.getGroup(AbilityGroup.MINING).getState(Abilities.Mining.FASTER_MINING_FOR_ORES) == AbilityState.BOUGHT)
+                    {
+                        blockling.getStats().miningIntervalFasterMiningEnhancedAbilityModifier.setValue(Math.max(0.5f, 1.0f - (oresMined / 25.0f)));
+                    }
+
+                    blockling.getStats().miningXp.incBaseValue(blockling.random.nextInt(4) + 3);
                     blockling.setFinishedAction(false);
                 }
                 else if (!blockling.isPerformingAction())
                 {
-                    blockling.startAction(blockling.getStats().getMiningInterval());
+                    blockling.startAction((int) blockling.getStats().miningInterval.getFloat());
                     blockling.setBlockBreaking(targetPos);
                 }
                 else if (targetPos != null)
@@ -172,20 +189,20 @@ public class BlocklingMineNearbyGoal extends Goal
                 {
                     double distanceSq = blockling.getPosition().distanceSq(blockPos);
 
-                    if (distanceSq < blockling.getStats().getMiningRangeSq())
+                    if (distanceSq < blockling.getStats().miningRangeSq.getFloat())
                     {
                         targetPos = blockPos;
                         foundTarget = true;
                         break;
                     }
 
-                    Path path = AiUtil.getPathTo(blockling, blockPos, blockling.getStats().getMiningRangeSq());
+                    Path path = AiUtil.getPathTo(blockling, blockPos, blockling.getStats().miningRangeSq.getFloat());
 
                     if (path != null)
                     {
                         distanceSq = AiUtil.distanceSqFromTarget(path, blockPos);
 
-                        if (distanceSq < blockling.getStats().getMiningRangeSq())
+                        if (distanceSq < blockling.getStats().miningRangeSq.getFloat())
                         {
                             targetPos = blockPos;
                             blockling.getNavigator().setPath(path, 1.0);
@@ -239,19 +256,19 @@ public class BlocklingMineNearbyGoal extends Goal
                         {
                             double distanceSq = blockling.getPosition().distanceSq(testPos);
 
-                            if (distanceSq < blockling.getStats().getMiningRangeSq())
+                            if (distanceSq < blockling.getStats().miningRangeSq.getFloat())
                             {
                                 veinStartPos = testPos;
                                 return true;
                             }
 
-                            Path testPath = AiUtil.getPathTo(blockling, testPos, blockling.getStats().getMiningRangeSq());
+                            Path testPath = AiUtil.getPathTo(blockling, testPos, blockling.getStats().miningRangeSq.getFloat());
 
                             if (testPath != null)
                             {
                                 distanceSq = AiUtil.distanceSqFromTarget(testPath, testPos);
 
-                                if (distanceSq < blockling.getStats().getMiningRangeSq())
+                                if (distanceSq < blockling.getStats().miningRangeSq.getFloat())
                                 {
                                     veinStartPos = testPos;
                                     return true;

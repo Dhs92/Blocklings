@@ -89,7 +89,7 @@ public class EquipmentInventory implements IInventory
 
         if (!blockling.world.isRemote && (index == MAIN_SLOT || index == OFF_SLOT))
         {
-            blockling.getStats().updateIntervalBonuses();
+            blockling.getStats().updateItemBonuses();
         }
 
         if (!blockling.world.isRemote)

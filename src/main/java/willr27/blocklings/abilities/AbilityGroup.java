@@ -79,6 +79,7 @@ public class AbilityGroup
     public void setState(int abilityId, AbilityState state, boolean sync)
     {
         Ability ability = getAbility(abilityId);
+        blockling.abilityManager.stateChanged(this, ability, state);
         abilities.replace(ability, state);
         if (state == AbilityState.BOUGHT)
         {

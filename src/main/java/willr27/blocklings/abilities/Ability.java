@@ -19,7 +19,7 @@ public class Ability
     public Color colour;
     public AbilityWidget.ConnectionType connectionType;
     private int skillPointsRequired;
-    private Pair<Integer, Integer>[] levelRequirements = new Pair[0];
+    private Pair<String, Float>[] levelRequirements = new Pair[0];
     private Ability[] parents = new Ability[0];
     private Ability[] conflicts = new Ability[0];
 
@@ -58,11 +58,11 @@ public class Ability
         skillPointsRequired = value;
     }
 
-    public Pair<Integer, Integer>[] getLevelRequirements()
+    public Pair<String, Float>[] getLevelRequirements()
     {
         return levelRequirements;
     }
-    public void setLevelRequirements(Pair<Integer, Integer>... levelRequirements)
+    public void setLevelRequirements(Pair<String, Float>... levelRequirements)
     {
         this.levelRequirements = levelRequirements;
     }

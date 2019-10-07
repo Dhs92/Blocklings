@@ -24,7 +24,7 @@ public class GoalInfo
     private boolean active;
     private Map<Integer, BlocklingWhitelist> whitelists = new HashMap<>();
 
-    public GoalInfo(AIManager aiManager, int goalId, String name, String description, Goal goal, int priority, int iconX, int iconY)
+    public GoalInfo(AIManager aiManager, int goalId, String name, String description, Goal goal, boolean unlocked, boolean active, int priority, int iconX, int iconY)
     {
         this.aiManager = aiManager;
         this.goalId = goalId;
@@ -32,8 +32,8 @@ public class GoalInfo
         this.description = description;
         this.goal = goal;
         this.priority = priority;
-        this.unlocked = true;
-        this.active = false;
+        this.unlocked = unlocked;
+        this.active = active;
         this.iconX = iconX;
         this.iconY = iconY;
     }

@@ -8,6 +8,7 @@ import net.minecraft.util.text.TextFormatting;
 import willr27.blocklings.abilities.Ability;
 import willr27.blocklings.abilities.AbilityGroup;
 import willr27.blocklings.abilities.AbilityState;
+import willr27.blocklings.entity.blockling.BlocklingAttribute;
 import willr27.blocklings.entity.blockling.BlocklingEntity;
 import willr27.blocklings.gui.util.widgets.AbilityWidget;
 import willr27.blocklings.gui.util.GuiUtil;
@@ -162,7 +163,7 @@ public class AbilitiesGui extends AbstractGui
             AbilityState state = abilityGroup.getState(ability);
             Color colour = new Color(state.colour);
             if (ability == selectedAbility) GlStateManager.color3f(0.7f, 1.0f, 0.7f);
-            else if (abilityGroup.hasConflict(ability) && state != AbilityState.LOCKED) GlStateManager.color3f(0.9f, 0.6f, 0.6f);
+            else if (abilityGroup.hasConflict(ability) && state != AbilityState.LOCKED) GlStateManager.color3f(0.8f, 0.4f, 0.4f);
             else if (state == AbilityState.UNLOCKED && !blockling.abilityManager.canBuyAbility(abilityGroup, ability)) GlStateManager.color3f(0.9f, 0.6f, 0.6f);
             else
             {
@@ -173,7 +174,7 @@ public class AbilitiesGui extends AbstractGui
             else abilityWidget.render(mouseX, mouseY, left, right, top, bottom);
 
             if (state == AbilityState.LOCKED) GlStateManager.color3f(0.0f, 0.0f, 0.0f);
-            else if (abilityGroup.hasConflict(ability)) GlStateManager.color3f(0.9f, 0.6f, 0.6f);
+            else if (abilityGroup.hasConflict(ability)) GlStateManager.color3f(0.8f, 0.4f, 0.4f);
             else if (state == AbilityState.UNLOCKED && !blockling.abilityManager.canBuyAbility(abilityGroup, ability)) GlStateManager.color3f(0.9f, 0.6f, 0.6f);
             else  GlStateManager.color3f(1.0f, 1.0f, 1.0f);
             abilityWidget = new AbilityWidget(font, ability.x + x, ability.y + y, ABILITY_SIZE, ABILITY_SIZE, ability.textureX * ABILITY_SIZE, (ability.textureY + 1) * ABILITY_SIZE);
@@ -213,7 +214,7 @@ public class AbilitiesGui extends AbstractGui
         }
         else
         {
-            Pair<Integer, Integer>[] levelRequirements = ability.getLevelRequirements();
+            Pair<String, Float>[] levelRequirements = ability.getLevelRequirements();
             if (ability.getSkillPointsRequired() > 0 || levelRequirements.length > 0)
             {
                 description.add("");
@@ -221,16 +222,17 @@ public class AbilitiesGui extends AbstractGui
 
                 if (ability.getSkillPointsRequired() > 0)
                 {
-                    String colour = blockling.getStats().getSkillPoints() >= ability.getSkillPointsRequired() ? "" + TextFormatting.GREEN : "" + TextFormatting.RED;
+                    String colour = blockling.getStats().skillPoints.getInt() >= ability.getSkillPointsRequired() ? "" + TextFormatting.GREEN : "" + TextFormatting.RED;
                     description.add(colour + "Skill Points: " + ability.getSkillPointsRequired());
                 }
 
                 if (levelRequirements.length > 0)
                 {
-                    for (Pair<Integer, Integer> levelRequirement : levelRequirements)
+                    for (Pair<String, Float> levelRequirement : levelRequirements)
                     {
-                        String colour = blockling.getStats().getLevel(levelRequirement.getKey()) >= levelRequirement.getValue() ? "" + TextFormatting.GREEN : "" + TextFormatting.RED;
-                        description.add(colour + blockling.getStats().getLevelName(levelRequirement.getKey()) + ": " + levelRequirement.getValue());
+                        BlocklingAttribute attribute = blockling.getStats().getAttribute(levelRequirement.getKey());
+                        String colour = attribute.getFloat() >= levelRequirement.getValue() ? "" + TextFormatting.GREEN : "" + TextFormatting.RED;
+                        description.add(colour + attribute.displayName + ": " + (attribute.displayAsInt ? "" + levelRequirement.getValue().intValue() : levelRequirement.getValue()));
                     }
                 }
             }
