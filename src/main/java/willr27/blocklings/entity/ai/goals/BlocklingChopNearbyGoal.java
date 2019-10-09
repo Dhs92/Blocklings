@@ -143,7 +143,7 @@ public class BlocklingChopNearbyGoal extends Goal
     {
         for (ItemStack stack : drops)
         {
-            ItemStack remainderStack = blockling.inventory.addItem(stack);
+            ItemStack remainderStack = blockling.equipmentInventory.addItem(stack);
             if (!remainderStack.isEmpty()) InventoryHelper.spawnItemStack(world, dropPos.getX() + 0.5, dropPos.getY() + 0.5, dropPos.getZ() + 0.5, remainderStack);
         }
     }

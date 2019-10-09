@@ -2,6 +2,7 @@ package willr27.blocklings.gui.container.containers;
 
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.Slot;
 import willr27.blocklings.inventory.EquipmentInventory;
@@ -11,14 +12,21 @@ public class EquipmentContainer extends Container
     private static final int playerInvX = 8;
     private static final int playerInvY = 74;
 
+    private PlayerEntity player;
+
     public EquipmentContainer(int id, PlayerInventory playerInv)
     {
         super(null, id);
     }
 
-    public EquipmentContainer(int id, PlayerInventory playerInv, EquipmentInventory blocklingInv)
+    public EquipmentContainer(int id, PlayerEntity player, EquipmentInventory blocklingInv)
     {
-        this(id, playerInv);
+        this(id, player.inventory);
+
+        if (!player.world.isRemote)
+        {
+            addListener(((ServerPlayerEntity)player));
+        }
 
         addSlot(new Slot(blocklingInv, EquipmentInventory.MAIN_SLOT, 12, 52));
         addSlot(new Slot(blocklingInv, EquipmentInventory.OFF_SLOT, 32, 52));
@@ -37,12 +45,12 @@ public class EquipmentContainer extends Container
         {
             for (int j = 0; j < 9; j++)
             {
-                addSlot(new Slot(playerInv, j + i * 9 + 9, playerInvX + (j * 18), playerInvY + (i * 18)));
+                addSlot(new Slot(player.inventory, j + i * 9 + 9, playerInvX + (j * 18), playerInvY + (i * 18)));
             }
         }
         for (int i = 0; i < 9; i++)
         {
-            addSlot(new Slot(playerInv, i, playerInvX + (i * 18), playerInvY + 58));
+            addSlot(new Slot(player.inventory, i, playerInvX + (i * 18), playerInvY + 58));
         }
     }
 

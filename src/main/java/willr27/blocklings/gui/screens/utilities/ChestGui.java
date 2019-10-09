@@ -6,7 +6,6 @@ import willr27.blocklings.entity.blockling.BlocklingEntity;
 import willr27.blocklings.gui.screens.TabbedScreen;
 import willr27.blocklings.gui.util.GuiUtil;
 import willr27.blocklings.inventory.Utilities.ChestInventory;
-import willr27.blocklings.utilities.Utility;
 
 public class ChestGui extends UtilityGui
 {
@@ -15,7 +14,7 @@ public class ChestGui extends UtilityGui
     public ChestGui(BlocklingEntity blockling, PlayerEntity player)
     {
         super(blockling, player);
-        this.chestInventory = (ChestInventory) blockling.getUtilityManager().getInventory(Utility.CHEST, blockling.getGuiInfo().utility);
+        this.chestInventory = (ChestInventory) blockling.getUtilityManager().getInventory(blockling.getGuiInfo().utility);
     }
 
     @Override

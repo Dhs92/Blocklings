@@ -96,6 +96,24 @@ public class AbilitiesGui extends AbstractGui
         drawBackground();
         drawAbilities(mouseX, mouseY);
 
+        int x = left + moveX;
+        int y = top + moveY;
+        for (Ability ability : abilityGroup.getAbilities())
+        {
+            AbilityWidget abilityWidget = new AbilityWidget(font, ability.x + x, ability.y + y, ABILITY_SIZE, ABILITY_SIZE, ability.type.textureX * ABILITY_SIZE, 0);
+
+            boolean isHover = false;
+            if (confirmGui.closed && windowWidget.isMouseOver(mouseX, mouseY))
+            {
+                if (abilityWidget.isMouseOver(mouseX, mouseY))
+                {
+                    fill(left, top, right, bottom, 0x55000000);
+                    GlStateManager.color3f(1.0f, 1.0f, 1.0f);
+                    break;
+                }
+            }
+        }
+
         confirmGui.draw(mouseX, mouseY);
 
         prevMouseX = mouseX;

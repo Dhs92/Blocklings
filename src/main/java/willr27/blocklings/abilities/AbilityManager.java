@@ -60,13 +60,42 @@ public class AbilityManager
             }
             else if (ability == Abilities.Mining.FASTER_MINING_FOR_DURABILITY || ability == Abilities.Mining.FASTER_MINING_FOR_HEALTH || ability == Abilities.Mining.FASTER_MINING_FOR_ORES || ability == Abilities.Mining.FASTER_MINING_IN_DARK)
             {
-                if (!blockling.world.isRemote) stats.miningInterval.addModifier(stats.miningIntervalFasterMiningEnhancedAbilityModifier);
+                if (!blockling.world.isRemote)
+                {
+                    stats.miningInterval.addModifier(stats.miningIntervalFasterMiningEnhancedAbilityModifier);
+
+                    if (ability == Abilities.Mining.FASTER_MINING_FOR_DURABILITY)
+                    {
+                        stats.miningIntervalFasterMiningEnhancedAbilityModifier.setValue(0.75f);
+                    }
+                    else if (ability == Abilities.Mining.FASTER_MINING_FOR_HEALTH)
+                    {
+                        blockling.setHealth(blockling.getHealth());
+                    }
+                    else if (ability == Abilities.Mining.FASTER_MINING_IN_DARK)
+                    {
+                        stats.miningIntervalFasterMiningEnhancedAbilityModifier.setValue(((blockling.world.getLight(blockling.getPosition()) / 15.0f) / 2.0f) + 0.5f);
+                    }
+                }
+            }
+            else if (ability == Abilities.Mining.AUTOSMELT)
+            {
+                blockling.aiManager.getGoalFromId(AIManager.AUTOMSELT_ID).setUnlocked(true);
+            }
+            else if (ability == Abilities.Mining.AUTOSMELT_WHITELIST)
+            {
+                blockling.aiManager.getGoalFromId(AIManager.AUTOMSELT_ID).addWhitelist(AIManager.AUTOMSELT_ORES_WHITELIST_ID, blockling.aiManager.autosmeltOresWhitelist);
+            }
+            else if (ability == Abilities.Mining.TORCH_PLACER)
+            {
+                blockling.aiManager.getGoalFromId(AIManager.PLACE_TORCHES_ID).setUnlocked(true);
             }
         }
         else
         {
             if (ability == Abilities.Mining.NOVICE_MINER)
             {
+                blockling.aiManager.getGoalFromId(AIManager.MINE_NEARBY_ID).setActive(false, false);
                 blockling.aiManager.getGoalFromId(AIManager.MINE_NEARBY_ID).setUnlocked(false);
             }
             else if (ability == Abilities.Mining.FASTER_MINING)
@@ -76,6 +105,20 @@ public class AbilityManager
             else if (ability == Abilities.Mining.FASTER_MINING_FOR_DURABILITY || ability == Abilities.Mining.FASTER_MINING_FOR_HEALTH || ability == Abilities.Mining.FASTER_MINING_FOR_ORES || ability == Abilities.Mining.FASTER_MINING_IN_DARK)
             {
                 if (!blockling.world.isRemote) stats.miningInterval.removeModifier(stats.miningIntervalFasterMiningEnhancedAbilityModifier);
+            }
+            else if (ability == Abilities.Mining.AUTOSMELT)
+            {
+                blockling.aiManager.getGoalFromId(AIManager.AUTOMSELT_ID).setActive(false, false);
+                blockling.aiManager.getGoalFromId(AIManager.AUTOMSELT_ID).setUnlocked(false);
+            }
+            else if (ability == Abilities.Mining.AUTOSMELT_WHITELIST)
+            {
+                blockling.aiManager.getGoalFromId(AIManager.AUTOMSELT_ID).removeWhitelist(AIManager.AUTOMSELT_ORES_WHITELIST_ID);
+            }
+            else if (ability == Abilities.Mining.TORCH_PLACER)
+            {
+                blockling.aiManager.getGoalFromId(AIManager.PLACE_TORCHES_ID).setActive(false, false);
+                blockling.aiManager.getGoalFromId(AIManager.PLACE_TORCHES_ID).setUnlocked(false);
             }
         }
     }
@@ -125,5 +168,15 @@ public class AbilityManager
     public AbilityGroup getGroup(int id)
     {
         return groups.get(id);
+    }
+
+    public AbilityState getState(int group, Ability ability)
+    {
+        return getGroup(group).getState(ability);
+    }
+
+    public boolean isBought(int group, Ability ability)
+    {
+     return getState(group, ability) == AbilityState.BOUGHT;
     }
 }

@@ -4,10 +4,10 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import willr27.blocklings.entity.blockling.BlocklingEntity;
-import willr27.blocklings.inventory.AbstractInventory;
 import willr27.blocklings.inventory.Utilities.ChestInventory;
 import willr27.blocklings.inventory.Utilities.CraftingTableInventory;
 import willr27.blocklings.inventory.Utilities.FurnaceInventory;
+import willr27.blocklings.inventory.Utilities.UtilityInventory;
 
 import java.util.function.BiFunction;
 
@@ -18,10 +18,10 @@ public enum Utility
     FURNACE("Furnace", FurnaceInventory::new, Items.FURNACE);
 
     public String name;
-    public BiFunction<BlocklingEntity, Integer, ? extends AbstractInventory> inventory;
+    public BiFunction<BlocklingEntity, Integer, ? extends UtilityInventory> inventory;
     public Item[] items;
 
-    Utility(String name, BiFunction<BlocklingEntity, Integer, ? extends AbstractInventory> inventory, Item... items)
+    Utility(String name, BiFunction<BlocklingEntity, Integer, ? extends UtilityInventory> inventory, Item... items)
     {
         this.name = name;
         this.inventory = inventory;

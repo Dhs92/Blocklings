@@ -5,6 +5,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.CropsBlock;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.registry.Registry;
@@ -61,6 +62,21 @@ public class BlockUtil
     public static boolean isOre(Block block)
     {
         return ORES.contains(block);
+    }
+    public static boolean isOre(Item item)
+    {
+        return getOre(item) != null;
+    }
+    public static Block getOre(Item item)
+    {
+        for (Block ore : ORES)
+        {
+            if (new ItemStack(ore).getItem() == item) // TODO: CACHE THESE ITEMS
+            {
+                return ore;
+            }
+        }
+        return null;
     }
 
 

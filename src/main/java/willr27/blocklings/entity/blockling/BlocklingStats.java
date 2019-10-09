@@ -3,6 +3,9 @@ package willr27.blocklings.entity.blockling;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.INBT;
+import net.minecraft.network.PacketBuffer;
 import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.world.World;
 import willr27.blocklings.item.ToolType;
@@ -14,6 +17,7 @@ import java.util.Random;
 public class BlocklingStats
 {
     public final List<BlocklingAttribute> attributes = new ArrayList<>();
+    public final List<BlocklingAttributeModifier> modifiers = new ArrayList<>();
     public final List<BlocklingAttribute> levels = new ArrayList<>();
 
     public final BlocklingAttribute combatInterval;
@@ -73,30 +77,30 @@ public class BlocklingStats
         this.dataManager = blockling.getDataManager();
 
         combatInterval = createAttribute("combatInterval", "Combat Interval", 10.0f, true);
-        combatIntervalLevelModifier = new BlocklingAttributeModifier(combatInterval, "combatIntervalLevelModifier", 0.0f, BlocklingAttributeModifier.Operation.ADDITION);
-        combatIntervalToolModifier = new BlocklingAttributeModifier(combatInterval, "combatIntervalToolModifier", 0.75f, BlocklingAttributeModifier.Operation.MULTIPLY_TOTAL);
+        combatIntervalLevelModifier = createAttributeModifier(combatInterval, "combatIntervalLevelModifier", 0.0f, BlocklingAttributeModifier.Operation.ADDITION);
+        combatIntervalToolModifier = createAttributeModifier(combatInterval, "combatIntervalToolModifier", 0.75f, BlocklingAttributeModifier.Operation.MULTIPLY_TOTAL);
         miningInterval = createAttribute("miningInterval", "Mining Interval", 10.0f, true);
-        miningIntervalLevelModifier = new BlocklingAttributeModifier(miningInterval, "miningIntervalLevelModifier", 0.0f, BlocklingAttributeModifier.Operation.ADDITION);
-        miningIntervalToolModifier = new BlocklingAttributeModifier(miningInterval, "miningIntervalToolModifier", 0.75f, BlocklingAttributeModifier.Operation.MULTIPLY_TOTAL);
-        miningIntervalFasterMiningAbilityModifier = new BlocklingAttributeModifier(miningInterval, "miningIntervalFasterMiningAbilityModifier", 0.9f, BlocklingAttributeModifier.Operation.MULTIPLY_TOTAL);
-        miningIntervalFasterMiningEnhancedAbilityModifier = new BlocklingAttributeModifier(miningInterval, "miningIntervalFasterMiningEnhancedAbilityModifier", 0.9f, BlocklingAttributeModifier.Operation.MULTIPLY_TOTAL);
+        miningIntervalLevelModifier = createAttributeModifier(miningInterval, "miningIntervalLevelModifier", 0.0f, BlocklingAttributeModifier.Operation.ADDITION);
+        miningIntervalToolModifier = createAttributeModifier(miningInterval, "miningIntervalToolModifier", 0.75f, BlocklingAttributeModifier.Operation.MULTIPLY_TOTAL);
+        miningIntervalFasterMiningAbilityModifier = createAttributeModifier(miningInterval, "miningIntervalFasterMiningAbilityModifier", 0.9f, BlocklingAttributeModifier.Operation.MULTIPLY_TOTAL);
+        miningIntervalFasterMiningEnhancedAbilityModifier = createAttributeModifier(miningInterval, "miningIntervalFasterMiningEnhancedAbilityModifier", 0.9f, BlocklingAttributeModifier.Operation.MULTIPLY_TOTAL);
         woodcuttingInterval = createAttribute("woodcuttingInterval", "Woodcutting Interval", 10.0f, true);
-        woodcuttingIntervalLevelModifier = new BlocklingAttributeModifier(woodcuttingInterval, "woodcuttingIntervalLevelModifier", 0.0f, BlocklingAttributeModifier.Operation.ADDITION);
-        woodcuttingIntervalToolModifier = new BlocklingAttributeModifier(woodcuttingInterval, "woodcuttingIntervalToolModifier", 0.75f, BlocklingAttributeModifier.Operation.MULTIPLY_TOTAL);
+        woodcuttingIntervalLevelModifier = createAttributeModifier(woodcuttingInterval, "woodcuttingIntervalLevelModifier", 0.0f, BlocklingAttributeModifier.Operation.ADDITION);
+        woodcuttingIntervalToolModifier = createAttributeModifier(woodcuttingInterval, "woodcuttingIntervalToolModifier", 0.75f, BlocklingAttributeModifier.Operation.MULTIPLY_TOTAL);
         farmingInterval = createAttribute("farmingInterval", "Farming Interval", 10.0f, true);
-        farmingIntervalLevelModifier = new BlocklingAttributeModifier(farmingInterval, "farmingIntervalLevelModifier", 0.0f, BlocklingAttributeModifier.Operation.ADDITION);
-        farmingIntervalToolModifier = new BlocklingAttributeModifier(farmingInterval, "farmingIntervalToolModifier", 0.75f, BlocklingAttributeModifier.Operation.MULTIPLY_TOTAL);
+        farmingIntervalLevelModifier = createAttributeModifier(farmingInterval, "farmingIntervalLevelModifier", 0.0f, BlocklingAttributeModifier.Operation.ADDITION);
+        farmingIntervalToolModifier = createAttributeModifier(farmingInterval, "farmingIntervalToolModifier", 0.75f, BlocklingAttributeModifier.Operation.MULTIPLY_TOTAL);
 
-        combatLevel = createAttribute("combatLevel", "Combat Level", new Random().nextInt(99) + 1, true);
+        combatLevel = createAttribute("combatLevel", "Combat Level", 50, true);
         combatLevel.setCallback(() -> { combatIntervalLevelModifier.setValue(calcBreakSpeedFromLevel((int) combatLevel.getFloat())); updateCombatLevelBonuses(); });
         levels.add(combatLevel);
         miningLevel = createAttribute("miningLevel", "Mining Level", new Random().nextInt(99) + 1, true);
         miningLevel.setCallback(() -> { miningIntervalLevelModifier.setValue(calcBreakSpeedFromLevel((int) miningLevel.getFloat())); });
         levels.add(miningLevel);
-        woodcuttingLevel = createAttribute("woodcuttingLevel", "Woodcutting Level", new Random().nextInt(99) + 1, true);
+        woodcuttingLevel = createAttribute("woodcuttingLevel", "Woodcutting Level", 50, true);
         woodcuttingLevel.setCallback(() -> { woodcuttingIntervalLevelModifier.setValue(calcBreakSpeedFromLevel((int) woodcuttingLevel.getFloat())); });
         levels.add(woodcuttingLevel);
-        farmingLevel = createAttribute("farmingLevel", "Farming Level", new Random().nextInt(99) + 1, true);
+        farmingLevel = createAttribute("farmingLevel", "Farming Level", 50, true);
         farmingLevel.setCallback(() -> { farmingIntervalLevelModifier.setValue(calcBreakSpeedFromLevel((int) farmingLevel.getFloat())); });
         levels.add(farmingLevel);
 
@@ -123,26 +127,33 @@ public class BlocklingStats
 
         maxHealth = createAttribute("maxHealth", "Max Health", 5.0f, true);
         maxHealth.setCallback(() -> { blockling.getAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(maxHealth.getFloat()); updateHealth(); });
-        maxHealthCombatLevelModifier = new BlocklingAttributeModifier(maxHealth, "maxHealthCombatLevelModifier", 0.0f, BlocklingAttributeModifier.Operation.ADDITION);
-        maxHealthTypeModifier  = new BlocklingAttributeModifier(maxHealth, "maxHealthTypeModifier", 0.0f, BlocklingAttributeModifier.Operation.ADDITION);
+        maxHealthCombatLevelModifier = createAttributeModifier(maxHealth, "maxHealthCombatLevelModifier", 0.0f, BlocklingAttributeModifier.Operation.ADDITION);
+        maxHealthTypeModifier  = createAttributeModifier(maxHealth, "maxHealthTypeModifier", 0.0f, BlocklingAttributeModifier.Operation.ADDITION);
         damage = createAttribute("damage", "Damage", 1.0f, true);
         damage.setCallback(() -> { blockling.getAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).setBaseValue(damage.getFloat()); });
-        damageCombatLevelModifier = new BlocklingAttributeModifier(damage, "damageCombatLevelModifier", 0.0f, BlocklingAttributeModifier.Operation.ADDITION);
-        damageTypeModifier = new BlocklingAttributeModifier(damage, "damageTypeModifier", 0.0f, BlocklingAttributeModifier.Operation.ADDITION);
+        damageCombatLevelModifier = createAttributeModifier(damage, "damageCombatLevelModifier", 0.0f, BlocklingAttributeModifier.Operation.ADDITION);
+        damageTypeModifier = createAttributeModifier(damage, "damageTypeModifier", 0.0f, BlocklingAttributeModifier.Operation.ADDITION);
         armour = createAttribute("armour", "Armour", 2.0f, true);
         armour.setCallback(() -> { blockling.getAttribute(SharedMonsterAttributes.ARMOR).setBaseValue(armour.getFloat()); });
-        armourCombatLevelModifier = new BlocklingAttributeModifier(armour, "armourCombatLevelModifier", 0.0f, BlocklingAttributeModifier.Operation.ADDITION);
-        armourTypeModifier = new BlocklingAttributeModifier(armour, "armourTypeModifier", 0.0f, BlocklingAttributeModifier.Operation.ADDITION);
+        armourCombatLevelModifier = createAttributeModifier(armour, "armourCombatLevelModifier", 0.0f, BlocklingAttributeModifier.Operation.ADDITION);
+        armourTypeModifier = createAttributeModifier(armour, "armourTypeModifier", 0.0f, BlocklingAttributeModifier.Operation.ADDITION);
         movementSpeed = createAttribute("movementSpeed", "Speed", 0.3f, true);
         maxHealth.setCallback(() -> { blockling.getAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(movementSpeed.getFloat()); });
-        movementSpeedTypeModifier  = new BlocklingAttributeModifier(movementSpeed, "movementSpeedTypeModifier", 0.0f, BlocklingAttributeModifier.Operation.ADDITION);
+        movementSpeedTypeModifier  = createAttributeModifier(movementSpeed, "movementSpeedTypeModifier", 0.0f, BlocklingAttributeModifier.Operation.ADDITION);
     }
 
-    private BlocklingAttribute createAttribute(String name, String displayName, float baseValue, boolean displayAsInt)
+    public BlocklingAttribute createAttribute(String name, String displayName, float baseValue, boolean displayAsInt)
     {
         BlocklingAttribute attribute = new BlocklingAttribute(blockling, name, displayName, baseValue, displayAsInt);
         attributes.add(attribute);
         return attribute;
+    }
+
+    public BlocklingAttributeModifier createAttributeModifier(BlocklingAttribute attribute, String name, float value, BlocklingAttributeModifier.Operation operation)
+    {
+        BlocklingAttributeModifier modifier = new BlocklingAttributeModifier(attribute, name, value, operation);
+        modifiers.add(modifier);
+        return modifier;
     }
 
     public void initAttributes()
@@ -170,6 +181,42 @@ public class BlocklingStats
         // TODO: NEEDED? ^ V
         updateCombatLevelBonuses();
         updateTypeBonuses();
+    }
+
+    public void writeToNBT(CompoundNBT c)
+    {
+        for (BlocklingAttribute attribute : attributes)
+        {
+            c.putFloat(attribute.name, attribute.getBaseValue());
+        }
+    }
+
+    public void readFromNBT(CompoundNBT c)
+    {
+        for (BlocklingAttribute attribute : attributes)
+        {
+            INBT nbt = c.get(attribute.name);
+            if (nbt != null)
+            {
+                attribute.setBaseValue(c.getFloat(attribute.name));
+            }
+        }
+    }
+
+    public void writeToBuf(PacketBuffer buf)
+    {
+        for (BlocklingAttribute attribute : attributes)
+        {
+            buf.writeFloat(attribute.getBaseValue());
+        }
+    }
+
+    public void readFromBuf(PacketBuffer buf)
+    {
+        for (BlocklingAttribute attribute : attributes)
+        {
+            attribute.setBaseValue(buf.readFloat());
+        }
     }
 
     public static int getXpUntilNextLevel(int level)
@@ -234,7 +281,7 @@ public class BlocklingStats
 
     public void updateItemBonuses()
     {
-        if (blockling.inventory == null) return;
+        if (blockling.equipmentInventory == null) return;
 
         ItemStack mainStack = blockling.getHeldItemMainhand();
         ItemStack offStack = blockling.getHeldItemOffhand();

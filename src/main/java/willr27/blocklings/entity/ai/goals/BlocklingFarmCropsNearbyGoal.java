@@ -109,10 +109,10 @@ public class BlocklingFarmCropsNearbyGoal extends Goal
 
                     if (blockling.aiManager.getWhitelist(AIManager.FARM_NEARBY_ID, AIManager.FARM_NEARBY_CROPS_SEEDS_WHITELIST_ID).isInWhitelist(seed))
                     {
-                        int slot = blockling.inventory.find(seed);
+                        int slot = blockling.equipmentInventory.find(seed);
                         if (slot != -1)
                         {
-                            blockling.inventory.getStackInSlot(slot).shrink(1);
+                            blockling.equipmentInventory.getStackInSlot(slot).shrink(1);
                             world.setBlockState(targetPos, targetBlock.getDefaultState());
                         }
                         else
@@ -147,7 +147,7 @@ public class BlocklingFarmCropsNearbyGoal extends Goal
     {
         for (ItemStack stack : drops)
         {
-            ItemStack remainderStack = blockling.inventory.addItem(stack);
+            ItemStack remainderStack = blockling.equipmentInventory.addItem(stack);
             if (!remainderStack.isEmpty()) InventoryHelper.spawnItemStack(world, dropPos.getX() + 0.5, dropPos.getY() + 0.5, dropPos.getZ() + 0.5, remainderStack);
         }
     }

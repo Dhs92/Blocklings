@@ -17,6 +17,7 @@ import net.minecraft.network.IPacket;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.Hand;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
@@ -56,7 +57,7 @@ public class BlocklingEntity extends TameableEntity implements INamedContainerPr
 {
     public final Random random = new Random();
 
-    public final EquipmentInventory inventory;
+    public final EquipmentInventory equipmentInventory;
     public final AIManager aiManager;
     public final AbilityManager abilityManager;
 
@@ -77,12 +78,14 @@ public class BlocklingEntity extends TameableEntity implements INamedContainerPr
     private boolean hasWorked;
     private Vec3d hasMovedLastPosition = new Vec3d(0, 0, 0);
 
+    private BlockPos lastBlockPos = new BlockPos(0, 0, 0);
+
     private boolean firstTick = true;
 
     public BlocklingEntity(EntityType<? extends TameableEntity> type, World world)
     {
         super(type, world);
-        inventory = new EquipmentInventory(this);
+        equipmentInventory = new EquipmentInventory(this);
         aiManager = new AIManager(this);
         abilityManager = new AbilityManager(this);
         guiInfo = new BlocklingGuiInfo(-1, GuiHandler.STATS_ID, -1, -1, -1);
@@ -106,6 +109,8 @@ public class BlocklingEntity extends TameableEntity implements INamedContainerPr
         super.writeAdditional(c);
 
         c.putInt("blockling_type", BlocklingType.TYPES.indexOf(blocklingType));
+
+        stats.writeToNBT(c);
     }
 
     @Override
@@ -114,18 +119,24 @@ public class BlocklingEntity extends TameableEntity implements INamedContainerPr
         super.writeAdditional(c);
 
         blocklingType = BlocklingType.TYPES.get(c.getInt("blockling_type"));
+
+        stats.readFromNBT(c);
     }
 
     @Override
     public void writeSpawnData(PacketBuffer buf)
     {
         buf.writeInt(BlocklingType.TYPES.indexOf(blocklingType));
+
+        stats.writeToBuf(buf);
     }
 
     @Override
     public void readSpawnData(PacketBuffer buf)
     {
         blocklingType = BlocklingType.TYPES.get(buf.readInt());
+
+        stats.readFromBuf(buf);
     }
 
     @Override
@@ -160,14 +171,25 @@ public class BlocklingEntity extends TameableEntity implements INamedContainerPr
             setAttackTarget(null);
         }
 
+        if (!world.isRemote)
+        {
+            if (!lastBlockPos.equals(getPosition()) || thousandTimer % 20 == 0)
+            {
+                if (abilityManager.isBought(AbilityGroup.MINING, Abilities.Mining.FASTER_MINING_IN_DARK))
+                {
+                    float light = world.getLight(getPosition());
+                    stats.miningIntervalFasterMiningEnhancedAbilityModifier.setValue(((light / 15.0f) / 2.0f) + 0.5f);
+                }
+
+                lastBlockPos = getPosition();
+            }
+        }
+
         utilityManager.update();
 
-        inventory.detectAndSendChanges();
-        for (Utility utility : Utility.values()) // TODO:: CHANGE
-        {
-            utilityManager.getInventory1(utility).detectAndSendChanges();
-            utilityManager.getInventory2(utility).detectAndSendChanges();
-        }
+        equipmentInventory.detectAndSendChanges();
+        if (utilityManager.getInventory1() != null) utilityManager.getInventory1().detectAndSendChanges();
+        if (utilityManager.getInventory2() != null) utilityManager.getInventory2().detectAndSendChanges();
 
         updateHasWorked();
         updateActionTimer();
@@ -343,13 +365,13 @@ public class BlocklingEntity extends TameableEntity implements INamedContainerPr
     @Override
     public ItemStack getHeldItemMainhand()
     {
-        return inventory.getStackInSlot(EquipmentInventory.MAIN_SLOT);
+        return equipmentInventory.getStackInSlot(EquipmentInventory.MAIN_SLOT);
     }
 
     @Override
     public ItemStack getHeldItemOffhand()
     {
-        return inventory.getStackInSlot(EquipmentInventory.OFF_SLOT);
+        return equipmentInventory.getStackInSlot(EquipmentInventory.OFF_SLOT);
     }
 
     @Override
@@ -362,7 +384,7 @@ public class BlocklingEntity extends TameableEntity implements INamedContainerPr
     public void setHeldItem(Hand hand, ItemStack stack)
     {
         int slot = hand == Hand.MAIN_HAND ? EquipmentInventory.MAIN_SLOT : EquipmentInventory.OFF_SLOT;
-        inventory.setInventorySlotContents(slot, stack);
+        equipmentInventory.setInventorySlotContents(slot, stack);
     }
 
     public boolean isHoldingToolType(ToolType type, Hand hand)
@@ -376,7 +398,7 @@ public class BlocklingEntity extends TameableEntity implements INamedContainerPr
 
     public boolean hasToolType(ToolType type)
     {
-        return inventory.findToolType(type) != -1;
+        return equipmentInventory.findToolType(type) != -1;
     }
 
     public void switchToToolType(ToolType type)
@@ -390,22 +412,22 @@ public class BlocklingEntity extends TameableEntity implements INamedContainerPr
 
         if (mainType != type)
         {
-            int slot = inventory.findToolType(type, EquipmentInventory.INVENTORY_START_SLOT, EquipmentInventory.invSize - 1);
+            int slot = equipmentInventory.findToolType(type, EquipmentInventory.INVENTORY_START_SLOT, EquipmentInventory.invSize - 1);
             if (slot != -1)
             {
-                ItemStack newTool = inventory.getStackInSlot(slot);
+                ItemStack newTool = equipmentInventory.getStackInSlot(slot);
                 setHeldItem(Hand.MAIN_HAND, newTool);
-                inventory.setInventorySlotContents(slot, mainStack);
+                equipmentInventory.setInventorySlotContents(slot, mainStack);
             }
         }
         if (offType != type)
         {
-            int slot = inventory.findToolType(type, EquipmentInventory.INVENTORY_START_SLOT, EquipmentInventory.invSize - 1);
+            int slot = equipmentInventory.findToolType(type, EquipmentInventory.INVENTORY_START_SLOT, EquipmentInventory.invSize - 1);
             if (slot != -1)
             {
-                ItemStack newTool = inventory.getStackInSlot(slot);
+                ItemStack newTool = equipmentInventory.getStackInSlot(slot);
                 setHeldItem(Hand.OFF_HAND, newTool);
-                inventory.setInventorySlotContents(slot, offStack);
+                equipmentInventory.setInventorySlotContents(slot, offStack);
             }
         }
     }
@@ -421,7 +443,7 @@ public class BlocklingEntity extends TameableEntity implements INamedContainerPr
     @Override
     public Container createMenu(int id, PlayerInventory inv, PlayerEntity player)
     {
-        return new EquipmentContainer(id, inv, inventory);
+        return new EquipmentContainer(id, player, equipmentInventory);
     }
 
     @Override

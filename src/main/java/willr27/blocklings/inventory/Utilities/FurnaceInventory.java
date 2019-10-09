@@ -4,8 +4,12 @@ import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.AbstractCookingRecipe;
 import net.minecraft.item.crafting.FurnaceRecipe;
+import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.item.crafting.IRecipeType;
+import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeHooks;
+import willr27.blocklings.abilities.Abilities;
+import willr27.blocklings.abilities.AbilityGroup;
 import willr27.blocklings.entity.blockling.BlocklingEntity;
 import willr27.blocklings.utilities.Utility;
 
@@ -67,9 +71,19 @@ public class FurnaceInventory extends UtilityInventory
                     {
                         if (!world.isRemote)
                         {
-                            ItemStack resultStack = getRecipe(inputStack).get().getRecipeOutput();
+                            IRecipe recipe = getRecipe(inputStack).get();
+                            ItemStack resultStack = recipe.getRecipeOutput();
                             addItem(resultStack.copy(), OUTPUT_SLOT);
                             decrStackSize(INPUT_SLOT, 1);
+
+                            if (blockling.abilityManager.isBought(AbilityGroup.MINING, Abilities.Mining.AUTOSMELT_XP))
+                            {
+                                if (recipe instanceof AbstractCookingRecipe)
+                                {
+                                    float xp = ((AbstractCookingRecipe)recipe).getExperience();
+                                    blockling.getStats().miningXp.incBaseValue(xp);
+                                }
+                            }
                         }
 
                         smeltCount = 0;
@@ -116,14 +130,33 @@ public class FurnaceInventory extends UtilityInventory
         {
             return;
         }
-        // TODO: BUCKETS OF LAVA
+
         ItemStack inputStack = getStackInSlot(INPUT_SLOT);
         if (canSmelt(inputStack))
         {
             burning = true;
             burnTime = ForgeHooks.getBurnTime(fuelStack);
             burnCount = 0;
-            decrStackSize(FUEL_SLOT, 1);
+
+            if (!world.isRemote)
+            {
+                if (fuelStack.hasContainerItem())
+                {
+                    setInventorySlotContents(FUEL_SLOT, fuelStack.getContainerItem());
+                }
+                else
+                {
+                    int amount = 1;
+                    if (blockling.abilityManager.isBought(AbilityGroup.MINING, Abilities.Mining.FUEL_EFFICIENT))
+                    {
+                        if (blockling.random.nextInt(2) == 0)
+                        {
+                            amount = 0;
+                        }
+                    }
+                    decrStackSize(FUEL_SLOT, amount);
+                }
+            }
         }
     }
 
@@ -150,12 +183,27 @@ public class FurnaceInventory extends UtilityInventory
 
     private Optional<FurnaceRecipe> getRecipe(ItemStack stack)
     {
+        return getRecipe(world, stack);
+    }
+
+    private static Optional<FurnaceRecipe> getRecipe(World world, ItemStack stack)
+    {
         return world.getRecipeManager().getRecipe(IRecipeType.SMELTING, new Inventory(stack), world);
     }
 
     private int getSmeltTime(ItemStack stack)
     {
-        return getRecipe(stack).map(AbstractCookingRecipe::getCookTime).orElse(200);
+        return  getSmeltTime(world, stack);
+    }
+
+    private static int getSmeltTime(World world, ItemStack stack)
+    {
+        return getRecipe(world, stack).map(AbstractCookingRecipe::getCookTime).orElse(200);
+    }
+
+    public static boolean isSmeltable(World world, ItemStack stack)
+    {
+        return getRecipe(world, stack).isPresent();
     }
 
     public boolean isBurning()

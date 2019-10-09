@@ -6,9 +6,9 @@ import net.minecraft.network.datasync.EntityDataManager;
 import willr27.blocklings.entity.blockling.BlocklingEntity;
 import willr27.blocklings.inventory.AbstractInventory;
 import willr27.blocklings.inventory.Utilities.FurnaceInventory;
-
-import java.util.HashMap;
-import java.util.Map;
+import willr27.blocklings.inventory.Utilities.UtilityInventory;
+import willr27.blocklings.network.NetworkHandler;
+import willr27.blocklings.network.messages.UtilityInventoryMessage;
 
 public class UtilityManager
 {
@@ -17,18 +17,12 @@ public class UtilityManager
 
     private BlocklingEntity blockling;
 
-    private Map<Utility, AbstractInventory> inventories1 = new HashMap<>();
-    private Map<Utility, AbstractInventory> inventories2 = new HashMap<>();
+    private UtilityInventory inv1 = null;
+    private UtilityInventory inv2 = null;
 
     public UtilityManager(BlocklingEntity blockling)
     {
         this.blockling = blockling;
-
-        for (Utility utility : Utility.values())
-        {
-            inventories1.put(utility, utility.inventory.apply(blockling, 1));
-            inventories2.put(utility, utility.inventory.apply(blockling, 2));
-        }
     }
 
     public void registerUtilities()
@@ -39,8 +33,25 @@ public class UtilityManager
 
     public void update()
     {
-        ((FurnaceInventory) getInventory1(Utility.FURNACE)).tick();
-        ((FurnaceInventory) getInventory2(Utility.FURNACE)).tick();
+        if (getInventory1() instanceof FurnaceInventory) ((FurnaceInventory) getInventory1()).tick();
+        if (getInventory2() instanceof FurnaceInventory) ((FurnaceInventory) getInventory2()).tick();
+    }
+
+    public boolean hasUtility(Utility utility)
+    {
+        return hasUtility(utility, 1) || hasUtility(utility, 2);
+    }
+    public boolean hasUtility(Utility utility, int index)
+    {
+        return getUtility(index) == utility;
+    }
+    public boolean hasUtility1(Utility utility)
+    {
+        return hasUtility(utility, 1);
+    }
+    public boolean hasUtility2(Utility utility)
+    {
+        return hasUtility(utility, 2);
     }
 
     public Utility getUtility(int index)
@@ -65,23 +76,48 @@ public class UtilityManager
     }
     public void setUtility1(Utility utility)
     {
+        setInventory1(utility);
+        if (utility != null) NetworkHandler.sendToAll(blockling.world, new UtilityInventoryMessage(utility, 1, blockling.getEntityId()));
         blockling.getDataManager().set(UTILITY_1, utility == null ? -1 : utility.ordinal());
     }
     public void setUtility2(Utility utility)
     {
+        setInventory2(utility);
+        if (utility != null) NetworkHandler.sendToAll(blockling.world, new UtilityInventoryMessage(utility, 2, blockling.getEntityId()));
         blockling.getDataManager().set(UTILITY_2, utility == null ? -1 : utility.ordinal());
     }
 
-    public AbstractInventory getInventory(Utility utility, int index)
+    public AbstractInventory getInventory(int index)
     {
-        return index == 1 ? getInventory1(utility) : getInventory2(utility);
+        return index == 1 ? getInventory1() : getInventory2();
     }
-    public AbstractInventory getInventory1(Utility utility)
+    public AbstractInventory getInventory1()
     {
-        return inventories1.get(utility);
+        return inv1;
     }
-    public AbstractInventory getInventory2(Utility utility)
+    public AbstractInventory getInventory2()
     {
-        return inventories2.get(utility);
+        return inv2;
+    }
+    public void setInventory(Utility utility, int index)
+    {
+        if (index == 1) setInventory1(utility);
+        else setInventory2(utility);
+    }
+    public void setInventory1(Utility utility)
+    {
+        if (utility != getUtility1())
+        {
+            if (inv1 != null) inv1.close();
+            inv1 = utility == null ? null : utility.inventory.apply(blockling, 1);
+        }
+    }
+    public void setInventory2(Utility utility)
+    {
+        if (utility != getUtility2())
+        {
+            if (inv2 != null) inv2.close();
+            inv2 = utility == null ? null : utility.inventory.apply(blockling, 2);
+        }
     }
 }

@@ -215,7 +215,7 @@ public class TasksScreen extends Screen
             }
             else
             {
-                text.add(TextFormatting.WHITE + "" + TextFormatting.ITALIC + "" + TextFormatting.UNDERLINE + "Hold shift...");
+                text.add(TextFormatting.WHITE + "" + TextFormatting.ITALIC + "" + "Hold shift...");
             }
             renderTooltip(text, mouseX, mouseY);
         }

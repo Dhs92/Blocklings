@@ -98,8 +98,8 @@ public class GuiHandler
     {
         switch (guiId)
         {
-            case EQUIPMENT_ID: return new EquipmentContainer(windowId, player.inventory, blockling.inventory);
-            case UTILITY_ID: return new UtilityContainer(windowId, player.inventory, blockling);
+            case EQUIPMENT_ID: return new EquipmentContainer(windowId, player, blockling.equipmentInventory);
+            case UTILITY_ID: return new UtilityContainer(windowId, player, blockling);
         }
 
         return null;

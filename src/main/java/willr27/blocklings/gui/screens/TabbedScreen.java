@@ -87,13 +87,13 @@ public class TabbedScreen extends AbstractGui
                 if (tab == Tab.UTILITY_1)
                 {
                     RenderHelper.enableGUIStandardItemLighting();
-                    Minecraft.getInstance().getItemRenderer().renderItemIntoGUI(blockling.inventory.getStackInSlot(EquipmentInventory.UTILITY_SLOT_1), getLeftIconOnX(i) + 3, getLeftIconOnY(i) + 3);
+                    Minecraft.getInstance().getItemRenderer().renderItemIntoGUI(blockling.equipmentInventory.getStackInSlot(EquipmentInventory.UTILITY_SLOT_1), getLeftIconOnX(i) + 3, getLeftIconOnY(i) + 3);
                     GuiUtil.bindTexture(GuiUtil.TABS);
                 }
                 else if (tab == Tab.UTILITY_2)
                 {
                     RenderHelper.enableGUIStandardItemLighting();
-                    Minecraft.getInstance().getItemRenderer().renderItemIntoGUI(blockling.inventory.getStackInSlot(EquipmentInventory.UTILITY_SLOT_2), getLeftIconOnX(i) + 3, getLeftIconOnY(i) + 3);
+                    Minecraft.getInstance().getItemRenderer().renderItemIntoGUI(blockling.equipmentInventory.getStackInSlot(EquipmentInventory.UTILITY_SLOT_2), getLeftIconOnX(i) + 3, getLeftIconOnY(i) + 3);
                     GuiUtil.bindTexture(GuiUtil.TABS);
                 }
                 else
@@ -108,13 +108,13 @@ public class TabbedScreen extends AbstractGui
                 if (tab == Tab.UTILITY_1)
                 {
                     RenderHelper.enableGUIStandardItemLighting();
-                    Minecraft.getInstance().getItemRenderer().renderItemIntoGUI(blockling.inventory.getStackInSlot(EquipmentInventory.UTILITY_SLOT_1), getLeftIconOffX(i) + 3, getLeftIconOffY(i) + 3);
+                    Minecraft.getInstance().getItemRenderer().renderItemIntoGUI(blockling.equipmentInventory.getStackInSlot(EquipmentInventory.UTILITY_SLOT_1), getLeftIconOffX(i) + 3, getLeftIconOffY(i) + 3);
                     GuiUtil.bindTexture(GuiUtil.TABS);
                 }
                 else if (tab == Tab.UTILITY_2)
                 {
                     RenderHelper.enableGUIStandardItemLighting();
-                    Minecraft.getInstance().getItemRenderer().renderItemIntoGUI(blockling.inventory.getStackInSlot(EquipmentInventory.UTILITY_SLOT_2), getLeftIconOffX(i) + 3, getLeftIconOffY(i) + 3);
+                    Minecraft.getInstance().getItemRenderer().renderItemIntoGUI(blockling.equipmentInventory.getStackInSlot(EquipmentInventory.UTILITY_SLOT_2), getLeftIconOffX(i) + 3, getLeftIconOffY(i) + 3);
                     GuiUtil.bindTexture(GuiUtil.TABS);
                 }
                 else

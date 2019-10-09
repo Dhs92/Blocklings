@@ -191,14 +191,17 @@ public abstract class AbstractInventory implements IInventory
 
     public void detectAndSendChanges()
     {
-        for (int i = 0; i < invSize; i++)
+        if (!world.isRemote)
         {
-            ItemStack oldStack = stacksCopy[i];
-            ItemStack newStack = stacks[i];
-            if (!ItemStack.areItemStacksEqual(oldStack, newStack))
+            for (int i = 0; i < invSize; i++)
             {
-                NetworkHandler.sync(blockling.world, new InventoryMessage(null, -1, newStack, i, blockling.getEntityId()));
-                stacksCopy[i] = newStack.copy();
+                ItemStack oldStack = stacksCopy[i];
+                ItemStack newStack = stacks[i];
+                if (!ItemStack.areItemStacksEqual(oldStack, newStack))
+                {
+                    NetworkHandler.sync(blockling.world, new InventoryMessage(null, -1, newStack, i, blockling.getEntityId()));
+                    stacksCopy[i] = newStack.copy();
+                }
             }
         }
     }

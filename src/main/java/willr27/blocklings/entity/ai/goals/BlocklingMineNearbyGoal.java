@@ -117,15 +117,17 @@ public class BlocklingMineNearbyGoal extends Goal
                     ItemStack offStack = blockling.isHoldingToolType(TOOL_TYPE, Hand.OFF_HAND) ? blockling.getHeldItemOffhand() : ItemStack.EMPTY;
                     List<ItemStack> drops = DropUtil.getDrops(blockling, targetPos, mainStack, offStack);
                     addDropsToInventoryOrWorld(drops, targetPos);
-                    mainStack.attemptDamageItem(1, new Random(), null);
-                    offStack.attemptDamageItem(1, new Random(), null);
+
+                    int itemDamage = blockling.abilityManager.isBought(AbilityGroup.MINING, Abilities.Mining.FASTER_MINING_FOR_DURABILITY) ? 2 : 1;
+                    mainStack.attemptDamageItem(itemDamage, new Random(), null);
+                    offStack.attemptDamageItem(itemDamage, new Random(), null);
 
                     world.destroyBlock(targetPos, false);
                     vein.remove(targetPos);
                     resetTarget();
 
                     oresMined++;
-                    if (blockling.abilityManager.getGroup(AbilityGroup.MINING).getState(Abilities.Mining.FASTER_MINING_FOR_ORES) == AbilityState.BOUGHT)
+                    if (blockling.abilityManager.isBought(AbilityGroup.MINING, Abilities.Mining.FASTER_MINING_FOR_ORES))
                     {
                         blockling.getStats().miningIntervalFasterMiningEnhancedAbilityModifier.setValue(Math.max(0.5f, 1.0f - (oresMined / 25.0f)));
                     }
@@ -157,7 +159,7 @@ public class BlocklingMineNearbyGoal extends Goal
     {
         for (ItemStack stack : drops)
         {
-            ItemStack remainderStack = blockling.inventory.addItem(stack);
+            ItemStack remainderStack = blockling.equipmentInventory.addItem(stack);
             if (!remainderStack.isEmpty()) InventoryHelper.spawnItemStack(world, dropPos.getX() + 0.5, dropPos.getY() + 0.5, dropPos.getZ() + 0.5, remainderStack);
         }
     }

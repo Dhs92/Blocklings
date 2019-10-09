@@ -25,6 +25,9 @@ public class AIManager
     public static final int CHOP_NEARBY_ID = id++;
     public static final int FARM_NEARBY_ID = id++;
 
+    public static final int AUTOMSELT_ID = id++;
+    public static final int PLACE_TORCHES_ID = id++;
+
     static { id = 0; }
     public static final int HURT_BY_WHITELIST_ID = id++;
     public static final int OWNER_HURT_BY_WHITELIST_ID = id++;
@@ -33,6 +36,8 @@ public class AIManager
     public static final int CHOP_NEARBY_LOGS_WHITELIST_ID = id++;
     public static final int FARM_NEARBY_CROPS_CROPS_WHITELIST_ID = id++;
     public static final int FARM_NEARBY_CROPS_SEEDS_WHITELIST_ID = id++;
+
+    public static final int AUTOMSELT_ORES_WHITELIST_ID = id++;
 
     public static final Map<Integer, int[]> GOALS_TO_WHITELISTS = new LinkedHashMap<>();
     static
@@ -43,7 +48,11 @@ public class AIManager
         GOALS_TO_WHITELISTS.put(MINE_NEARBY_ID, new int[] {MINE_NEARBY_ORES_WHITELIST_ID});
         GOALS_TO_WHITELISTS.put(CHOP_NEARBY_ID, new int[] {CHOP_NEARBY_LOGS_WHITELIST_ID});
         GOALS_TO_WHITELISTS.put(FARM_NEARBY_ID, new int[] {FARM_NEARBY_CROPS_CROPS_WHITELIST_ID, FARM_NEARBY_CROPS_SEEDS_WHITELIST_ID});
+
+        GOALS_TO_WHITELISTS.put(AUTOMSELT_ID, new int[] {AUTOMSELT_ORES_WHITELIST_ID});
     }
+
+    public BlocklingWhitelist autosmeltOresWhitelist;
 
     public BlocklingEntity blockling;
 
@@ -59,15 +68,18 @@ public class AIManager
     {
         int i = 1;
         blockling.goalSelector.addGoal(0 , new SwimGoal(blockling));
-        goals.add(new GoalInfo(this, ATTACK_MELEE_ID, "Melee Attack", "The blockling will use melee attacks to attack its target", new BlocklingAttackMeleeGoal(blockling), true, false, i++, 4, 0));
-        goals.add(new GoalInfo(this, HURT_BY_ID, "Retaliate", "If something attacks the blockling it will attack back", new BlocklingAttackedGoal(blockling), true, false, i++, 3, 0));
-        goals.add(new GoalInfo(this, OWNER_HURT_BY_ID, "Attack Owner's Attacker", "If something attacks the blockling's owner the blockling will attack it", new BlocklingOwnerAttackedGoal(blockling), true, false, i++, 3, 0));
-        goals.add(new GoalInfo(this, OWNER_HURT_ID, "Attack Owner's Target", "If the blockling's owner attacks something the blockling will attack it too", new BlocklingOwnerAttackGoal(blockling), true, false, i++, 3, 0));
-        goals.add(new GoalInfo(this, MINE_NEARBY_ID, "Mine Nearby Ores", "The blockling will mine nearby ores using a pickaxe", new BlocklingMineNearbyGoal(blockling), false, false, i++, 6, 0));
-        goals.add(new GoalInfo(this, CHOP_NEARBY_ID, "Chop Nearby Trees", "The blockling will chop nearby tress using an axe", new BlocklingChopNearbyGoal(blockling), true, false, i++, 7, 0));
-        goals.add(new GoalInfo(this, FARM_NEARBY_ID, "Farm Nearby Crops", "The blockling will harvest and replant nearby crops using a hoe", new BlocklingFarmCropsNearbyGoal(blockling), true, false, i++, 8, 0));
-        goals.add(new GoalInfo(this, FOLLOW_ID, "Follow", "The blockling will follow its owner around like a tamed wolf", new BlocklingFollowOwnerGoal(blockling), true, false, i++, 1, 0));
-        goals.add(new GoalInfo(this, WANDER_ID, "Wander", "The blockling is free to wander wherever it wants", new BlocklingWanderGoal(blockling), true, false, i++, 2, 0));
+        goals.add(new GoalInfo(this, ATTACK_MELEE_ID, "Melee Attack", "Your blockling will use melee attacks to attack its target.", new BlocklingAttackMeleeGoal(blockling), true, false, i++, 4, 0));
+        goals.add(new GoalInfo(this, HURT_BY_ID, "Retaliate", "If something attacks your blockling it will attack back.", new BlocklingAttackedGoal(blockling), true, false, i++, 3, 0));
+        goals.add(new GoalInfo(this, OWNER_HURT_BY_ID, "Attack Owner's Attacker", "If something attacks you your blockling will attack it back.", new BlocklingOwnerAttackedGoal(blockling), true, false, i++, 3, 0));
+        goals.add(new GoalInfo(this, OWNER_HURT_ID, "Attack Owner's Target", "If you attack something your blockling will attack it too.", new BlocklingOwnerAttackGoal(blockling), true, false, i++, 3, 0));
+        goals.add(new GoalInfo(this, MINE_NEARBY_ID, "Mine Nearby Ores", "Your blockling will mine nearby ores using a pickaxe.", new BlocklingMineNearbyGoal(blockling), false, false, i++, 6, 0));
+        goals.add(new GoalInfo(this, CHOP_NEARBY_ID, "Chop Nearby Trees", "Your blockling will chop nearby tress using an axe.", new BlocklingChopNearbyGoal(blockling), true, false, i++, 7, 0));
+        goals.add(new GoalInfo(this, FARM_NEARBY_ID, "Farm Nearby Crops", "Your blockling will harvest and replant nearby crops using a hoe.", new BlocklingFarmCropsNearbyGoal(blockling), true, false, i++, 8, 0));
+        goals.add(new GoalInfo(this, FOLLOW_ID, "Follow", "Your blockling will follow your around.", new BlocklingFollowOwnerGoal(blockling), true, false, i++, 1, 0));
+        goals.add(new GoalInfo(this, WANDER_ID, "Wander", "Your blockling is free to wander wherever they want.", new BlocklingWanderGoal(blockling), true, false, i++, 2, 0));
+
+        goals.add(new GoalInfo(this, AUTOMSELT_ID, "Autosmelt", "Your blockling will try to smelt ores in their inventory if they have a furnace utility.", new BlocklingAutosmeltGoal(blockling), false, false, i++, 6, 0));
+        goals.add(new GoalInfo(this, PLACE_TORCHES_ID, "Place Torches", "Your blockling will place torches in low light levels.", new BlocklingPlaceTorchesGoal(blockling), false, false, i++, 2, 0));
 
         addWhitelists();
         reapplyGoals();
@@ -104,6 +116,9 @@ public class AIManager
         BlocklingWhitelist farmNearbySeedsWhitelist = new BlocklingWhitelist(FARM_NEARBY_CROPS_SEEDS_WHITELIST_ID, "Seeds", blockling, WhitelistType.ITEM);
         BlocklingsConfig.getCropsSeeds().values().stream().forEach(s -> farmNearbySeedsWhitelist.put(new ResourceLocation(s), true));
         getGoalFromId(FARM_NEARBY_ID).addWhitelist(FARM_NEARBY_CROPS_SEEDS_WHITELIST_ID, farmNearbySeedsWhitelist);
+
+        autosmeltOresWhitelist = new BlocklingWhitelist(AUTOMSELT_ORES_WHITELIST_ID, "Ores", blockling, WhitelistType.BLOCK);
+        BlocklingsConfig.getOres().stream().forEach(s -> autosmeltOresWhitelist.put(new ResourceLocation(s), true));
     }
 
     public void updateGoalsOrder(GoalInfo updatedGoal, int oldPriority, int newPriority)

@@ -6,7 +6,6 @@ import willr27.blocklings.entity.blockling.BlocklingEntity;
 import willr27.blocklings.gui.screens.TabbedScreen;
 import willr27.blocklings.gui.util.GuiUtil;
 import willr27.blocklings.inventory.Utilities.CraftingTableInventory;
-import willr27.blocklings.utilities.Utility;
 
 public class CraftingTableGui extends UtilityGui
 {
@@ -15,7 +14,7 @@ public class CraftingTableGui extends UtilityGui
     public CraftingTableGui(BlocklingEntity blockling, PlayerEntity player)
     {
         super(blockling, player);
-        this.craftingTableInventory = (CraftingTableInventory) blockling.getUtilityManager().getInventory(Utility.CRAFTING_TABLE, blockling.getGuiInfo().utility);
+        this.craftingTableInventory = (CraftingTableInventory) blockling.getUtilityManager().getInventory(blockling.getGuiInfo().utility);
     }
 
     @Override

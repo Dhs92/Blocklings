@@ -53,6 +53,7 @@ public class GoalInfo
 
     public Map<Integer, BlocklingWhitelist> getWhitelists() { return whitelists; }
     public void addWhitelist(int id, BlocklingWhitelist whitelist) { whitelists.put(id, whitelist); }
+    public void removeWhitelist(int id) { whitelists.remove(id); }
 
     public boolean hasWhitelist() { return !whitelists.isEmpty(); }
     public BlocklingWhitelist getWhitelist(int id) { return whitelists.get(id); }

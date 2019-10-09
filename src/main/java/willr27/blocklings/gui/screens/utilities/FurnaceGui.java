@@ -7,7 +7,6 @@ import willr27.blocklings.gui.screens.TabbedScreen;
 import willr27.blocklings.gui.util.GuiUtil;
 import willr27.blocklings.gui.util.widgets.PorgressWidget;
 import willr27.blocklings.inventory.Utilities.FurnaceInventory;
-import willr27.blocklings.utilities.Utility;
 
 public class FurnaceGui extends UtilityGui
 {
@@ -19,7 +18,7 @@ public class FurnaceGui extends UtilityGui
     public FurnaceGui(BlocklingEntity blockling, PlayerEntity player)
     {
         super(blockling, player);
-        this.furnaceInventory = (FurnaceInventory) blockling.getUtilityManager().getInventory(Utility.FURNACE, blockling.getGuiInfo().utility);
+        this.furnaceInventory = (FurnaceInventory) blockling.getUtilityManager().getInventory(blockling.getGuiInfo().utility);
     }
 
     @Override
