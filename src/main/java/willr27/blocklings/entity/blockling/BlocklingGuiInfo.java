@@ -7,10 +7,10 @@ public class BlocklingGuiInfo
     public final int currentlyOpenGuiId;
     public final int mostRecentTabbedGuiId;
     public final int currentlySelectedGoalId;
-    public final int abilityGroupId;
+    public final String abilityGroupId;
     public final int utility;
 
-    public BlocklingGuiInfo(int currentlyOpenGuiId, int mostRecentTabbedGuiId, int currentlySelectedGoalId, int abilityGroupId, int utility)
+    public BlocklingGuiInfo(int currentlyOpenGuiId, int mostRecentTabbedGuiId, int currentlySelectedGoalId, String abilityGroupId, int utility)
     {
         this.currentlyOpenGuiId = currentlyOpenGuiId;
         this.mostRecentTabbedGuiId = mostRecentTabbedGuiId;
@@ -24,12 +24,12 @@ public class BlocklingGuiInfo
         buf.writeInt(currentlyOpenGuiId);
         buf.writeInt(mostRecentTabbedGuiId);
         buf.writeInt(currentlySelectedGoalId);
-        buf.writeInt(abilityGroupId);
+        buf.writeString(abilityGroupId);
         buf.writeInt(utility);
     }
 
     public static BlocklingGuiInfo readFromBuf(PacketBuffer buf)
     {
-        return new BlocklingGuiInfo(buf.readInt(), buf.readInt(), buf.readInt(), buf.readInt(), buf.readInt());
+        return new BlocklingGuiInfo(buf.readInt(), buf.readInt(), buf.readInt(), buf.readString(), buf.readInt());
     }
 }

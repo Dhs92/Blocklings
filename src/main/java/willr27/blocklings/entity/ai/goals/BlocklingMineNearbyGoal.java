@@ -12,11 +12,14 @@ import net.minecraft.world.World;
 import willr27.blocklings.abilities.Abilities;
 import willr27.blocklings.abilities.AbilityGroup;
 import willr27.blocklings.abilities.AbilityState;
+import willr27.blocklings.block.BlockUtil;
 import willr27.blocklings.entity.ai.AIManager;
 import willr27.blocklings.entity.ai.AiUtil;
 import willr27.blocklings.entity.blockling.BlocklingEntity;
+import willr27.blocklings.inventory.InventoryUtil;
 import willr27.blocklings.item.DropUtil;
 import willr27.blocklings.item.ToolType;
+import willr27.blocklings.whitelist.BlocklingWhitelist;
 
 import java.util.*;
 
@@ -118,7 +121,7 @@ public class BlocklingMineNearbyGoal extends Goal
                     List<ItemStack> drops = DropUtil.getDrops(blockling, targetPos, mainStack, offStack);
                     addDropsToInventoryOrWorld(drops, targetPos);
 
-                    int itemDamage = blockling.abilityManager.isBought(AbilityGroup.MINING, Abilities.Mining.FASTER_MINING_FOR_DURABILITY) ? 2 : 1;
+                    int itemDamage = blockling.abilityManager.isBought(Abilities.Mining.FASTER_MINING_FOR_DURABILITY) ? 2 : 1;
                     mainStack.attemptDamageItem(itemDamage, new Random(), null);
                     offStack.attemptDamageItem(itemDamage, new Random(), null);
 
@@ -127,7 +130,7 @@ public class BlocklingMineNearbyGoal extends Goal
                     resetTarget();
 
                     oresMined++;
-                    if (blockling.abilityManager.isBought(AbilityGroup.MINING, Abilities.Mining.FASTER_MINING_FOR_ORES))
+                    if (blockling.abilityManager.isBought(Abilities.Mining.FASTER_MINING_FOR_ORES))
                     {
                         blockling.getStats().miningIntervalFasterMiningEnhancedAbilityModifier.setValue(Math.max(0.5f, 1.0f - (oresMined / 25.0f)));
                     }
@@ -159,7 +162,7 @@ public class BlocklingMineNearbyGoal extends Goal
     {
         for (ItemStack stack : drops)
         {
-            ItemStack remainderStack = blockling.equipmentInventory.addItem(stack);
+            ItemStack remainderStack = InventoryUtil.add(blockling, stack);
             if (!remainderStack.isEmpty()) InventoryHelper.spawnItemStack(world, dropPos.getX() + 0.5, dropPos.getY() + 0.5, dropPos.getZ() + 0.5, remainderStack);
         }
     }
@@ -171,7 +174,8 @@ public class BlocklingMineNearbyGoal extends Goal
             BlockState targetState = world.getBlockState(targetPos);
             Block targetBlock = targetState.getBlock();
 
-            if (blockling.aiManager.getWhitelist(AIManager.MINE_NEARBY_ID, AIManager.MINE_NEARBY_ORES_WHITELIST_ID).isInBlacklist(targetBlock))
+            BlocklingWhitelist whitelist = blockling.aiManager.getWhitelist(AIManager.MINE_NEARBY_ID, AIManager.MINE_NEARBY_ORES_WHITELIST_ID);
+            if (!BlockUtil.isOre (targetBlock) || (whitelist != null && whitelist.isInBlacklist(targetBlock)))
             {
                 vein.remove(targetPos);
                 resetTarget();
@@ -252,7 +256,8 @@ public class BlocklingMineNearbyGoal extends Goal
                         continue;
                     }
 
-                    if (blockling.aiManager.getWhitelist(AIManager.MINE_NEARBY_ID, AIManager.MINE_NEARBY_ORES_WHITELIST_ID).isInWhitelist(testBlock))
+                    BlocklingWhitelist whitelist = blockling.aiManager.getWhitelist(AIManager.MINE_NEARBY_ID, AIManager.MINE_NEARBY_ORES_WHITELIST_ID);
+                    if ((whitelist == null && BlockUtil.isOre(testBlock)) || (whitelist != null && whitelist.isInWhitelist(testBlock)))
                     {
                         if (AiUtil.canSeeBlock(blockling, testPos))
                         {
@@ -322,7 +327,8 @@ public class BlocklingMineNearbyGoal extends Goal
                             continue;
                         }
 
-                        if (blockling.aiManager.getWhitelist(AIManager.MINE_NEARBY_ID, AIManager.MINE_NEARBY_ORES_WHITELIST_ID).isInWhitelist(surroundingBlock))
+                        BlocklingWhitelist whitelist = blockling.aiManager.getWhitelist(AIManager.MINE_NEARBY_ID, AIManager.MINE_NEARBY_ORES_WHITELIST_ID);
+                        if ((whitelist == null && BlockUtil.isOre(surroundingBlock)) || (whitelist != null && whitelist.isInWhitelist(surroundingBlock)))
                         {
                             positionsToTest.add(surroundingPos);
                         }

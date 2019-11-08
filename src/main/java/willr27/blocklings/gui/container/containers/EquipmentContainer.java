@@ -25,7 +25,19 @@ public class EquipmentContainer extends Container
 
         if (!player.world.isRemote)
         {
-            addListener(((ServerPlayerEntity)player));
+            addListener(new PlayerContainerListener((ServerPlayerEntity) player));
+        }
+
+        for (int i = 0; i < 3; i++)
+        {
+            for (int j = 0; j < 9; j++)
+            {
+                addSlot(new Slot(player.inventory, j + i * 9 + 9, playerInvX + (j * 18), playerInvY + (i * 18)));
+            }
+        }
+        for (int i = 0; i < 9; i++)
+        {
+            addSlot(new Slot(player.inventory, i, playerInvX + (i * 18), playerInvY + 58));
         }
 
         addSlot(new Slot(blocklingInv, EquipmentInventory.MAIN_SLOT, 12, 52));
@@ -41,17 +53,6 @@ public class EquipmentContainer extends Container
             }
         }
 
-        for (int i = 0; i < 3; i++)
-        {
-            for (int j = 0; j < 9; j++)
-            {
-                addSlot(new Slot(player.inventory, j + i * 9 + 9, playerInvX + (j * 18), playerInvY + (i * 18)));
-            }
-        }
-        for (int i = 0; i < 9; i++)
-        {
-            addSlot(new Slot(player.inventory, i, playerInvX + (i * 18), playerInvY + 58));
-        }
     }
 
     @Override

@@ -14,8 +14,8 @@ import java.util.function.Supplier;
 
 public class AbilityBoughtMessage implements IMessage
 {
-    int abilityId;
-    int groupId;
+    String abilityId;
+    String groupId;
     int entityId;
 
     private AbilityBoughtMessage() {}
@@ -28,16 +28,16 @@ public class AbilityBoughtMessage implements IMessage
 
     public static void encode(AbilityBoughtMessage msg, PacketBuffer buf)
     {
-        buf.writeInt(msg.abilityId);
-        buf.writeInt(msg.groupId);
+        buf.writeString(msg.abilityId);
+        buf.writeString(msg.groupId);
         buf.writeInt(msg.entityId);
     }
 
     public static AbilityBoughtMessage decode(PacketBuffer buf)
     {
         AbilityBoughtMessage msg = new AbilityBoughtMessage();
-        msg.abilityId = buf.readInt();
-        msg.groupId = buf.readInt();
+        msg.abilityId = buf.readString();
+        msg.groupId = buf.readString();
         msg.entityId = buf.readInt();
 
         return msg;

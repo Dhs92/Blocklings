@@ -111,7 +111,7 @@ public class TasksScreen extends Screen
             {
                 if (GuiUtil.isKeyDown(340) && hoveredGoal.hasWhitelist())
                 {
-                    blockling.openGui(player, GuiHandler.WHITELIST_ID, hoveredGoal.goalId, -1, -1);
+                    blockling.openGui(player, GuiHandler.WHITELIST_ID, hoveredGoal.goalId, "", -1);
                 }
                 else
                 {

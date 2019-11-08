@@ -80,19 +80,42 @@ public class BlockUtil
     }
 
 
-    public static List<Block> LOGS = new ArrayList<>();
+    public static Map<Block, Block> LOGS_SAPLINGS = new HashMap<>();
     static
     {
-        LOGS.add(Blocks.ACACIA_LOG);
-        LOGS.add(Blocks.BIRCH_LOG);
-        LOGS.add(Blocks.DARK_OAK_LOG);
-        LOGS.add(Blocks.JUNGLE_LOG);
-        LOGS.add(Blocks.OAK_LOG);
-        LOGS.add(Blocks.SPRUCE_LOG);
+        LOGS_SAPLINGS.put(Blocks.ACACIA_LOG, Blocks.ACACIA_SAPLING);
+        LOGS_SAPLINGS.put(Blocks.BIRCH_LOG, Blocks.BIRCH_SAPLING);
+        LOGS_SAPLINGS.put(Blocks.DARK_OAK_LOG, Blocks.DARK_OAK_SAPLING);
+        LOGS_SAPLINGS.put(Blocks.JUNGLE_LOG, Blocks.JUNGLE_SAPLING);
+        LOGS_SAPLINGS.put(Blocks.OAK_LOG, Blocks.OAK_SAPLING);
+        LOGS_SAPLINGS.put(Blocks.SPRUCE_LOG, Blocks.SPRUCE_SAPLING);
     }
     public static boolean isLog(Block block)
     {
-        return LOGS.contains(block);
+        return LOGS_SAPLINGS.keySet().contains(block);
+    }
+    public static boolean isSapling(Block block)
+    {
+        return LOGS_SAPLINGS.values().contains(block);
+    }
+    public static Block getSapling(Block log)
+    {
+        return LOGS_SAPLINGS.get(log);
+    }
+
+    public static List<Block> LEAVES = new ArrayList<>();
+    static
+    {
+        LEAVES.add(Blocks.ACACIA_LEAVES);
+        LEAVES.add(Blocks.BIRCH_LEAVES);
+        LEAVES.add(Blocks.DARK_OAK_LEAVES);
+        LEAVES.add(Blocks.JUNGLE_LEAVES);
+        LEAVES.add(Blocks.OAK_LEAVES);
+        LEAVES.add(Blocks.SPRUCE_LEAVES);
+    }
+    public static boolean isLeaf(Block block)
+    {
+        return LEAVES.contains(block);
     }
 
 
@@ -112,7 +135,6 @@ public class BlockUtil
     {
         return ((CropsBlock)state.getBlock()).isMaxAge(state);
     }
-
     public static boolean isSeed(Item item)
     {
         return CROPS_SEEDS.values().contains(item);

@@ -4,9 +4,11 @@ import net.minecraft.block.Blocks;
 import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.item.Items;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.LightType;
 import net.minecraft.world.World;
 import willr27.blocklings.entity.ai.AIManager;
 import willr27.blocklings.entity.blockling.BlocklingEntity;
+import willr27.blocklings.inventory.AbstractInventory;
 import willr27.blocklings.inventory.Utilities.ChestInventory;
 
 import java.util.EnumSet;
@@ -15,6 +17,9 @@ public class BlocklingPlaceTorchesGoal extends Goal
 {
     private BlocklingEntity blockling;
     private World world;
+
+    public int delay = 30;
+    public int lightLevel = 1;
 
     public BlocklingPlaceTorchesGoal(BlocklingEntity blockling)
     {
@@ -28,10 +33,15 @@ public class BlocklingPlaceTorchesGoal extends Goal
     {
         if (!blockling.aiManager.isActive(AIManager.PLACE_TORCHES_ID)) return false;
 
-        if (blockling.getThousandTimer() % 40 != 0) return false;
+        if (blockling.getThousandTimer() % delay != 0) return false;
 
         BlockPos pos = blockling.getPosition();
-        if (world.getLight(pos) < 7)
+        if (!world.getBlockState(pos).isAir(world, pos))
+        {
+            return false;
+        }
+
+        if (world.getLightFor(LightType.BLOCK, pos) < lightLevel)
         {
             boolean placedTorch = false;
             int index = blockling.equipmentInventory.find(Items.TORCH);
@@ -44,9 +54,10 @@ public class BlocklingPlaceTorchesGoal extends Goal
 
             if (!placedTorch)
             {
-                ChestInventory inv = (ChestInventory) blockling.getUtilityManager().getInventory1();
-                if (inv != null)
+                AbstractInventory invent = blockling.getUtilityManager().getInventory1();
+                if (invent != null && invent instanceof ChestInventory)
                 {
+                    ChestInventory inv = (ChestInventory) invent;
                     index = inv.find(Items.TORCH);
                     if (index != -1)
                     {
@@ -59,9 +70,10 @@ public class BlocklingPlaceTorchesGoal extends Goal
 
             if (!placedTorch)
             {
-                ChestInventory inv = (ChestInventory) blockling.getUtilityManager().getInventory2();
-                if (inv != null)
+                AbstractInventory invent = blockling.getUtilityManager().getInventory1();
+                if (invent != null && invent instanceof ChestInventory)
                 {
+                    ChestInventory inv = (ChestInventory) invent;
                     index = inv.find(Items.TORCH);
                     if (index != -1)
                     {

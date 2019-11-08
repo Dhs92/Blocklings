@@ -190,7 +190,7 @@ public class TabbedScreen extends AbstractGui
                 utility = 2;
             }
 
-            blockling.openGui(player, guiId, -1, hoveredTab.textureX, utility); // TODO: REPLACE TEXTUREX
+            blockling.openGui(player, guiId, -1, hoveredTab.abilityGroupId, utility); // TODO: REPLACE TEXTUREX
             return true;
         }
 

@@ -31,9 +31,13 @@ public class BlocklingStats
     public final BlocklingAttribute woodcuttingInterval;
     public final BlocklingAttributeModifier woodcuttingIntervalLevelModifier;
     public final BlocklingAttributeModifier woodcuttingIntervalToolModifier;
+    public final BlocklingAttributeModifier woodcuttingIntervalFasterChoppingAbilityModifier;
+    public final BlocklingAttributeModifier woodcuttingIntervalFasterChoppingEnhancedAbilityModifier;
     public final BlocklingAttribute farmingInterval;
     public final BlocklingAttributeModifier farmingIntervalLevelModifier;
     public final BlocklingAttributeModifier farmingIntervalToolModifier;
+    public final BlocklingAttributeModifier farmingIntervalFasterFarmingAbilityModifier;
+    public final BlocklingAttributeModifier farmingIntervalFasterFarmingEnhancedAbilityModifier;
 
     public final BlocklingAttribute combatLevel;
     public final BlocklingAttribute miningLevel;
@@ -87,9 +91,13 @@ public class BlocklingStats
         woodcuttingInterval = createAttribute("woodcuttingInterval", "Woodcutting Interval", 10.0f, true);
         woodcuttingIntervalLevelModifier = createAttributeModifier(woodcuttingInterval, "woodcuttingIntervalLevelModifier", 0.0f, BlocklingAttributeModifier.Operation.ADDITION);
         woodcuttingIntervalToolModifier = createAttributeModifier(woodcuttingInterval, "woodcuttingIntervalToolModifier", 0.75f, BlocklingAttributeModifier.Operation.MULTIPLY_TOTAL);
+        woodcuttingIntervalFasterChoppingAbilityModifier = createAttributeModifier(woodcuttingInterval, "woodcuttingIntervalFasterChoppingAbilityModifier", 0.9f, BlocklingAttributeModifier.Operation.MULTIPLY_TOTAL);
+        woodcuttingIntervalFasterChoppingEnhancedAbilityModifier = createAttributeModifier(woodcuttingInterval, "woodcuttingIntervalFasterChoppingEnhancedAbilityModifier", 0.9f, BlocklingAttributeModifier.Operation.MULTIPLY_TOTAL);
         farmingInterval = createAttribute("farmingInterval", "Farming Interval", 10.0f, true);
         farmingIntervalLevelModifier = createAttributeModifier(farmingInterval, "farmingIntervalLevelModifier", 0.0f, BlocklingAttributeModifier.Operation.ADDITION);
         farmingIntervalToolModifier = createAttributeModifier(farmingInterval, "farmingIntervalToolModifier", 0.75f, BlocklingAttributeModifier.Operation.MULTIPLY_TOTAL);
+        farmingIntervalFasterFarmingAbilityModifier = createAttributeModifier(farmingInterval, "farmingIntervalFasterFarmingAbilityModifier", 0.9f, BlocklingAttributeModifier.Operation.MULTIPLY_TOTAL);
+        farmingIntervalFasterFarmingEnhancedAbilityModifier = createAttributeModifier(farmingInterval, "farmingIntervalFasterFarmingEnhancedAbilityModifier", 0.9f, BlocklingAttributeModifier.Operation.MULTIPLY_TOTAL);
 
         combatLevel = createAttribute("combatLevel", "Combat Level", 50, true);
         combatLevel.setCallback(() -> { combatIntervalLevelModifier.setValue(calcBreakSpeedFromLevel((int) combatLevel.getFloat())); updateCombatLevelBonuses(); });
@@ -100,7 +108,7 @@ public class BlocklingStats
         woodcuttingLevel = createAttribute("woodcuttingLevel", "Woodcutting Level", 50, true);
         woodcuttingLevel.setCallback(() -> { woodcuttingIntervalLevelModifier.setValue(calcBreakSpeedFromLevel((int) woodcuttingLevel.getFloat())); });
         levels.add(woodcuttingLevel);
-        farmingLevel = createAttribute("farmingLevel", "Farming Level", 50, true);
+        farmingLevel = createAttribute("farmingLevel", "Farming Level", 70, true);
         farmingLevel.setCallback(() -> { farmingIntervalLevelModifier.setValue(calcBreakSpeedFromLevel((int) farmingLevel.getFloat())); });
         levels.add(farmingLevel);
 

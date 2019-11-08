@@ -88,7 +88,7 @@ public class BlocklingEntity extends TameableEntity implements INamedContainerPr
         equipmentInventory = new EquipmentInventory(this);
         aiManager = new AIManager(this);
         abilityManager = new AbilityManager(this);
-        guiInfo = new BlocklingGuiInfo(-1, GuiHandler.STATS_ID, -1, -1, -1);
+        guiInfo = new BlocklingGuiInfo(-1, GuiHandler.STATS_ID, -1, "", -1);
     }
 
     public static <T extends Entity> T create(FMLPlayMessages.SpawnEntity packet, World world)
@@ -175,10 +175,20 @@ public class BlocklingEntity extends TameableEntity implements INamedContainerPr
         {
             if (!lastBlockPos.equals(getPosition()) || thousandTimer % 20 == 0)
             {
-                if (abilityManager.isBought(AbilityGroup.MINING, Abilities.Mining.FASTER_MINING_IN_DARK))
+                if (abilityManager.isBought(Abilities.Mining.FASTER_MINING_IN_DARK))
                 {
                     float light = world.getLight(getPosition());
                     stats.miningIntervalFasterMiningEnhancedAbilityModifier.setValue(((light / 15.0f) / 2.0f) + 0.5f);
+                }
+                if (abilityManager.isBought(Abilities.Woodcutting.FASTER_CHOPPING_IN_DARK))
+                {
+                    float light = world.getLight(getPosition());
+                    stats.woodcuttingIntervalFasterChoppingEnhancedAbilityModifier.setValue(((light / 15.0f) / 2.0f) + 0.5f);
+                }
+                if (abilityManager.isBought(Abilities.Farming.FASTER_FARMING_IN_DARK))
+                {
+                    float light = world.getLight(getPosition());
+                    stats.farmingIntervalFasterFarmingEnhancedAbilityModifier.setValue(((light / 15.0f) / 2.0f) + 0.5f);
                 }
 
                 lastBlockPos = getPosition();
@@ -359,6 +369,14 @@ public class BlocklingEntity extends TameableEntity implements INamedContainerPr
             {
                 stats.miningIntervalFasterMiningEnhancedAbilityModifier.setValue(((health / getMaxHealth()) / 2.0f) + 0.5f);
             }
+            if (abilityManager.getGroup(AbilityGroup.WOODCUTTING).getState(Abilities.Woodcutting.FASTER_CHOPPING_FOR_HEALTH) == AbilityState.BOUGHT)
+            {
+                stats.woodcuttingIntervalFasterChoppingEnhancedAbilityModifier.setValue(((health / getMaxHealth()) / 2.0f) + 0.5f);
+            }
+            if (abilityManager.getGroup(AbilityGroup.FARMING).getState(Abilities.Farming.FASTER_FARMING_FOR_HEALTH) == AbilityState.BOUGHT)
+            {
+                stats.farmingIntervalFasterFarmingEnhancedAbilityModifier.setValue(((health / getMaxHealth()) / 2.0f) + 0.5f);
+            }
         }
     }
 
@@ -530,9 +548,9 @@ public class BlocklingEntity extends TameableEntity implements INamedContainerPr
     public void openGui(PlayerEntity player, int guiId)
     {
         // TODO: CLEAN UP EXTRA PACKETS
-        openGui(player, guiId, -1, -1, guiInfo.utility);
+        openGui(player, guiId, -1, "", guiInfo.utility);
     }
-    public void openGui(PlayerEntity player, int guiId, int selectedGoalId, int abilityGroupId, int utility)
+    public void openGui(PlayerEntity player, int guiId, int selectedGoalId, String abilityGroupId, int utility)
     {
         // TODO: CLEAN UP EXTRA PACKETS
         int recentTab = Tab.hasTab(guiId) ? guiId : guiInfo.mostRecentTabbedGuiId;

@@ -7,6 +7,7 @@ import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.ItemStack;
 import willr27.blocklings.entity.blockling.BlocklingEntity;
+import willr27.blocklings.gui.container.containers.PlayerContainerListener;
 import willr27.blocklings.gui.slots.CraftingTableSlot;
 import willr27.blocklings.gui.slots.FurnaceFuelSlot;
 import willr27.blocklings.gui.slots.FurnaceOutputSlot;
@@ -36,7 +37,7 @@ public class UtilityContainer extends Container
 
         if (!player.world.isRemote)
         {
-            addListener(((ServerPlayerEntity)player));
+            addListener(new PlayerContainerListener((ServerPlayerEntity) player));
         }
 
         switch (blockling.getUtilityManager().getUtility(blockling.getGuiInfo().utility))
@@ -45,6 +46,12 @@ public class UtilityContainer extends Container
             case CRAFTING_TABLE: bindCraftingTable(); break;
             case FURNACE: bindFurnace(); break;
         }
+    }
+
+    @Override
+    public void detectAndSendChanges()
+    {
+        super.detectAndSendChanges();
     }
 
     private void bindChest()

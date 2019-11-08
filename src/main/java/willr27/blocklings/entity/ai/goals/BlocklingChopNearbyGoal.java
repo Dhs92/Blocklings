@@ -2,6 +2,7 @@ package willr27.blocklings.entity.ai.goals;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
 import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.inventory.InventoryHelper;
 import net.minecraft.item.ItemStack;
@@ -9,11 +10,15 @@ import net.minecraft.pathfinding.Path;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import willr27.blocklings.abilities.Abilities;
+import willr27.blocklings.block.BlockUtil;
 import willr27.blocklings.entity.ai.AIManager;
 import willr27.blocklings.entity.ai.AiUtil;
 import willr27.blocklings.entity.blockling.BlocklingEntity;
+import willr27.blocklings.inventory.InventoryUtil;
 import willr27.blocklings.item.DropUtil;
 import willr27.blocklings.item.ToolType;
+import willr27.blocklings.whitelist.BlocklingWhitelist;
 
 import java.util.*;
 
@@ -31,6 +36,8 @@ public class BlocklingChopNearbyGoal extends Goal
     private Set<BlockPos> tree = new LinkedHashSet<>();
     private BlockPos treeStartPos;
     private BlockPos movePos;
+
+    private float logsChopped = 0;
 
     public BlocklingChopNearbyGoal(BlocklingEntity blockling)
     {
@@ -51,6 +58,12 @@ public class BlocklingChopNearbyGoal extends Goal
         tree.clear();
         treeStartPos = null;
         resetTarget();
+        logsChopped = 0;
+
+        if (blockling.abilityManager.isBought(Abilities.Woodcutting.FASTER_CHOPPING_FOR_LOGS))
+        {
+            blockling.getStats().woodcuttingIntervalFasterChoppingEnhancedAbilityModifier.setValue(1.0f);
+        }
     }
 
     private void resetTarget()
@@ -103,17 +116,83 @@ public class BlocklingChopNearbyGoal extends Goal
                 if (blockling.hasFinishedAction())
                 {
                     BlockPos logPos = (BlockPos) tree.toArray()[tree.size() - 1];
+                    Block log = world.getBlockState(logPos).getBlock();
                     world.sendBlockBreakProgress(blockling.getEntityId(), logPos, -1);
 
                     ItemStack mainStack = blockling.isHoldingToolType(TOOL_TYPE, Hand.MAIN_HAND) ? blockling.getHeldItemMainhand() : ItemStack.EMPTY;
                     ItemStack offStack = blockling.isHoldingToolType(TOOL_TYPE, Hand.OFF_HAND) ? blockling.getHeldItemOffhand() : ItemStack.EMPTY;
                     List<ItemStack> drops = DropUtil.getDrops(blockling, logPos, mainStack, offStack);
                     addDropsToInventoryOrWorld(drops, logPos);
-                    mainStack.attemptDamageItem(1, new Random(), null);
-                    offStack.attemptDamageItem(1, new Random(), null);
+
+                    int itemDamage = blockling.abilityManager.isBought(Abilities.Woodcutting.FASTER_CHOPPING_FOR_DURABILITY) ? 2 : 1;
+                    mainStack.attemptDamageItem(itemDamage, new Random(), null);
+                    offStack.attemptDamageItem(itemDamage, new Random(), null);
 
                     world.destroyBlock(logPos, false);
                     tree.remove(logPos);
+
+                    if (tree.isEmpty() && blockling.abilityManager.isBought(Abilities.Woodcutting.REPLANTER))
+                    {
+                        Block belowBlock = world.getBlockState(logPos.down()).getBlock();
+                        if (belowBlock == Blocks.DIRT || belowBlock == Blocks.GRASS_BLOCK) // TODO: BlockUtil::isDirt
+                        {
+                            Block sapling = BlockUtil.getSapling(log);
+                            if (sapling != null)
+                            {
+                                BlocklingWhitelist whitelist = blockling.aiManager.getWhitelist(AIManager.CHOP_NEARBY_ID, AIManager.CHOP_NEARBY_LOGS_SAPLINGS_WHITELIST_ID);
+                                if (whitelist == null || whitelist.isInWhitelist(sapling))
+                                {
+                                    if (InventoryUtil.take(blockling, sapling.asItem()))
+                                    {
+                                        world.setBlockState(logPos, sapling.getDefaultState());
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    if (blockling.abilityManager.isBought(Abilities.Woodcutting.LEAF_BREAKER))
+                    {
+                        int radius = blockling.abilityManager.isBought(Abilities.Woodcutting.MORE_LEAVES_BROKEN) ? 3 : 2;
+
+                        int startX = logPos.getX() - (radius - 1);
+                        int startY = logPos.getY() - (radius - 1);
+                        int startZ = logPos.getZ() - (radius - 1);
+
+                        int endX = logPos.getX() + radius;
+                        int endY = logPos.getY() + radius;
+                        int endZ = logPos.getZ() + radius;
+
+                        for (int x = startX; x <= endX; x++)
+                        {
+                            for (int y = startY; y <= endY; y++)
+                            {
+                                for (int z = startZ; z <= endZ; z++)
+                                {
+                                    BlockPos surroundingPos = new BlockPos(x, y, z);
+                                    BlockState surroundingState = world.getBlockState(surroundingPos);
+                                    Block surroundingBlock = surroundingState.getBlock();
+
+                                    if (BlockUtil.isLeaf(surroundingBlock))
+                                    {
+                                        if (blockling.abilityManager.isBought(Abilities.Woodcutting.LEAF_DROP_GATHERER))
+                                        {
+                                            drops = DropUtil.getDrops(blockling, surroundingPos, mainStack, offStack);
+                                            addDropsToInventoryOrWorld(drops, surroundingPos);
+                                        }
+
+                                        world.destroyBlock(surroundingPos, false);
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    logsChopped++;
+                    if (blockling.abilityManager.isBought(Abilities.Woodcutting.FASTER_CHOPPING_FOR_LOGS))
+                    {
+                        blockling.getStats().woodcuttingIntervalFasterChoppingEnhancedAbilityModifier.setValue(Math.max(0.5f, 1.0f - (logsChopped / 66.0f)));
+                    }
 
                     blockling.getStats().woodcuttingXp.incBaseValue(blockling.random.nextInt(4) + 3);
                     blockling.setFinishedAction(false);
@@ -143,7 +222,7 @@ public class BlocklingChopNearbyGoal extends Goal
     {
         for (ItemStack stack : drops)
         {
-            ItemStack remainderStack = blockling.equipmentInventory.addItem(stack);
+            ItemStack remainderStack = InventoryUtil.add(blockling, stack);
             if (!remainderStack.isEmpty()) InventoryHelper.spawnItemStack(world, dropPos.getX() + 0.5, dropPos.getY() + 0.5, dropPos.getZ() + 0.5, remainderStack);
         }
     }
@@ -155,7 +234,8 @@ public class BlocklingChopNearbyGoal extends Goal
             BlockState targetState = world.getBlockState(movePos);
             Block targetBlock = targetState.getBlock();
 
-            if (blockling.aiManager.getWhitelist(AIManager.CHOP_NEARBY_ID, AIManager.CHOP_NEARBY_LOGS_WHITELIST_ID).isInBlacklist(targetBlock))
+            BlocklingWhitelist whitelist = blockling.aiManager.getWhitelist(AIManager.CHOP_NEARBY_ID, AIManager.CHOP_NEARBY_LOGS_LOGS_WHITELIST_ID);
+            if (!BlockUtil.isLog(targetBlock) || (whitelist != null && whitelist.isInBlacklist(targetBlock)))
             {
                 tree.remove(movePos);
                 resetTarget();
@@ -236,7 +316,8 @@ public class BlocklingChopNearbyGoal extends Goal
                         continue;
                     }
 
-                    if (blockling.aiManager.getWhitelist(AIManager.CHOP_NEARBY_ID, AIManager.CHOP_NEARBY_LOGS_WHITELIST_ID).isInWhitelist(testBlock))
+                    BlocklingWhitelist whitelist = blockling.aiManager.getWhitelist(AIManager.CHOP_NEARBY_ID, AIManager.CHOP_NEARBY_LOGS_LOGS_WHITELIST_ID);
+                    if ((whitelist == null && BlockUtil.isLog(testBlock)) || (whitelist != null && whitelist.isInWhitelist(testBlock)))
                     {
                         if (AiUtil.canSeeBlock(blockling, testPos))
                         {
@@ -306,7 +387,8 @@ public class BlocklingChopNearbyGoal extends Goal
                             continue;
                         }
 
-                        if (blockling.aiManager.getWhitelist(AIManager.CHOP_NEARBY_ID, AIManager.CHOP_NEARBY_LOGS_WHITELIST_ID).isInWhitelist(surroundingBlock))
+                        BlocklingWhitelist whitelist = blockling.aiManager.getWhitelist(AIManager.CHOP_NEARBY_ID, AIManager.CHOP_NEARBY_LOGS_LOGS_WHITELIST_ID);
+                        if ((whitelist == null && BlockUtil.isLog(surroundingBlock)) || (whitelist != null && whitelist.isInWhitelist(surroundingBlock)))
                         {
                             positionsToTest.add(surroundingPos);
                         }

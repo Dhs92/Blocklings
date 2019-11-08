@@ -8,7 +8,7 @@ import java.util.Arrays;
 
 public class Ability
 {
-    public int id;
+    public String id;
     public AbilityType type;
     public String name;
     public String description;
@@ -27,7 +27,7 @@ public class Ability
     {
     }
 
-    public void setGeneralInfo(int id, AbilityType type, String name, String description)
+    public void setGeneralInfo(String id, AbilityType type, String name, String description)
     {
         this.id = id;
         this.type = type;

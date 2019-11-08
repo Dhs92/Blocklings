@@ -11,12 +11,15 @@ import net.minecraft.pathfinding.Path;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import willr27.blocklings.abilities.Abilities;
 import willr27.blocklings.block.BlockUtil;
 import willr27.blocklings.entity.ai.AIManager;
 import willr27.blocklings.entity.ai.AiUtil;
 import willr27.blocklings.entity.blockling.BlocklingEntity;
+import willr27.blocklings.inventory.InventoryUtil;
 import willr27.blocklings.item.DropUtil;
 import willr27.blocklings.item.ToolType;
+import willr27.blocklings.whitelist.BlocklingWhitelist;
 
 import java.util.*;
 
@@ -32,6 +35,8 @@ public class BlocklingFarmCropsNearbyGoal extends Goal
 
     private Set<BlockPos> failedBlocks = new LinkedHashSet<>();
     private BlockPos targetPos;
+
+    private float cropsHarvested = 0;
 
     public BlocklingFarmCropsNearbyGoal(BlocklingEntity blockling)
     {
@@ -50,6 +55,12 @@ public class BlocklingFarmCropsNearbyGoal extends Goal
     public void resetTask()
     {
         resetTarget();
+        cropsHarvested = 0;
+
+        if (blockling.abilityManager.isBought(Abilities.Farming.FASTER_FARMING_FOR_CROPS))
+        {
+            blockling.getStats().farmingIntervalFasterFarmingEnhancedAbilityModifier.setValue(1.0f);
+        }
     }
 
     private void resetTarget()
@@ -104,10 +115,13 @@ public class BlocklingFarmCropsNearbyGoal extends Goal
                     ItemStack offStack = blockling.isHoldingToolType(TOOL_TYPE, Hand.OFF_HAND) ? blockling.getHeldItemOffhand() : ItemStack.EMPTY;
                     List<ItemStack> drops = DropUtil.getDrops(blockling, targetPos, mainStack, offStack);
                     addDropsToInventoryOrWorld(drops, targetPos);
-                    mainStack.attemptDamageItem(1, new Random(), null);
-                    offStack.attemptDamageItem(1, new Random(), null);
 
-                    if (blockling.aiManager.getWhitelist(AIManager.FARM_NEARBY_ID, AIManager.FARM_NEARBY_CROPS_SEEDS_WHITELIST_ID).isInWhitelist(seed))
+                    int itemDamage = blockling.abilityManager.isBought(Abilities.Farming.FASTER_FARMING_FOR_DURABILITY) ? 2 : 1;
+                    mainStack.attemptDamageItem(itemDamage, new Random(), null);
+                    offStack.attemptDamageItem(itemDamage, new Random(), null);
+
+                    BlocklingWhitelist whitelist = blockling.aiManager.getWhitelist(AIManager.FARM_NEARBY_ID, AIManager.FARM_NEARBY_CROPS_SEEDS_WHITELIST_ID);
+                    if ((whitelist == null && BlockUtil.isSeed(seed)) || (whitelist != null && whitelist.isInWhitelist(seed)))
                     {
                         int slot = blockling.equipmentInventory.find(seed);
                         if (slot != -1)
@@ -125,6 +139,12 @@ public class BlocklingFarmCropsNearbyGoal extends Goal
                         world.destroyBlock(targetPos, false);
                     }
                     resetTarget();
+
+                    cropsHarvested++; // TODO: WON'T WORK, ALWAYS RESETS
+                    if (blockling.abilityManager.isBought(Abilities.Farming.FASTER_FARMING_FOR_CROPS))
+                    {
+                        blockling.getStats().farmingIntervalFasterFarmingEnhancedAbilityModifier.setValue(Math.max(0.5f, 1.0f - (cropsHarvested / 66.0f)));
+                    }
 
                     blockling.getStats().farmingXp.incBaseValue(blockling.random.nextInt(4) + 3);
                     blockling.setFinishedAction(false);
@@ -147,7 +167,7 @@ public class BlocklingFarmCropsNearbyGoal extends Goal
     {
         for (ItemStack stack : drops)
         {
-            ItemStack remainderStack = blockling.equipmentInventory.addItem(stack);
+            ItemStack remainderStack = InventoryUtil.add(blockling, stack);
             if (!remainderStack.isEmpty()) InventoryHelper.spawnItemStack(world, dropPos.getX() + 0.5, dropPos.getY() + 0.5, dropPos.getZ() + 0.5, remainderStack);
         }
     }
@@ -217,7 +237,8 @@ public class BlocklingFarmCropsNearbyGoal extends Goal
                         continue;
                     }
 
-                    if (blockling.aiManager.getWhitelist(AIManager.FARM_NEARBY_ID, AIManager.FARM_NEARBY_CROPS_CROPS_WHITELIST_ID).isInWhitelist(testBlock))
+                    BlocklingWhitelist whitelist = blockling.aiManager.getWhitelist(AIManager.FARM_NEARBY_ID, AIManager.FARM_NEARBY_CROPS_CROPS_WHITELIST_ID);
+                    if ((whitelist == null && BlockUtil.isCrop(testBlock)) || (whitelist != null && whitelist.isInWhitelist(testBlock)))
                     {
                         if (!BlockUtil.isGrown(testState))
                         {

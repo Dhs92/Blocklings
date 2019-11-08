@@ -55,6 +55,7 @@ public class Blocklings
     private void setup(final FMLCommonSetupEvent event)
     {
         NetworkHandler.init();
+        BlocklingsConfig.load();
     }
 
     private void doClientStuff(final FMLClientSetupEvent e)

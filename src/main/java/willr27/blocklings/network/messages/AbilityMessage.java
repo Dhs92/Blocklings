@@ -15,9 +15,9 @@ import java.util.function.Supplier;
 
 public class AbilityMessage implements IMessage
 {
-    int abilityId;
+    String abilityId;
     int stateOrdinal;
-    int groupId;
+    String groupId;
     int entityId;
 
     private AbilityMessage() {}
@@ -31,18 +31,18 @@ public class AbilityMessage implements IMessage
 
     public static void encode(AbilityMessage msg, PacketBuffer buf)
     {
-        buf.writeInt(msg.abilityId);
+        buf.writeString(msg.abilityId);
         buf.writeInt(msg.stateOrdinal);
-        buf.writeInt(msg.groupId);
+        buf.writeString(msg.groupId);
         buf.writeInt(msg.entityId);
     }
 
     public static AbilityMessage decode(PacketBuffer buf)
     {
         AbilityMessage msg = new AbilityMessage();
-        msg.abilityId = buf.readInt();
+        msg.abilityId = buf.readString();
         msg.stateOrdinal = buf.readInt();
-        msg.groupId = buf.readInt();
+        msg.groupId = buf.readString();
         msg.entityId = buf.readInt();
 
         return msg;

@@ -12,7 +12,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.util.text.StringTextComponent;
-import willr27.blocklings.entity.ai.AIManager;
+import willr27.blocklings.entity.ai.goals.GoalInfo;
 import willr27.blocklings.entity.blockling.BlocklingEntity;
 import willr27.blocklings.gui.util.GuiUtil;
 import willr27.blocklings.whitelist.BlocklingWhitelist;
@@ -27,7 +27,7 @@ public class WhitelistScreen extends Screen
     private int contentLeft, contentTop;
 
     private BlocklingWhitelist whitelist;
-    private int[] whitelists;
+    private Integer[] whitelists;
     private int whitelistPage;
 
     public WhitelistScreen(BlocklingEntity blockling, PlayerEntity player)
@@ -50,7 +50,8 @@ public class WhitelistScreen extends Screen
         contentTop = top;
 
         whitelistPage = 0;
-        whitelists = AIManager.getWhitelistIdsForGoal(blockling.getGuiInfo().currentlySelectedGoalId);
+        GoalInfo goal = blockling.aiManager.getGoalFromId(blockling.getGuiInfo().currentlySelectedGoalId);
+        whitelists = goal.getWhitelists().keySet().toArray(new Integer[goal.getWhitelists().keySet().size()]);
         whitelist = blockling.aiManager.getWhitelist(whitelists[whitelistPage]);
 
         maxPages = (int) Math.ceil(whitelist.size() / (float) ENTRIES_PER_PAGE);

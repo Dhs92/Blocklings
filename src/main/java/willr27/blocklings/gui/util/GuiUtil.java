@@ -24,9 +24,22 @@ public class GuiUtil
     public static final ResourceLocation CHEST = new BlocklingsResourceLocation("textures/gui/utilities/chest.png");
     public static final ResourceLocation CRAFTING_TABLE = new BlocklingsResourceLocation("textures/gui/utilities/crafting_table.png");
     public static final ResourceLocation FURNACE = new BlocklingsResourceLocation("textures/gui/utilities/furnace.png");
+
     public static final ResourceLocation ABILITIES = new BlocklingsResourceLocation("textures/gui/abilities.png");
     public static final ResourceLocation ABILITIES_WIDGETS = new BlocklingsResourceLocation("textures/gui/abilities_widgets.png");
+
+    public static final ResourceLocation GENERAL_ICONS = new BlocklingsResourceLocation("textures/gui/abilities_icons/general.png");
+    public static final ResourceLocation COMBAT_ICONS = new BlocklingsResourceLocation("textures/gui/abilities_icons/combat.png");
+    public static final ResourceLocation MINING_ICONS = new BlocklingsResourceLocation("textures/gui/abilities_icons/mining.png");
+    public static final ResourceLocation WOODCUTTING_ICONS = new BlocklingsResourceLocation("textures/gui/abilities_icons/woodcutting.png");
+    public static final ResourceLocation FARMING_ICONS = new BlocklingsResourceLocation("textures/gui/abilities_icons/farming.png");
+
+    public static final ResourceLocation GENERAL_BACKGROUND = new BlocklingsResourceLocation("textures/gui/abilities_backgrounds/general.png");
+    public static final ResourceLocation COMBAT_BACKGROUND = new BlocklingsResourceLocation("textures/gui/abilities_backgrounds/combat.png");
     public static final ResourceLocation MINING_BACKGROUND = new BlocklingsResourceLocation("textures/gui/abilities_backgrounds/mining.png");
+    public static final ResourceLocation WOODCUTTING_BACKGROUND = new BlocklingsResourceLocation("textures/gui/abilities_backgrounds/woodcutting.png");
+    public static final ResourceLocation FARMING_BACKGROUND = new BlocklingsResourceLocation("textures/gui/abilities_backgrounds/farming.png");
+
     public static final ResourceLocation WHITELIST = new BlocklingsResourceLocation("textures/gui/whitelist.png");
 
     public static void bindTexture(ResourceLocation texture)

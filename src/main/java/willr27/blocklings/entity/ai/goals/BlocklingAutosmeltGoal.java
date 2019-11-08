@@ -7,7 +7,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraftforge.common.ForgeHooks;
 import willr27.blocklings.abilities.Abilities;
-import willr27.blocklings.abilities.AbilityGroup;
 import willr27.blocklings.block.BlockUtil;
 import willr27.blocklings.entity.ai.AIManager;
 import willr27.blocklings.entity.blockling.BlocklingEntity;
@@ -177,7 +176,7 @@ public class BlocklingAutosmeltGoal extends WaterAvoidingRandomWalkingGoal
             {
                 if (BlockUtil.isOre(item) && FurnaceInventory.isSmeltable(blockling.world, stack))
                 {
-                    if (blockling.abilityManager.isBought(AbilityGroup.MINING, Abilities.Mining.AUTOSMELT_WHITELIST))
+                    if (blockling.abilityManager.isBought(Abilities.Mining.AUTOSMELT_WHITELIST))
                     {
                         Block ore = BlockUtil.getOre(item);
                         if (ore == null || blockling.aiManager.getWhitelist(AIManager.AUTOMSELT_ID, AIManager.AUTOMSELT_ORES_WHITELIST_ID).isInBlacklist(ore))
@@ -207,7 +206,7 @@ public class BlocklingAutosmeltGoal extends WaterAvoidingRandomWalkingGoal
                 {
                     if (BlockUtil.isOre(item) && FurnaceInventory.isSmeltable(blockling.world, stack))
                     {
-                        if (blockling.abilityManager.isBought(AbilityGroup.MINING, Abilities.Mining.AUTOSMELT_WHITELIST))
+                        if (blockling.abilityManager.isBought(Abilities.Mining.AUTOSMELT_WHITELIST))
                         {
                             Block ore = BlockUtil.getOre(item);
                             if (ore == null || blockling.aiManager.getWhitelist(AIManager.AUTOMSELT_ID, AIManager.AUTOMSELT_ORES_WHITELIST_ID).isInBlacklist(ore))
@@ -237,7 +236,7 @@ public class BlocklingAutosmeltGoal extends WaterAvoidingRandomWalkingGoal
                 {
                     if (BlockUtil.isOre(item) && FurnaceInventory.isSmeltable(blockling.world, stack))
                     {
-                        if (blockling.abilityManager.isBought(AbilityGroup.MINING, Abilities.Mining.AUTOSMELT_WHITELIST))
+                        if (blockling.abilityManager.isBought(Abilities.Mining.AUTOSMELT_WHITELIST))
                         {
                             Block ore = BlockUtil.getOre(item);
                             if (ore == null || blockling.aiManager.getWhitelist(AIManager.AUTOMSELT_ID, AIManager.AUTOMSELT_ORES_WHITELIST_ID).isInBlacklist(ore))

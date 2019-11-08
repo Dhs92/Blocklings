@@ -178,6 +178,8 @@ public class AbilitiesGui extends AbstractGui
             GlStateManager.pushMatrix();
             if (isHover) GlStateManager.translatef(0.0f, 0.0f, 20.0f);
 
+            GuiUtil.bindTexture(GuiUtil.ABILITIES_WIDGETS);
+
             AbilityState state = abilityGroup.getState(ability);
             Color colour = new Color(state.colour);
             if (ability == selectedAbility) GlStateManager.color3f(0.7f, 1.0f, 0.7f);
@@ -191,11 +193,13 @@ public class AbilitiesGui extends AbstractGui
             if (isHover) abilityWidget.render(mouseX, mouseY);
             else abilityWidget.render(mouseX, mouseY, left, right, top, bottom);
 
+            GuiUtil.bindTexture(abilityGroup.icons);
+
             if (state == AbilityState.LOCKED) GlStateManager.color3f(0.0f, 0.0f, 0.0f);
             else if (abilityGroup.hasConflict(ability)) GlStateManager.color3f(0.8f, 0.4f, 0.4f);
             else if (state == AbilityState.UNLOCKED && !blockling.abilityManager.canBuyAbility(abilityGroup, ability)) GlStateManager.color3f(0.9f, 0.6f, 0.6f);
             else  GlStateManager.color3f(1.0f, 1.0f, 1.0f);
-            abilityWidget = new AbilityWidget(font, ability.x + x, ability.y + y, ABILITY_SIZE, ABILITY_SIZE, ability.textureX * ABILITY_SIZE, (ability.textureY + 1) * ABILITY_SIZE);
+            abilityWidget = new AbilityWidget(font, ability.x + x, ability.y + y, ABILITY_SIZE, ABILITY_SIZE, ability.textureX * ABILITY_SIZE, ability.textureY * ABILITY_SIZE);
             if (isHover) abilityWidget.render(mouseX, mouseY);
             else abilityWidget.render(mouseX, mouseY, left, right, top, bottom);
 
@@ -313,7 +317,7 @@ public class AbilitiesGui extends AbstractGui
 
     private void drawBackground()
     {
-        GuiUtil.bindTexture(GuiUtil.MINING_BACKGROUND);
+        GuiUtil.bindTexture(abilityGroup.background);
 
         int tileTextureX = 0;
         int tileTextureY = 0;

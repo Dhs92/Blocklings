@@ -9,7 +9,6 @@ import net.minecraft.item.crafting.IRecipeType;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeHooks;
 import willr27.blocklings.abilities.Abilities;
-import willr27.blocklings.abilities.AbilityGroup;
 import willr27.blocklings.entity.blockling.BlocklingEntity;
 import willr27.blocklings.utilities.Utility;
 
@@ -76,7 +75,7 @@ public class FurnaceInventory extends UtilityInventory
                             addItem(resultStack.copy(), OUTPUT_SLOT);
                             decrStackSize(INPUT_SLOT, 1);
 
-                            if (blockling.abilityManager.isBought(AbilityGroup.MINING, Abilities.Mining.AUTOSMELT_XP))
+                            if (blockling.abilityManager.isBought(Abilities.Mining.AUTOSMELT_XP))
                             {
                                 if (recipe instanceof AbstractCookingRecipe)
                                 {
@@ -147,7 +146,7 @@ public class FurnaceInventory extends UtilityInventory
                 else
                 {
                     int amount = 1;
-                    if (blockling.abilityManager.isBought(AbilityGroup.MINING, Abilities.Mining.FUEL_EFFICIENT))
+                    if (blockling.abilityManager.isBought(Abilities.Mining.FUEL_EFFICIENT))
                     {
                         if (blockling.random.nextInt(2) == 0)
                         {

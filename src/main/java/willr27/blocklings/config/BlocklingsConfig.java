@@ -5,6 +5,8 @@ import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import com.electronwill.nightconfig.core.io.WritingMode;
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.registry.Registry;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -34,7 +36,7 @@ public class BlocklingsConfig
 
     private static ForgeConfigSpec.ConfigValue<List<String>> entities;
     private static ForgeConfigSpec.ConfigValue<List<String>> ores;
-    private static ForgeConfigSpec.ConfigValue<List<String>> logs;
+    private static ForgeConfigSpec.ConfigValue<List<String>> logsSaplings;
     private static ForgeConfigSpec.ConfigValue<List<String>> cropsSeeds;
 
     public static List<String> getEntities()
@@ -53,9 +55,17 @@ public class BlocklingsConfig
     {
         return ores.get();
     }
-    public static List<String> getLogs()
+    public static Map<String, String> getLogsSaplings()
     {
-        return logs.get();
+        Map<String, String> returnMap = new HashMap<>();
+        List<String> logsToSaplings = logsSaplings.get(); // TODO: CACHE
+        for (String entry : logsToSaplings)
+        {
+            String log = entry.split(";")[0];
+            String sapling = entry.split(";")[1];
+            returnMap.put(log, sapling);
+        }
+        return returnMap;
     }
     public static Map<String, String> getCropsSeeds()
     {
@@ -75,10 +85,18 @@ public class BlocklingsConfig
         COMMON_BUILDER.push(CATEGORY_GENERAL);
 
         ores = COMMON_BUILDER.define("ores", BlockUtil.ORES.stream().map(block -> block.getRegistryName().toString()).collect(Collectors.toList()));
-        logs = COMMON_BUILDER.define("logs", BlockUtil.LOGS.stream().map(block -> block.getRegistryName().toString()).collect(Collectors.toList()));
+
+        List<String> logsToSaplings = new ArrayList<>();
+        for (Map.Entry<Block, Block> entry : BlockUtil.LOGS_SAPLINGS.entrySet())
+        {
+            String log = entry.getKey().getRegistryName().toString();
+            String sapling = entry.getValue().getRegistryName().toString();
+            logsToSaplings.add(log + ";" + sapling);
+        }
+        logsSaplings = COMMON_BUILDER.define("logs_saplings", logsToSaplings);
 
         List<String> cropsToSeeds = new ArrayList<>();
-        for (Map.Entry<Block, Item>  entry : BlockUtil.CROPS_SEEDS.entrySet())
+        for (Map.Entry<Block, Item> entry : BlockUtil.CROPS_SEEDS.entrySet())
         {
             String crop = entry.getKey().getRegistryName().toString();
             String seed = entry.getValue().getRegistryName().toString();
@@ -112,15 +130,37 @@ public class BlocklingsConfig
         spec.setConfig(configData);
     }
 
+    public static void load()
+    {
+        BlockUtil.ORES.clear();
+        BlockUtil.ORES.addAll(ores.get().stream().map(s -> Registry.BLOCK.getOrDefault(new ResourceLocation(s))).collect(Collectors.toList()));
+
+        Map<String, String> logsSaplings = getLogsSaplings();
+        BlockUtil.LOGS_SAPLINGS.clear();
+        for (String log : logsSaplings.keySet())
+        {
+            String sapling = logsSaplings.get(log);
+            BlockUtil.LOGS_SAPLINGS.put(Registry.BLOCK.getOrDefault(new ResourceLocation(log)), Registry.BLOCK.getOrDefault(new ResourceLocation(sapling)));
+        }
+
+        Map<String, String> cropsSeeds = getCropsSeeds();
+        BlockUtil.CROPS_SEEDS.clear();
+        for (String crop : cropsSeeds.keySet())
+        {
+            String seed = cropsSeeds.get(crop);
+            BlockUtil.CROPS_SEEDS.put(Registry.BLOCK.getOrDefault(new ResourceLocation(crop)), Registry.ITEM.getOrDefault(new ResourceLocation(seed)));
+        }
+    }
+
     @SubscribeEvent
     public static void onLoad(final ModConfig.Loading configEvent)
     {
-
+        load();
     }
 
     @SubscribeEvent
     public static void onReload(final ModConfig.ConfigReloading configEvent)
     {
-
+        load();
     }
 }
